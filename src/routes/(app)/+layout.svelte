@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import SiteHeader from '$lib/components/page/site-header.svelte';
+	import { Toaster } from '$lib/components/ui/sonner';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -8,6 +9,7 @@
 	const hasAdditionalPath = $derived(() => page.url.pathname !== '/');
 </script>
 
+<Toaster richColors />
 {#if hasAdditionalPath()}
 	<SiteHeader />
 {/if}

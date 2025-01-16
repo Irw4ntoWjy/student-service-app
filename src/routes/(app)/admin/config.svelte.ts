@@ -3,7 +3,16 @@ import { goto } from '$app/navigation';
 import { dateTimeFormatString } from '$lib/utils';
 import type { LoadMenuSchema } from '../menu-services/menu-schema';
 import DataTableActionColumn from '$lib/components/page/data-table/data-table-action-column.svelte';
-import { createTable, getCoreRowModel, getPaginationRowModel, renderComponent, type ColumnDef, type ColumnSort, type Table } from '$lib/components/page/tanstack-table';
+import {
+	createTable,
+	getCoreRowModel,
+	getPaginationRowModel,
+	renderComponent,
+	type ColumnDef,
+	type ColumnSort,
+	type Table
+} from '$lib/components/page/tanstack-table';
+import DataTableBadgeCell from '$lib/components/page/data-table/data-table-badge-cell.svelte';
 
 export default function createTableState(pageUrl: string, data: LoadMenuSchema[]) {
 	let results = $state(data);
@@ -34,6 +43,22 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 	};
 
 	let openEditDialog: boolean = $state(false);
+
+	// model to contains menu data when click edit button
+	type EditMenuType = {
+		id: number | undefined;
+		menuName: string | undefined;
+		menuDescription: string | undefined;
+		imageName: string | undefined;
+	};
+
+	let editMenuData: EditMenuType = $state({
+		id: undefined,
+		menuName: undefined,
+		menuDescription: undefined,
+		imageName: undefined
+	});
+
 	const columns: ColumnDef<LoadMenuSchema>[] = [
 		{
 			id: 'name',
@@ -58,9 +83,15 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 			header: () => 'Status',
 			cell: ({ row }) => {
 				if (row.original.status) {
-					return 'Aktif';
+					return renderComponent(DataTableBadgeCell, {
+						variant: 'default',
+						value: 'Aktif'
+					});
 				} else {
-					return 'Tidak Aktif';
+					return renderComponent(DataTableBadgeCell, {
+						variant: 'destructive',
+						value: 'Tidak Aktif'
+					});
 				}
 			},
 			size: 75
@@ -81,17 +112,22 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 			id: 'actionsColumn',
 			header: ' ',
 			size: 100,
-			cell: () => {
+			cell: ({ row }) => {
 				return renderComponent(DataTableActionColumn, {
 					single: {
 						Pencil: {
 							onClick: () => {
+								editMenuData = {
+									id: row.original.id,
+									menuName: row.original.name,
+									menuDescription: row.original.description,
+									imageName: row.original.imagePath
+								};
 								openEditDialog = true;
 							}
 						},
 						Trash2: {
-							onClick: () => {
-							}
+							onClick: () => {}
 						}
 					}
 				});
@@ -128,6 +164,12 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 		},
 		set openEditDialog(state) {
 			openEditDialog = state;
+		},
+		get editMenuData() {
+			return editMenuData;
+		},
+		set editMenuData(data) {
+			editMenuData = data;
 		}
 	};
 }

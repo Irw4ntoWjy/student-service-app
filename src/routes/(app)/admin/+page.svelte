@@ -12,6 +12,7 @@
 	import { type InsertUpdateMenuSchema } from '../menu-services/menu-schema';
 	import DataTable from '$lib/components/page/data-table/data-table.svelte';
 	import MenuCard from '$lib/components/page/menu-card.svelte';
+	import { toast } from 'svelte-sonner';
 
 	let { data }: { data: PageData } = $props();
 
@@ -31,31 +32,54 @@
 		imageName: undefined
 	});
 
-	const onFileSelected = async (event: Event) => {
-		const input = event.target as HTMLInputElement;
-		if (input.files && input.files[0]) {
-			const file = input.files[0];
-			const reader = new FileReader();
+	$effect(() => {
+		if (tableState.openEditDialog && !isEditMenuDataEmpty() && !formModel.id) {
+			formModel.id = tableState.editMenuData.id ?? 0;
+			formModel.name = tableState.editMenuData.menuName ?? '';
+			formModel.description = tableState.editMenuData.menuDescription ?? '';
+			formModel.imageBase64 = `uploads/${tableState.editMenuData.imageName}`;
+		}
+	});
 
-			reader.readAsDataURL(file);
+	const convertImageToBase64 = async (file: File): Promise<string> => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
 			reader.onload = (e) => {
 				if (e.target && e.target.result) {
-					formModel.imageBase64 = e.target.result.toString();
-					formModel.imageName = file.name;
+					resolve(e.target.result.toString());
+				} else {
+					reject('Error: Unable to convert file to base64');
 				}
 			};
+			reader.onerror = () => {
+				reject('Error: File reading failed');
+			};
+			reader.readAsDataURL(file);
+		});
+	};
+
+	// handle when user upload image
+	const onImageSelected = async (event: Event) => {
+		const input = event.target as HTMLInputElement;
+		if (input.files && input.files[0]) {
+			const base64 = await convertImageToBase64(input.files[0]);
+
+			formModel.imageBase64 = base64;
+			formModel.imageName = input.files[0].name;
 		}
 	};
 
 	const handleSubmit = async (event: Event) => {
 		event.preventDefault();
 
+		// id = 0 create id != 0 update
 		const formData = new FormData();
 		formData.append('id', String(formModel.id));
 		formData.append('name', formModel.name);
 		formData.append('description', formModel.description);
 		formData.append('image', formModel.imageBase64 ?? '');
 		formData.append('imageName', formModel.imageName ?? '');
+		console.log(formModel.id);
 
 		const response = await fetch('?/submitForm', {
 			method: 'POST',
@@ -63,16 +87,28 @@
 		});
 
 		if (response.ok) {
-			tableState.openEditDialog = false;
 			await invalidateAll();
+			tableState.openEditDialog = false;
+			toast.success('Berhasil Menambahkan Menu Baru');
 		} else {
-			console.log('not ok');
+			tableState.openEditDialog = false;
+			toast.error('Gagal untuk Menambahkan Menu Baru');
 		}
 	};
 
+	// validation logic
 	const isFormModelFilled = () => {
 		return (
 			formModel.name.trim() !== '' || formModel.description.trim() !== '' || !!formModel.imageBase64
+		);
+	};
+
+	const isEditMenuDataEmpty = () => {
+		return (
+			tableState.editMenuData.id === undefined &&
+			tableState.editMenuData.menuName === undefined &&
+			tableState.editMenuData.menuDescription === undefined &&
+			tableState.editMenuData.imageName === undefined
 		);
 	};
 </script>
@@ -91,12 +127,36 @@
 	<DataTable table={tableState.table} toggleSorting={tableState.toggleSorting} />
 </div>
 
-<Dialog.Root bind:open={tableState.openEditDialog}>
+<Dialog.Root
+	bind:open={tableState.openEditDialog}
+	onOpenChange={() => {
+		tableState.editMenuData = {
+			id: undefined,
+			menuName: undefined,
+			menuDescription: undefined,
+			imageName: undefined
+		};
+
+		formModel = {
+			id: 0,
+			name: '',
+			description: '',
+			imageBase64: undefined,
+			imageName: undefined
+		};
+	}}
+>
 	<Dialog.Content class={isFormModelFilled() ? 'max-w-4xl' : 'max-w-lg'}>
 		<Dialog.Header>
-			<Dialog.Title>Tambah Menu Student Services</Dialog.Title>
+			<Dialog.Title
+				>{isEditMenuDataEmpty()
+					? 'Tambah Menu Student Services'
+					: `Edit Menu ${tableState.editMenuData.menuName}`}</Dialog.Title
+			>
 			<Dialog.Description>
-				Isi kotak dibawah untuk menambahkan menu student services yang baru
+				{isEditMenuDataEmpty()
+					? 'Isi kotak dibawah untuk menambahkan menu student services yang baru'
+					: 'Ubah kotak dibawah untuk mengubah data dari menu ini'}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Separator orientation="horizontal" />
@@ -107,7 +167,7 @@
 					<MenuCard
 						title={formModel.name}
 						description={formModel.description}
-						src={formModel.imageBase64}
+						{...formModel.imageBase64 && { src: formModel.imageBase64 }}
 					/>
 				{/if}
 				<div class="flex flex-col gap-4">
@@ -138,7 +198,7 @@
 								type="file"
 								accept=".jpg, .jpeg, .png, image/*"
 								class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-								onchange={onFileSelected}
+								onchange={onImageSelected}
 							/>
 							<div
 								class="flex cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 hover:bg-gray-50"
@@ -149,7 +209,9 @@
 						</div>
 					</div>
 
-					<Button type="submit" variant="default">Tambah</Button>
+					<Button type="submit" variant="default"
+						>{isEditMenuDataEmpty() ? 'Tambah' : 'Ubah'}</Button
+					>
 				</div>
 			</div>
 		</form>

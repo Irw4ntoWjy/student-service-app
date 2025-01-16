@@ -7,7 +7,7 @@
 		description,
 		src,
 		onClick
-	}: { title: string; description: string; src: string | undefined; onClick?: () => void } =
+	}: { title: string; description: string; src?: string | undefined; onClick?: () => void } =
 		$props();
 </script>
 

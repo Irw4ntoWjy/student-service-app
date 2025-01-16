@@ -19,5 +19,5 @@
 	)}
 	{...restProps}
 >
-	{@render children?.()}
+	<span class="text-sm font-normal">{@render children?.()}</span>
 </td>

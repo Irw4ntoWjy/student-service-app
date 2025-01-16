@@ -15,6 +15,15 @@ export const initTable = async () => {
             )            
         `;
 		await sql`
+            create table if not exists menu_detail (
+                id SERIAL PRIMARY KEY,
+                status varchar(10) not null,
+                menu_id int4 not null references menu(id) on delete cascade on update cascade,
+                created_at timestamp default NOW(),
+                last_updated_at timestamp
+            )            
+        `;
+		await sql`
             create table if not exists appoinment (
                 id SERIAL PRIMARY KEY,
                 status varchar(10) not null,
@@ -45,7 +54,7 @@ export const insertMenu = async (model: InsertUpdateMenuSchema) => {
 export const getAllMenu = async (): Promise<LoadMenuSchema[]> => {
 	try {
 		const { rows } = await sql`
-            SELECT 
+            select 
                 id, 
                 name, 
                 description,
@@ -53,8 +62,9 @@ export const getAllMenu = async (): Promise<LoadMenuSchema[]> => {
                 status, 
                 created_at AS "createdAt", 
                 last_updated_at AS "lastUpdatedAt"
-            FROM menu 
-            WHERE status = true
+            from menu 
+            order by created_at desc
+
         `;
 		return rows as LoadMenuSchema[];
 	} catch (error) {

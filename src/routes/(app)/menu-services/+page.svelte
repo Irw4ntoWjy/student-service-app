@@ -5,7 +5,6 @@
 
 	let { data }: { data: PageData } = $props();
 
-	$inspect(data.loadPage)
 </script>
 
 <div class="mt-4 grid grid-cols-4 items-center justify-items-center gap-8">

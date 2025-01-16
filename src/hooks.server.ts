@@ -1,11 +1,14 @@
-import type { ServerInit } from '@sveltejs/kit';
 import dotenv from 'dotenv';
+import { initTable } from "$lib/server/sql";
+import type { ServerInit } from "@sveltejs/kit";
 
 export const init: ServerInit = async () => {
-	dotenv.config();
+    dotenv.config();
 
-	const connectionString = process.env.DATABASE_URL;
-	if (!connectionString) {
-		throw new Error('Missing connection string');
-	}
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+        throw new Error('Missing connection string');
+    }
+    
+    await initTable();
 };

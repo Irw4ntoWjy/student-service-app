@@ -8,10 +8,10 @@
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import { CirclePlus, Upload } from 'lucide-svelte';
 	import type { PageData } from './$types';
-	import CardDisplay from './card-display.svelte';
 	import createTableState from './config.svelte';
 	import { type InsertUpdateMenuSchema } from '../menu-services/menu-schema';
 	import DataTable from '$lib/components/page/data-table/data-table.svelte';
+	import MenuCard from '$lib/components/page/menu-card.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -104,7 +104,7 @@
 			<div class="grid {isFormModelFilled() ? 'grid-cols-2' : 'grid-cols-1'}  gap-8">
 				{#if isFormModelFilled()}
 					<!-- NOTE: kalau misalnya deskripsinya panjang untuk bagian menu, pembatasan upload file, batasan format file-->
-					<CardDisplay
+					<MenuCard
 						title={formModel.name}
 						description={formModel.description}
 						src={formModel.imageBase64}

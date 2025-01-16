@@ -1,5 +1,5 @@
 import { sql } from '@vercel/postgres';
-import type { InsertUpdateMenuSchema, LoadMenuSchema } from '../../routes/(app)/home/menu-schema';
+import type { InsertUpdateMenuSchema, LoadMenuSchema } from '../../routes/(app)/menu-services/menu-schema';
 
 export const initTable = async () => {
 	try {

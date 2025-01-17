@@ -16,6 +16,7 @@ export const insertUpdateMenuSchema = z.object({
 	name: z.string(),
 	description: z.string(),
 	imageBase64: z.string().optional(),
-	imageName: z.string().optional()
+	imageName: z.string().optional(),
+	status: z.boolean().optional()
 });
 export type InsertUpdateMenuSchema = z.infer<typeof insertUpdateMenuSchema>;

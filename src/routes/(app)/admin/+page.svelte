@@ -1,18 +1,19 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
+	import DataTable from '$lib/components/page/data-table/data-table.svelte';
+	import MenuCard from '$lib/components/page/menu-card.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Input } from '$lib/components/ui/input';
 	import Label from '$lib/components/ui/label/label.svelte';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import Switch from '$lib/components/ui/switch/switch.svelte';
 	import { CirclePlus, Upload } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { type InsertUpdateMenuSchema } from '../menu-services/menu-schema';
 	import type { PageData } from './$types';
 	import createTableState from './config.svelte';
-	import { type InsertUpdateMenuSchema } from '../menu-services/menu-schema';
-	import DataTable from '$lib/components/page/data-table/data-table.svelte';
-	import MenuCard from '$lib/components/page/menu-card.svelte';
-	import { toast } from 'svelte-sonner';
 
 	let { data }: { data: PageData } = $props();
 
@@ -29,7 +30,8 @@
 		name: '',
 		description: '',
 		image: undefined,
-		imageName: undefined
+		imageName: undefined,
+		status: true
 	});
 
 	$effect(() => {
@@ -38,6 +40,7 @@
 			formModel.name = tableState.editMenuData.menuName ?? '';
 			formModel.description = tableState.editMenuData.menuDescription ?? '';
 			formModel.imageBase64 = `uploads/${tableState.editMenuData.imageName}`;
+			formModel.status = tableState.editMenuData.status;
 		}
 	});
 
@@ -72,27 +75,41 @@
 	const handleSubmit = async (event: Event) => {
 		event.preventDefault();
 
-		// id = 0 create id != 0 update
 		const formData = new FormData();
 		formData.append('id', String(formModel.id));
 		formData.append('name', formModel.name);
 		formData.append('description', formModel.description);
 		formData.append('image', formModel.imageBase64 ?? '');
 		formData.append('imageName', formModel.imageName ?? '');
-		console.log(formModel.id);
+		formData.append('status', String(formModel.status));
 
-		const response = await fetch('?/submitForm', {
-			method: 'POST',
-			body: formData
-		});
+		if (!formModel.id) {
+			const response = await fetch('?/submitForm', {
+				method: 'POST',
+				body: formData
+			});
 
-		if (response.ok) {
-			await invalidateAll();
-			tableState.openEditDialog = false;
-			toast.success('Berhasil Menambahkan Menu Baru');
+			if (response.ok) {
+				await invalidateAll();
+				tableState.openEditDialog = false;
+				toast.success('Berhasil Menambahkan Menu Baru');
+			} else {
+				toast.error('Gagal untuk Menambahkan Menu Baru');
+			}
 		} else {
-			tableState.openEditDialog = false;
-			toast.error('Gagal untuk Menambahkan Menu Baru');
+			const response = await fetch('?/updateForm', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (response.ok) {
+				await invalidateAll();
+				resetModel();
+				tableState.openEditDialog = false;
+				toast.success('Berhasil Mengubah Data Menu');
+			} else {
+				toast.error('Gagal untuk Mengubah Data Menu');
+			}
 		}
 	};
 
@@ -111,10 +128,30 @@
 			tableState.editMenuData.imageName === undefined
 		);
 	};
+
+	const resetModel = () => {
+		tableState.editMenuData = {
+			id: undefined,
+			menuName: undefined,
+			menuDescription: undefined,
+			imageName: undefined,
+			status: true
+		};
+
+		formModel = {
+			id: 0,
+			name: '',
+			description: '',
+			imageBase64: undefined,
+			imageName: undefined,
+			status: true
+		};
+	};
 </script>
 
 <div class="flex flex-col gap-4">
-	<div class="flex justify-end">
+	<div class="flex justify-between">
+		<Input class="w-fit" placeholder="Cari menu" />
 		<Button
 			class="h-10 items-center border md:w-auto"
 			variant="ghost"
@@ -130,20 +167,7 @@
 <Dialog.Root
 	bind:open={tableState.openEditDialog}
 	onOpenChange={() => {
-		tableState.editMenuData = {
-			id: undefined,
-			menuName: undefined,
-			menuDescription: undefined,
-			imageName: undefined
-		};
-
-		formModel = {
-			id: 0,
-			name: '',
-			description: '',
-			imageBase64: undefined,
-			imageName: undefined
-		};
+		resetModel();
 	}}
 >
 	<Dialog.Content class={isFormModelFilled() ? 'max-w-4xl' : 'max-w-lg'}>
@@ -208,7 +232,10 @@
 							</div>
 						</div>
 					</div>
-
+					<div class="flex flex-col gap-4">
+						<Label for="status">Status Menu</Label>
+						<Switch name="status" bind:checked={formModel.status} />
+					</div>
 					<Button type="submit" variant="default"
 						>{isEditMenuDataEmpty() ? 'Tambah' : 'Ubah'}</Button
 					>

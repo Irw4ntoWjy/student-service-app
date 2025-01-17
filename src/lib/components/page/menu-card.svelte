@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
-	import { ChevronRight } from 'lucide-svelte';
 
 	let {
 		title,
@@ -11,12 +10,13 @@
 		$props();
 </script>
 
+<!-- TODO change into button -->
 <div
 	class={cn(
-		'group max-w-md rounded-2xl border border-neutral-500/10 dark:border-white/10',
+		'group w-full rounded-2xl border border-neutral-500/10 hover:cursor-pointer dark:border-white/10',
 		'dark:shadow-[2px_4px_16px_0px_rgba(248,248,248,0.06)_inset]',
 		'transform-gpu transition-transform hover:scale-[1.01]',
-		'relative h-auto bg-gray-50 dark:bg-neutral-800/80'
+		'relative h-[340px] bg-gray-50 dark:bg-neutral-800/80'
 	)}
 >
 	<div class="relative z-0 h-48 text-center text-xl font-bold tracking-tighter text-neutral-500/20">
@@ -39,17 +39,6 @@
 			>
 				{description}
 			</p>
-			<button
-				class={cn(
-					'size-8 rounded-full bg-primary text-sm font-semibold text-white',
-					'flex items-center justify-center opacity-0 transition-opacity duration-300',
-					'group-hover:opacity-100'
-				)}
-				type="button"
-				onclick={onClick}
-			>
-				<ChevronRight class="h-4 w-4" />
-			</button>
 		</div>
 	</div>
 </div>

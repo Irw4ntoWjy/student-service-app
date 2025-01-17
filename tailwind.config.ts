@@ -1,6 +1,6 @@
-import { fontFamily } from "tailwindcss/defaultTheme";
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
+import { fontFamily } from "tailwindcss/defaultTheme";
 
 const config: Config = {
 	darkMode: ["class"],
@@ -31,7 +31,8 @@ const config: Config = {
 				},
 				destructive: {
 					DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
-					foreground: "hsl(var(--destructive-foreground) / <alpha-value>)"
+					foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
+					border: "hsl(var(--destructive-border) / <alpha-value>)",
 				},
 				muted: {
 					DEFAULT: "hsl(var(--muted) / <alpha-value>)",
@@ -40,6 +41,11 @@ const config: Config = {
 				accent: {
 					DEFAULT: "hsl(var(--accent) / <alpha-value>)",
 					foreground: "hsl(var(--accent-foreground) / <alpha-value>)"
+				},
+				green: {
+					DEFAULT: "hsl(var(--green) / <alpha-value>)",
+					foreground: "hsl(var(--green-foreground) / <alpha-value>)",
+					border: "hsl(var(--green-border) / <alpha-value>)",
 				},
 				popover: {
 					DEFAULT: "hsl(var(--popover) / <alpha-value>)",
@@ -58,7 +64,7 @@ const config: Config = {
 					"accent-foreground": "hsl(var(--sidebar-accent-foreground))",
 					border: "hsl(var(--sidebar-border))",
 					ring: "hsl(var(--sidebar-ring))",
-        		},
+				},
 			},
 			borderRadius: {
 				xl: "calc(var(--radius) + 4px)",
@@ -84,10 +90,10 @@ const config: Config = {
 				},
 			},
 			animation: {
-        		"accordion-down": "accordion-down 0.2s ease-out",
-        		"accordion-up": "accordion-up 0.2s ease-out",
-       			"caret-blink": "caret-blink 1.25s ease-out infinite",
-      		},
+				"accordion-down": "accordion-down 0.2s ease-out",
+				"accordion-up": "accordion-up 0.2s ease-out",
+				"caret-blink": "caret-blink 1.25s ease-out infinite",
+			},
 		},
 	},
 	plugins: [tailwindcssAnimate],

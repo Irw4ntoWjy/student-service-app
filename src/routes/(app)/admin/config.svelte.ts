@@ -1,8 +1,7 @@
 import { goto } from '$app/navigation';
 
-import { dateTimeFormatString } from '$lib/utils';
-import type { LoadMenuSchema } from '../menu-services/menu-schema';
 import DataTableActionColumn from '$lib/components/page/data-table/data-table-action-column.svelte';
+import DataTableBadgeCell from '$lib/components/page/data-table/data-table-badge-cell.svelte';
 import {
 	createTable,
 	getCoreRowModel,
@@ -12,7 +11,8 @@ import {
 	type ColumnSort,
 	type Table
 } from '$lib/components/page/tanstack-table';
-import DataTableBadgeCell from '$lib/components/page/data-table/data-table-badge-cell.svelte';
+import { dateTimeFormatString } from '$lib/utils';
+import type { LoadMenuSchema } from '../menu-services/menu-schema';
 
 export default function createTableState(pageUrl: string, data: LoadMenuSchema[]) {
 	let results = $state(data);
@@ -50,26 +50,28 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 		menuName: string | undefined;
 		menuDescription: string | undefined;
 		imageName: string | undefined;
+		status: boolean;
 	};
 
 	let editMenuData: EditMenuType = $state({
 		id: undefined,
 		menuName: undefined,
 		menuDescription: undefined,
-		imageName: undefined
+		imageName: undefined,
+		status: true
 	});
 
 	const columns: ColumnDef<LoadMenuSchema>[] = [
 		{
 			id: 'name',
 			accessorFn: (row) => row.name,
-			header: () => 'Name',
+			header: () => 'Nama Menu',
 			size: 150
 		},
 		{
 			id: 'description',
 			accessorFn: (row) => row.description,
-			header: () => 'Description',
+			header: () => 'Deskripsi Menu',
 			size: 250
 		},
 		{
@@ -84,7 +86,7 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 			cell: ({ row }) => {
 				if (row.original.status) {
 					return renderComponent(DataTableBadgeCell, {
-						variant: 'default',
+						variant: 'green',
 						value: 'Aktif'
 					});
 				} else {
@@ -121,14 +123,12 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 									id: row.original.id,
 									menuName: row.original.name,
 									menuDescription: row.original.description,
-									imageName: row.original.imagePath
+									imageName: row.original.imagePath,
+									status: row.original.status
 								};
 								openEditDialog = true;
 							}
 						},
-						Trash2: {
-							onClick: () => {}
-						}
 					}
 				});
 			}

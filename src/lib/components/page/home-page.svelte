@@ -16,7 +16,7 @@
 			terbaik bagi mahasiswa UPH Medan.
 		</span>
 		<Button
-			class="text-uphBlue hover:bg-uphBlue mt-12 flex items-center gap-2 rounded bg-white p-4 hover:text-white"
+			class="mt-12 flex items-center gap-2 rounded bg-white p-4 text-primary hover:bg-primary hover:text-white"
 			onclick={() => goto('/menu-services')}
 		>
 			<span class="text-lg font-medium">Telusuri</span>

@@ -40,6 +40,7 @@
 			formModel.name = tableState.editMenuData.menuName ?? '';
 			formModel.description = tableState.editMenuData.menuDescription ?? '';
 			formModel.imageBase64 = `uploads/${tableState.editMenuData.imageName}`;
+			formModel.imageName = tableState.editMenuData.imageName;
 			formModel.status = tableState.editMenuData.status;
 		}
 	});
@@ -91,6 +92,7 @@
 
 			if (response.ok) {
 				await invalidateAll();
+				resetModel();
 				tableState.openEditDialog = false;
 				toast.success('Berhasil Menambahkan Menu Baru');
 			} else {

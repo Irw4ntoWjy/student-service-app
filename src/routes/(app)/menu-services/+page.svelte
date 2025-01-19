@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import MenuCard from '$lib/components/page/menu-card.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -15,4 +16,11 @@
 			onClick={() => goto('/')}
 		/>
 	{/each}
+	<Button
+		class="bg-primary"
+		onclick={() => {
+			goto('/menu-services/1');
+		}}
+		>Menu Action
+	</Button>
 </div>

@@ -8,10 +8,20 @@
 		onClick
 	}: { title: string; description: string; src?: string | undefined; onClick?: () => void } =
 		$props();
+
+	function handleKeyDown(event: KeyboardEvent) {
+		if (onClick && (event.key === 'Enter' || event.key === ' ')) {
+			event.preventDefault();
+			onClick();
+		}
+	}
 </script>
 
-<!-- TODO change into button -->
 <div
+	role="button"
+	tabindex="0"
+	onclick={onClick}
+	onkeydown={handleKeyDown}
 	class={cn(
 		'group w-full rounded-2xl border border-neutral-500/10 hover:cursor-pointer dark:border-white/10',
 		'dark:shadow-[2px_4px_16px_0px_rgba(248,248,248,0.06)_inset]',
@@ -33,8 +43,7 @@
 			<p
 				class={cn(
 					'text-left text-sm tracking-tight dark:text-gray-400',
-					'w-full flex-1 break-words transition-all duration-300',
-					'group-hover:mr-2'
+					'w-full flex-1 break-words transition-all duration-300'
 				)}
 			>
 				{description}

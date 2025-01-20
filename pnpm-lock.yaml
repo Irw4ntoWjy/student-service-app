@@ -27,6 +27,9 @@ importers:
         specifier: ^3.24.1
         version: 3.24.1
     devDependencies:
+      '@castlenine/svelte-qrcode':
+        specifier: ^2.3.0
+        version: 2.3.0(svelte@5.18.0)
       '@eslint/compat':
         specifier: ^1.2.5
         version: 1.2.5(eslint@9.18.0(jiti@2.4.2))
@@ -118,6 +121,11 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@castlenine/svelte-qrcode@2.3.0':
+    resolution: {integrity: sha512-1YO6tL63gjbCuBkhd/PyMMFbjFD6gO6TJjvq5Ucfs5+0s13oDfiUyxO15kjR11enG7O/A2R0WBuc4bfdMqjTJQ==}
+    peerDependencies:
+      svelte: '>=3.54.0'
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -2501,6 +2509,10 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
+
+  '@castlenine/svelte-qrcode@2.3.0(svelte@5.18.0)':
+    dependencies:
+      svelte: 5.18.0
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

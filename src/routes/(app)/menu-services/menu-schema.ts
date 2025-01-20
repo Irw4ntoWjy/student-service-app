@@ -20,3 +20,14 @@ export const insertUpdateMenuSchema = z.object({
 	status: z.boolean().optional()
 });
 export type InsertUpdateMenuSchema = z.infer<typeof insertUpdateMenuSchema>;
+
+export const insertUpdateAppointment = z.object({
+	id: z.number().optional(),
+	status: z.string().optional(),
+	appointmentNo: z.string(),
+	menuId: z.number(),
+	reason: z.string(),
+	cancelAt: z.string().optional(),
+	cancelReason: z.string().optional()
+});
+export type InsertUpdateAppointmentSchema = z.infer<typeof insertUpdateAppointment>;

@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import src from '$lib/assets/UPH-White.png';
 	import { ChevronRight } from 'lucide-svelte';
 	import Button from '../ui/button/button.svelte';
 </script>
 
-<div class="background flex h-screen w-full items-center justify-center p-8">
-	<div class="flex flex-col items-center gap-2">
+<div class="background flex h-screen w-full flex-col items-center justify-center p-8">
+	<div class="absolute w-full">
+		<img {src} alt="uph-white" class="h-16 w-52" />
+	</div>
+	<div class="flex h-full flex-col items-center justify-center gap-2">
 		<div class="flex flex-col text-center font-medium text-white drop-shadow-2xl">
 			<span class="text-4xl">Welcome to </span>
 			<span class="text-[54px] font-bold">Student Service Center UPH Medan</span>
@@ -23,6 +27,10 @@
 			<ChevronRight class="size-4" />
 		</Button>
 	</div>
+	<p class="w-full text-right text-white">
+		Copyright © 2025 Yayasan Universitas Pelita Harapan. All rights reserved. Terms of use. privacy
+		statement.
+	</p>
 </div>
 
 <style>
@@ -48,16 +56,5 @@
 	.background > * {
 		position: relative;
 		z-index: 2;
-	}
-
-	/* Centering the button and content */
-	.flex {
-		align-items: center;
-		justify-content: center;
-		text-align: center;
-	}
-
-	.text-center {
-		text-align: center;
 	}
 </style>

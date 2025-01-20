@@ -1,10 +1,38 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
+	import { toast } from 'svelte-sonner';
 
 	let { open = $bindable() }: { open: boolean } = $props();
-	let value: string | undefined = $state('');
+	let value: string | undefined = $state(undefined);
+
+	let currentAppointmentNo: string | undefined = $state(undefined);
+	const generateQrCode = async () => {
+		const response = await fetch(`${page.url}/get-current-appointment-no`);
+		const data = await response.json();
+		currentAppointmentNo = data;
+
+		if (currentAppointmentNo) {
+			const appointmentNo = Number(currentAppointmentNo) + 1;
+
+			const formData = new FormData();
+			formData.append('appointmentNo', String(appointmentNo));
+			formData.append('menuId', String(page.params));
+			formData.append('reason', 'test');
+
+			const response = await fetch(`?/insertAppointment`, {
+				method: 'POST',
+				body: formData
+			});
+
+			if (response.ok) {
+				toast.success('Berhasil membuat appointment');
+			}
+			console.log(response);
+		}
+	};
 </script>
 
 <Dialog.Root bind:open>
@@ -22,7 +50,7 @@
 					*Anda akan langsung melakukan appointment ketika selesai
 				</p>
 			{/if}
-			<Button class="ml-auto mt-4 w-fit">Selanjutnya</Button>
+			<Button class="ml-auto mt-4 w-fit" onclick={() => generateQrCode()}>Selanjutnya</Button>
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

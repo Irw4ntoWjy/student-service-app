@@ -109,7 +109,7 @@ export const getAllMenu = async (): Promise<LoadMenuSchema[]> => {
 
 export const insertAppointment = async (insertUpdateAppointment: InsertUpdateAppointmentSchema) => {
 	try {
-		await sql`insert into appointment (status, appointment_no, menu_id, reason, created_at) values ('DRAFT', ${insertUpdateAppointment.appointmentNo}, ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, now())`;
+		await sql`insert into appointment (status, appointment_no, menu_id, reason, created_at) values ('DRAFT', ${insertUpdateAppointment.appointmentNo}, ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, now())`;
 	} catch (error) {
 		console.error('Error inserting row:', error);
 		throw error;
@@ -131,7 +131,7 @@ export const getCurrentAppointmentNo = async (): Promise<string> => {
 		if (rows.length === 0) {
 			return '000';
 		}
-		return rows[0].appointment_no;
+		return String(rows[0].appointment_no);
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;

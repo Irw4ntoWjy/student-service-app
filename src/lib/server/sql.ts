@@ -131,7 +131,7 @@ export const getCurrentAppointmentNo = async (): Promise<string> => {
 		if (rows.length === 0) {
 			return '000';
 		}
-		return String(rows[0].appointment_no);
+		return String(rows[0].appointment_no).padStart(3, '0');
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;

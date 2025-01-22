@@ -6,13 +6,13 @@ export const actions = {
 	insertAppointment: async ({ request }) => {
 		const rawData = await request.formData();
 
-		const formatFormData: InsertUpdateAppointmentSchema = {
+		const formattedFormData: InsertUpdateAppointmentSchema = {
 			appointmentNo: String(rawData.get('appointmentNo')),
 			menuId: Number(rawData.get('menuId')),
 			reason: rawData.get('reason')?.toString() ?? ''
 		};
 
-		await insertAppointment(formatFormData);
+		await insertAppointment(formattedFormData);
 
 		return {
 			status: 200,

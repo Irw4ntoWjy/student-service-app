@@ -7,13 +7,17 @@
 	let { children }: { children: Snippet } = $props();
 
 	const hasAdditionalPath = $derived(() => page.url.pathname !== '/');
+	const queuePath = $derived(() => page.url.pathname === '/queue-ticket');
 </script>
 
 <Toaster richColors />
-{#if hasAdditionalPath()}
+{#if hasAdditionalPath() && !queuePath()}
 	<SiteHeader />
 {/if}
-<main id="main" class="scroll-smooth">
+<main
+	id="main"
+	class="scroll-smooth {queuePath() ? 'h-screen bg-primary' : 'h-[calc(100vh-3.688rem)]'}"
+>
 	<div class="grid xl:space-x-6 2xl:grid-cols-[1fr,auto]">
 		<div class="order-last xl:order-first {hasAdditionalPath() ? 'p-4' : ''}">
 			{@render children()}

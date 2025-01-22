@@ -16,9 +16,10 @@
 
 		if (currentAppointmentNo) {
 			const appointmentNo = (Number(currentAppointmentNo) + 1).toString().padStart(3, '0');
+
 			const formData = new FormData();
 			formData.append('appointmentNo', String(appointmentNo));
-			formData.append('menuId', String(page.params.id));
+			formData.append('menuId', page.params.id);
 			formData.append('reason', 'test');
 
 			const response = await fetch(`?/insertAppointment`, {

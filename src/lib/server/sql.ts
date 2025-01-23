@@ -4,6 +4,10 @@ import type {
 	InsertUpdateMenuSchema,
 	LoadMenuSchema
 } from '../../routes/(app)/menu-services/menu-schema';
+import type {
+	QueueTicketSchema,
+	UpdateAppointmentTicketSchema
+} from '../../routes/(app)/queue-ticket/queue-ticket-schema';
 
 export const initTable = async () => {
 	try {
@@ -91,14 +95,13 @@ export const getAllMenu = async (): Promise<LoadMenuSchema[]> => {
                 id, 
                 name, 
                 description,
-                image_path AS "imagePath", 
+                image_path as "imagePath", 
                 status, 
-                created_at AS "createdAt", 
-                last_updated_at AS "lastUpdatedAt"
+                created_at as "createdAt", 
+                last_updated_at as "lastUpdatedAt"
             from 
                 menu 
             order by created_at desc
-
         `;
 		return rows as LoadMenuSchema[];
 	} catch (error) {
@@ -134,6 +137,34 @@ export const getCurrentAppointmentNo = async (): Promise<string> => {
 		return String(rows[0].appointment_no).padStart(3, '0');
 	} catch (error) {
 		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const getAppointmentTicket = async () => {
+	try {
+		const { rows } = await sql`
+            select
+                ap.id,
+                m.name,
+                ap.appointment_no as "appointmentNo",
+                ap.reason,
+                ap.status
+            from 
+                appointment ap 
+            inner join menu m on m.id = ap.id`;
+		return rows as QueueTicketSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const updateAppointmentTicker = async (model: UpdateAppointmentTicketSchema) => {
+	try {
+		await sql`update appointment set status = ${model.status}, cancel_reason = ${model.cancelReason}, last_updated_at = now() where id = ${model.id}`;
+	} catch (error) {
+		console.error('Error updating row:', error);
 		throw error;
 	}
 };

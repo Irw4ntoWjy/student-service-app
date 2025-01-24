@@ -4,32 +4,33 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 	import { toast } from 'svelte-sonner';
+	import QrCodeDialog from './qr-code-dialog.svelte';
 
 	let { open = $bindable() }: { open: boolean } = $props();
 	let value: string | undefined = $state(undefined);
 
 	let currentAppointmentNo: string | undefined = $state(undefined);
+	let openQrDialog: boolean = $state(false);
 	const generateQrCode = async () => {
-		const response = await fetch(`${page.url}/get-current-appointment-no`);
-		const data = await response.json();
+		const res = await fetch(`${page.url}/get-current-appointment-no`);
+		const data = await res.json();
 		currentAppointmentNo = data;
 
-		if (currentAppointmentNo) {
-			const appointmentNo = (Number(currentAppointmentNo) + 1).toString().padStart(3, '0');
+		const appointmentNo = (Number(currentAppointmentNo) + 1).toString().padStart(3, '0');
 
-			const formData = new FormData();
-			formData.append('appointmentNo', String(appointmentNo));
-			formData.append('menuId', page.params.id);
-			formData.append('reason', 'test');
+		const formData = new FormData();
+		formData.append('appointmentNo', String(appointmentNo));
+		formData.append('menuId', page.params.id);
+		formData.append('reason', String(value));
 
-			const response = await fetch(`?/insertAppointment`, {
-				method: 'POST',
-				body: formData
-			});
+		const response = await fetch(`?/insertAppointment`, {
+			method: 'POST',
+			body: formData
+		});
 
-			if (response.ok) {
-				toast.success('Berhasil membuat appointment');
-			}
+		if (response.ok) {
+			openQrDialog = true;
+			toast.success('Berhasil membuat appointment');
 		}
 	};
 </script>
@@ -53,3 +54,5 @@
 		</div>
 	</Dialog.Content>
 </Dialog.Root>
+
+<QrCodeDialog {openQrDialog} data={currentAppointmentNo} />

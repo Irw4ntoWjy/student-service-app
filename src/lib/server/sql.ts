@@ -112,7 +112,7 @@ export const getAllMenu = async (): Promise<LoadMenuSchema[]> => {
 
 export const insertAppointment = async (insertUpdateAppointment: InsertUpdateAppointmentSchema) => {
 	try {
-		await sql`insert into appointment (status, appointment_no, menu_id, reason, created_at) values ('DRAFT', ${insertUpdateAppointment.appointmentNo}, ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, now())`;
+		await sql`insert into appointment (status, appointment_no, menu_id, reason, created_at) values ('pending', ${insertUpdateAppointment.appointmentNo}, ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, now())`;
 	} catch (error) {
 		console.error('Error inserting row:', error);
 		throw error;
@@ -144,15 +144,16 @@ export const getCurrentAppointmentNo = async (): Promise<string> => {
 export const getAppointmentTicket = async () => {
 	try {
 		const { rows } = await sql`
-            select
+            SELECT
                 ap.id,
                 m.name,
                 ap.appointment_no as "appointmentNo",
                 ap.reason,
                 ap.status
-            from 
-                appointment ap 
-            inner join menu m on m.id = ap.id`;
+            FROM 
+                appointment ap
+            INNER JOIN 
+                menu m ON ap.menu_id = m.id`;
 		return rows as QueueTicketSchema[];
 	} catch (error) {
 		console.error('Error fetching data:', error);
@@ -160,7 +161,7 @@ export const getAppointmentTicket = async () => {
 	}
 };
 
-export const updateAppointmentTicker = async (model: UpdateAppointmentTicketSchema) => {
+export const updateAppointmentTicket = async (model: UpdateAppointmentTicketSchema) => {
 	try {
 		await sql`update appointment set status = ${model.status}, cancel_reason = ${model.cancelReason}, last_updated_at = now() where id = ${model.id}`;
 	} catch (error) {

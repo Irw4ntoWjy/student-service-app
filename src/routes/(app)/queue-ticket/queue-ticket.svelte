@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import * as Card from '$lib/components/ui/card';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
-	import { invalidateAll } from '$app/navigation';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import { toast } from 'svelte-sonner';
 
+	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
 	import { HandCoins, Home, User } from 'lucide-svelte';
 
 	const iconMap = {
@@ -12,8 +15,10 @@
 		User
 	};
 
+	type Status = 'active' | 'pending' | 'closed' | 'cancelled';
+
 	type QueueTicketProps = {
-		status: 'active' | 'pending' | 'closed' | 'cancelled';
+		status: Status;
 		ticketNo: string | undefined;
 		title?: string | undefined;
 		icons?: 'HandCoins' | 'Home' | 'User';
@@ -31,27 +36,27 @@
 	let { status, ticketNo, title, icons, description, id }: QueueTicketProps = $props();
 
 	const statusClosedAndCancelled = status === 'closed' || status === 'cancelled';
+	let openCancelDialog: boolean = $state(false);
+	let cancelReason: string | undefined = $state(undefined);
 
-	const updateStatusActive = async (id: string) => {
-		console.log('clicked');
-
+	const updateStatus = async (id: string, status: Status) => {
 		const formData = new FormData();
 		formData.append('id', id);
-		formData.append('status', 'ON_GOING');
+		formData.append('status', status);
 
-		console.log(formData);
+		if (status === 'cancelled') formData.append('cancelReason', String(cancelReason));
+
 		const response = await fetch('?/updateStatusActive', {
 			method: 'POST',
 			body: formData
 		});
 
 		if (response.ok) {
+			// toast.success('Berhasil Mengubah Data Menu');
 			await invalidateAll();
-			toast.success('Berhasil Mengubah Data Menu');
+			toast.success(await response.json());
 		}
 	};
-
-	$inspect(id);
 </script>
 
 <ContextMenu.Root>
@@ -98,9 +103,49 @@
 		</Card.Root>
 	</ContextMenu.Trigger>
 	<ContextMenu.Content class="w-[12rem]">
-		<ContextMenu.Item class="text-lg" onclick={() => updateStatusActive(id)}>
-			Accept
+		<ContextMenu.Item class="text-lg" onclick={() => updateStatus(id, 'active')}
+			>Accept</ContextMenu.Item
+		>
+		<ContextMenu.Item class="text-lg" onclick={() => updateStatus(id, 'closed')}>
+			Done
 		</ContextMenu.Item>
-		<ContextMenu.Item class="text-lg" onclick={() => {}}>Cancel</ContextMenu.Item>
+		<ContextMenu.Item class="text-lg" onclick={() => (openCancelDialog = true)}>
+			Cancel
+		</ContextMenu.Item>
 	</ContextMenu.Content>
 </ContextMenu.Root>
+
+<Dialog.Root bind:open={openCancelDialog}>
+	<Dialog.Content class="h-[13rem] max-w-[31rem]">
+		<Dialog.Header>
+			<Dialog.Title class="text-lg font-medium">Batalkan Appointment ini</Dialog.Title>
+
+			<div class="flex flex-col gap-[12px]">
+				<span>Isi Alasan Pembatalan Appointment dibawah ini</span>
+				<Input
+					oninput={(e) => {
+						cancelReason = e.currentTarget.value;
+					}}
+				/>
+			</div>
+		</Dialog.Header>
+		<Dialog.Footer>
+			<Button
+				class="w-[88px]"
+				onclick={() => {
+					openCancelDialog = false;
+				}}>Kembali</Button
+			>
+			<Button
+				class="w-[88px]"
+				type="submit"
+				variant="destructive"
+				onclick={async () => {
+					updateStatus(id, 'cancelled');
+					openCancelDialog = false;
+					await invalidateAll();
+				}}>Batalkan</Button
+			>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>

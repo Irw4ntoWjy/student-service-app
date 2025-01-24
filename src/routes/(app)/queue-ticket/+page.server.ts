@@ -1,6 +1,7 @@
-import { getAppointmentTicket } from '$lib/server/sql';
+import { getAppointmentTicket, updateAppointmentTicket } from '$lib/server/sql';
 import type { Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import type { UpdateAppointmentTicketSchema } from './queue-ticket-schema';
 
 export const load: PageServerLoad = async () => {
 	const appointmentTicket = await getAppointmentTicket();
@@ -12,6 +13,13 @@ export const load: PageServerLoad = async () => {
 export const actions = {
 	updateStatusActive: async ({ request }) => {
 		const rawData = await request.formData();
-		console.log(rawData);
+
+		const formData: UpdateAppointmentTicketSchema = {
+			id: Number(rawData.get('id')),
+			status: String(rawData.get('status')),
+			cancelReason: String(rawData.get('cancelReason'))
+		};
+
+		updateAppointmentTicket(formData);
 	}
 } satisfies Actions;

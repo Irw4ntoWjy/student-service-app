@@ -23,10 +23,16 @@ importers:
       vercel:
         specifier: ^39.3.0
         version: 39.3.0(rollup@4.31.0)
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.0(bufferutil@4.0.9)
       zod:
         specifier: ^3.24.1
         version: 3.24.1
     devDependencies:
+      '@castlenine/svelte-qrcode':
+        specifier: 2.3.0
+        version: 2.3.0(svelte@5.19.2)
       '@eslint/compat':
         specifier: ^1.2.5
         version: 1.2.5(eslint@9.18.0(jiti@2.4.2))
@@ -42,6 +48,9 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.0.3
         version: 5.0.3(svelte@5.19.2)(vite@6.0.11(@types/node@16.18.11)(jiti@2.4.2)(yaml@2.7.0))
+      '@types/ws':
+        specifier: ^8.5.14
+        version: 8.5.14
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.5.1)
@@ -118,6 +127,11 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@castlenine/svelte-qrcode@2.3.0':
+    resolution: {integrity: sha512-1YO6tL63gjbCuBkhd/PyMMFbjFD6gO6TJjvq5Ucfs5+0s13oDfiUyxO15kjR11enG7O/A2R0WBuc4bfdMqjTJQ==}
+    peerDependencies:
+      svelte: '>=3.54.0'
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -607,6 +621,9 @@ packages:
 
   '@types/pg@8.11.6':
     resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
+
+  '@types/ws@8.5.14':
+    resolution: {integrity: sha512-bd/YFLW+URhBzMXurx7lWByOu+xzU9+kb3RboOteXYDfW+tr+JZa99OyNmPINEGB/ahzKrEuc8rcv4gnpJmxTw==}
 
   '@typescript-eslint/eslint-plugin@8.21.0':
     resolution: {integrity: sha512-eTH+UOR4I7WbdQnG4Z48ebIA6Bgi7WO8HvFEneeYBxG8qCOYgTOFPSg6ek9ITIDvGjDQzWHcoWHCDO2biByNzA==}
@@ -2496,6 +2513,10 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
 
+  '@castlenine/svelte-qrcode@2.3.0(svelte@5.19.2)':
+    dependencies:
+      svelte: 5.19.2
+
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
@@ -2883,6 +2904,10 @@ snapshots:
       '@types/node': 22.10.9
       pg-protocol: 1.7.0
       pg-types: 4.0.2
+
+  '@types/ws@8.5.14':
+    dependencies:
+      '@types/node': 22.10.9
 
   '@typescript-eslint/eslint-plugin@8.21.0(@typescript-eslint/parser@8.21.0(eslint@9.18.0(jiti@2.4.2))(typescript@5.7.3))(eslint@9.18.0(jiti@2.4.2))(typescript@5.7.3)':
     dependencies:

@@ -1,19 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	// import src from '$lib/assets/UPH-Blue.svg';
-	import src from '$lib/assets/header-uph.png';
 	import { ChevronRight } from 'lucide-svelte';
 	import Button from '../ui/button/button.svelte';
 </script>
 
 <div class="background flex h-screen w-full flex-col items-center justify-center p-8">
 	<div class="flex h-full flex-col items-center justify-center gap-2">
-		<img {src} alt="uph-white" class="h-28 w-[32rem]" />
-		<!-- <div class="mb-12 flex h-28 w-[24rem] flex-col items-center justify-center bg-white shadow-lg"> -->
-		<!-- <img {src} alt="uph-white" class="w-42 h-10" /> -->
-		<!-- <span class="mt-1 w-56 border-t-2 border-[#5c5d58]"></span>
-			<span class="text-3xl font-bold text-[#1d2362]">Campus Solution</span> -->
-		<!-- </div> -->
 		<div class="flex flex-col text-center font-medium text-white drop-shadow-2xl">
 			<span class="text-4xl">Welcome to </span>
 			<span class="text-[54px] font-bold">Student Service Center UPH Medan</span>

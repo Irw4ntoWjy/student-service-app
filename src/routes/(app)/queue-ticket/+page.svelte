@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import src from '$lib/assets/UPH-White.png';
 	import type { PageData } from './$types';
 	import QueueTicket from './queue-ticket.svelte';
-
 	let { data }: { data: PageData } = $props();
 
 	let currentTime: string = $state('');
@@ -10,7 +10,7 @@
 	let currentDay: string = $state('');
 
 	let socket: WebSocket | null = $state(null);
-	let appointmentData = $state(data.appointmentTicket);
+	let appointmentTicket = $derived(data.appointmentTicket);
 
 	// Function to format time
 	function formatTime(date: Date): string {
@@ -65,8 +65,6 @@
 	$effect.root(() => {
 		socket = new WebSocket('ws://localhost:8080');
 
-		console.log(socket);
-
 		socket.onopen = () => {
 			console.log('WebSocket connection established');
 		};
@@ -75,13 +73,10 @@
 			const message = JSON.parse(event.data);
 
 			if (message.type === 'UPDATE') {
-				console.log('yey');
-				appointmentData = message.data;
+				invalidateAll();
 			}
 		};
 	});
-
-	$inspect(appointmentData);
 </script>
 
 <div class="mb-8 flex justify-between">
@@ -98,16 +93,9 @@
 			class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-8 rounded-lg bg-blue-900 p-8 shadow-lg"
 		>
 			<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
-			{#each appointmentData as appointment}
-				{#if appointment.status === 'active'}
-					<QueueTicket
-						icons="HandCoins"
-						title={appointment.name}
-						ticketNo={appointment.appointmentNo}
-						status="active"
-						description={appointment.reason}
-						id={appointment.id.toString()}
-					/>
+			{#each appointmentTicket as activeTicket}
+				{#if activeTicket.status === 'active'}
+					<QueueTicket icons="HandCoins" queueTicket={activeTicket} />
 				{/if}
 			{/each}
 		</div>
@@ -118,34 +106,23 @@
 			<span class="-translate-y-3 text-2xl font-medium text-white"
 				>Nomor Antrian yang Sebelumnya</span
 			>
-			{#each appointmentData as appointment}
-				{#if appointment.status === 'closed' || appointment.status === 'cancelled'}
-					<QueueTicket
-						ticketNo={appointment.appointmentNo}
-						status="closed"
-						icons="HandCoins"
-						title={appointment.name}
-						id={appointment.id.toString()}
-					/>
-				{/if}
-			{/each}
+			<div class="flex w-full flex-col items-center gap-3 overflow-y-auto">
+				{#each appointmentTicket as finishedAppointment}
+					{#if finishedAppointment.status === 'closed' || finishedAppointment.status === 'cancelled'}
+						<QueueTicket icons="HandCoins" queueTicket={finishedAppointment} />
+					{/if}
+				{/each}
+			</div>
 		</div>
 	</div>
 	<div
 		class="flex max-h-screen w-full flex-col items-center justify-start rounded-lg bg-blue-900 px-6 py-4 shadow-lg"
 	>
-		<span class="ml-8 text-2xl font-medium text-white">Nomor Antrian Selanjutnya</span>
-		<div class="grid grid-cols-3 place-items-center gap-12 p-6">
-			{#each appointmentData as appointment}
-				{#if appointment.status === 'pending'}
-					<QueueTicket
-						icons="HandCoins"
-						title={appointment.name}
-						ticketNo={appointment.appointmentNo}
-						status="pending"
-						description={appointment.reason}
-						id={appointment.id.toString()}
-					/>
+		<span class="mt-2 text-2xl font-medium text-white">Nomor Antrian Selanjutnya</span>
+		<div class="grid grid-cols-3 place-items-center gap-8 p-6">
+			{#each appointmentTicket as pendingTicket}
+				{#if pendingTicket.status === 'pending'}
+					<QueueTicket queueTicket={pendingTicket} icons="HandCoins" />
 				{/if}
 			{/each}
 		</div>

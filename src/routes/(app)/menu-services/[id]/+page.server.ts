@@ -1,7 +1,7 @@
-import { getAppointmentTicket, insertAppointment } from '$lib/server/sql';
 import { broadcastUpdate } from '$lib/server/web-socket';
 import type { Actions } from '@sveltejs/kit';
 import type { InsertUpdateAppointmentSchema } from '../menu-schema';
+import { getAppointmentTicket, insertAppointment } from '$lib/server/sql';
 
 export const actions = {
 	insertAppointment: async ({ request }) => {

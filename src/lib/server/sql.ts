@@ -144,17 +144,37 @@ export const getCurrentAppointmentNo = async (): Promise<string> => {
 export const getAppointmentTicket = async () => {
 	try {
 		const { rows } = await sql`
-            SELECT
+            select
                 ap.id,
                 m.name,
                 ap.appointment_no as "appointmentNo",
                 ap.reason,
-                ap.status
-            FROM 
+                ap.status,
+                ap.created_at as "createdAt"
+            from 
                 appointment ap
-            INNER JOIN 
-                menu m ON ap.menu_id = m.id`;
+            inner join
+                menu m on ap.menu_id = m.id
+            where 
+                date(ap.created_at) = current_date`;
 		return rows as QueueTicketSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const getCurrentActiveTicket = async () => {
+	try {
+		const { rows } = await sql`
+            select 
+                count(*) as count
+            from
+                appointment 
+            where 
+                date(created_at) = current_date and status = 'active'`;
+
+		return rows[0]?.count ?? 0;
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;

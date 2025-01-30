@@ -97,6 +97,9 @@
 			return () => clearInterval(interval);
 		}
 	});
+
+	// perlu tambah if isTimeLimitReached + check finished ticket ga ada yang pending
+	// sisa login, sama menu detail page
 </script>
 
 <Card.Root

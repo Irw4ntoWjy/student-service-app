@@ -108,7 +108,7 @@
 			>
 			<div class="flex w-full flex-col items-center gap-3 overflow-y-auto">
 				{#each appointmentTicket as finishedAppointment}
-					{#if finishedAppointment.status === 'closed' || finishedAppointment.status === 'cancelled'}
+					{#if finishedAppointment.status === 'closed' || finishedAppointment.status === 'cancelled' || finishedAppointment.status === 'waiting'}
 						<QueueTicket icons="HandCoins" queueTicket={finishedAppointment} />
 					{/if}
 				{/each}

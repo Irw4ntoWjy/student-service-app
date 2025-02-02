@@ -25,11 +25,16 @@ export const initTable = async () => {
 		await sql`
             create table if not exists menu_detail (
                 id SERIAL PRIMARY KEY,
-                status varchar(10) not null,
-                menu_id int4 not null references menu(id) on delete cascade on update cascade,
-                created_at timestamp default NOW(),
-                last_updated_at timestamp
-            )            
+                menu_id int4 not null references menu(id) ON delete cascade on update cascade,
+                name varchar(50) not null, 
+                type VARCHAR(10) not null check (type IN ('FORM', 'APPOINTMENT')), 
+                link text,
+                status boolean not null,
+                created_at timestamp default now(),
+                last_updated_at timestamp,
+                constraint check_link_not_null_if_appointment 
+                    check (type <> 'appointment' OR link is not null)
+            );      
         `;
 		await sql`
             create table if not exists appointment (

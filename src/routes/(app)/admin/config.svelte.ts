@@ -61,6 +61,7 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 		status: true
 	});
 
+	let openMenuDialog: boolean = $state(false);
 	const columns: ColumnDef<LoadMenuSchema>[] = [
 		{
 			id: 'name',
@@ -129,6 +130,9 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 								openEditDialog = true;
 							}
 						},
+						Eye: {
+							onClick: () => (openMenuDialog = true)
+						}
 					}
 				});
 			}
@@ -170,6 +174,12 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 		},
 		set editMenuData(data) {
 			editMenuData = data;
+		},
+		get openMenuDialog() {
+			return openMenuDialog;
+		},
+		set openMenuDialog(data) {
+			openMenuDialog = data;
 		}
 	};
 }

@@ -14,6 +14,7 @@
 	import { type InsertUpdateMenuSchema } from '../menu-services/menu-schema';
 	import type { PageData } from './$types';
 	import createTableState from './config.svelte';
+	import MenuDialog from '$lib/components/page/menu-dialog.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -149,6 +150,8 @@
 			status: true
 		};
 	};
+
+	let openOtherOptionDialog: boolean = $state(false);
 </script>
 
 <div class="flex flex-col gap-4">
@@ -246,3 +249,5 @@
 		</form>
 	</Dialog.Content>
 </Dialog.Root>
+
+<MenuDialog bind:openMenuDialog={tableState.openMenuDialog} bind:openOtherOptionDialog />

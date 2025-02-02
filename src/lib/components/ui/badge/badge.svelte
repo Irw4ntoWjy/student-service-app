@@ -11,7 +11,7 @@
 				destructive:
 					'bg-destructive-foreground hover:bg-destructive-foreground/80 border-destructive-border text-destructive',
 				outline: 'text-foreground',
-				green: 'bg-green-foreground hover:bg-green-foreground/50 border-green-border text-green'
+				green: 'bg-green-500 hover:bg-green-foreground/50 border-green-border text-white'
 			}
 		},
 		defaultVariants: {

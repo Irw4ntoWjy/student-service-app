@@ -28,7 +28,7 @@ export const initTable = async () => {
                 id SERIAL PRIMARY KEY,
                 menu_id int4 not null references menu(id) ON delete cascade on update cascade,
                 name varchar(50) not null, 
-                type VARCHAR(10) not null check (type IN ('FORM', 'APPOINTMENT')), 
+                type VARCHAR(15) not null check (type IN ('FORM', 'APPOINTMENT')), 
                 link text,
                 status boolean not null,
                 created_at timestamp default now(),

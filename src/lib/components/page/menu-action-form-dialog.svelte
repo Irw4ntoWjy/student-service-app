@@ -16,17 +16,21 @@
 	} = $props();
 
 	let name: string = $state('');
-	let type: 'FORM' | 'APPOINTMENT' = $state('APPOINTMENT');
 	let link: string = $state('');
+	let type: 'FORM' | 'APPOINTMENT' = $state('APPOINTMENT');
 
 	const addActionForm = async () => {
 		const formData = new FormData();
 		if (menuId) formData.append('menuId', menuId.toString());
 		formData.append('name', name);
 		formData.append('type', type);
-		formData.append('link', link);
 
-		console.log(formData);
+		if (link) {
+			if (!link.startsWith('https://')) {
+				link = 'https://' + link;
+			}
+			formData.append('link', link);
+		}
 
 		const response = await fetch('?/addMenuAction', {
 			method: 'POST',

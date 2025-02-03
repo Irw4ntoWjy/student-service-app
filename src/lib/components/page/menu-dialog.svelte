@@ -23,9 +23,9 @@
 	let openFormDialog: boolean = $state(false);
 </script>
 
-{#if menuDialog.length > 0 || isAdminPage}
-	<Dialog.Root bind:open={openMenuDialog}>
-		<Dialog.Content>
+<Dialog.Root bind:open={openMenuDialog}>
+	<Dialog.Content>
+		{#if menuDialog.length > 0 || isAdminPage}
 			<Dialog.Header>
 				<Dialog.Title class="text-lg font-bold">Pilih Permasalahan yang anda alami</Dialog.Title>
 				<Dialog.Description class="text-sm text-gray-500">
@@ -40,6 +40,7 @@
 							if (menu.type === 'FORM') {
 								window.open(menu.link, '_blank');
 							} else {
+								openMenuDialog = false;
 								openOtherOptionDialog = true;
 							}
 						}}
@@ -48,7 +49,8 @@
 					</Button>
 				{/each}
 				<Button
-					class="max-w-full flex-grow bg-primary px-4 py-2"
+					variant="ghost"
+					class="max-w-full flex-grow border px-4 py-2"
 					onclick={() => {
 						openMenuDialog = false;
 						openOtherOptionDialog = true;
@@ -70,9 +72,13 @@
 					</Button>
 				{/if}
 			</div>
-		</Dialog.Content>
-	</Dialog.Root>
-{/if}
+		{:else}
+			<div class="flex h-24 items-center justify-center">
+				<p class="text-lg font-bold text-gray-700">Maaf, menu ini belum terisi !</p>
+			</div>
+		{/if}
+	</Dialog.Content>
+</Dialog.Root>
 
 <OtherOptionDialog
 	bind:open={openOtherOptionDialog}

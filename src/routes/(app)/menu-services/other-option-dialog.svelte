@@ -6,7 +6,7 @@
 	import { toast } from 'svelte-sonner';
 	import QrCodeDialog from './qr-code-dialog.svelte';
 
-	let { open = $bindable() }: { open: boolean } = $props();
+	let { open = $bindable(), menuId = $bindable() }: { open: boolean; menuId: number } = $props();
 	let value: string | undefined = $state(undefined);
 
 	let currentAppointmentNo: string | undefined = $state(undefined);
@@ -20,7 +20,7 @@
 
 		const formData = new FormData();
 		formData.append('appointmentNo', String(appointmentNo));
-		formData.append('menuId', page.params.id);
+		formData.append('menuId', String(1)); // masih bug
 		formData.append('reason', String(value));
 
 		const response = await fetch(`?/insertAppointment`, {

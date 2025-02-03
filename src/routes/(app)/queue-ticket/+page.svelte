@@ -101,7 +101,7 @@
 		</div>
 
 		<div
-			class="flex h-[16rem] w-[30rem] flex-col items-center justify-start gap-2 rounded-lg bg-blue-900 p-8 shadow-lg"
+			class="flex h-[22rem] w-[30rem] flex-col items-center justify-start gap-2 rounded-lg bg-blue-900 p-8 shadow-lg"
 		>
 			<span class="-translate-y-3 text-2xl font-medium text-white"
 				>Nomor Antrian yang Sebelumnya</span
@@ -116,10 +116,10 @@
 		</div>
 	</div>
 	<div
-		class="flex max-h-screen w-full flex-col items-center justify-start rounded-lg bg-blue-900 px-6 py-4 shadow-lg"
+		class=" flex max-h-screen w-full flex-col items-center justify-start rounded-lg bg-blue-900 px-6 py-4 shadow-lg"
 	>
 		<span class="mt-2 text-2xl font-medium text-white">Nomor Antrian Selanjutnya</span>
-		<div class="grid grid-cols-3 place-items-center gap-8 p-6">
+		<div class="mt-4 grid grid-cols-4 place-items-center gap-4">
 			{#each appointmentTicket as pendingTicket}
 				{#if pendingTicket.status === 'pending'}
 					<QueueTicket queueTicket={pendingTicket} icons="HandCoins" />

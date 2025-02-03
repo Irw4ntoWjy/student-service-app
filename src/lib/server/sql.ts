@@ -156,7 +156,8 @@ export const getAppointmentTicket = async () => {
                 ap.appointment_no as "appointmentNo",
                 ap.reason,
                 ap.status,
-                ap.created_at as "createdAt"
+                ap.created_at as "createdAt",
+                ap.last_updated_at as "lastUpdatedAt"
             from 
                 appointment ap
             inner join

@@ -47,7 +47,15 @@
 						{menu.name}
 					</Button>
 				{/each}
-
+				<Button
+					class="max-w-full flex-grow bg-primary px-4 py-2"
+					onclick={() => {
+						openMenuDialog = false;
+						openOtherOptionDialog = true;
+					}}
+				>
+					Opsi Lainnya
+				</Button>
 				{#if isAdminPage}
 					<Button
 						variant="ghost"
@@ -66,6 +74,9 @@
 	</Dialog.Root>
 {/if}
 
-<OtherOptionDialog bind:open={openOtherOptionDialog} />
+<OtherOptionDialog
+	bind:open={openOtherOptionDialog}
+	bind:menuId={() => (currentMenuId ? currentMenuId : 0), () => {}}
+/>
 
 <MenuActionFormDialog bind:openFormDialog menuId={currentMenuId} />

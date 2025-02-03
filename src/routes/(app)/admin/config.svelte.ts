@@ -1,4 +1,5 @@
 import { goto } from '$app/navigation';
+import { page } from '$app/state';
 
 import DataTableActionColumn from '$lib/components/page/data-table/data-table-action-column.svelte';
 import DataTableBadgeCell from '$lib/components/page/data-table/data-table-badge-cell.svelte';
@@ -12,7 +13,7 @@ import {
 	type Table
 } from '$lib/components/page/tanstack-table';
 import { dateTimeFormatString } from '$lib/utils';
-import type { LoadMenuSchema } from '../menu-services/menu-schema';
+import type { LoadMenuSchema, MenuDialogSchema } from '../menu-services/menu-schema';
 
 export default function createTableState(pageUrl: string, data: LoadMenuSchema[]) {
 	let results = $state(data);
@@ -62,6 +63,16 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 	});
 
 	let openMenuDialog: boolean = $state(false);
+	let menuDialog: MenuDialogSchema[] | undefined = $state(undefined);
+
+	const fetchMenuAction = async (id: number) => {
+		const res = await fetch(`${page.url}/get-menu-action?id=${id}`);
+		const data = await res.json();
+		menuDialog = data;
+	};
+
+	let currentMenuId: number | undefined = $state(undefined);
+
 	const columns: ColumnDef<LoadMenuSchema>[] = [
 		{
 			id: 'name',
@@ -131,7 +142,11 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 							}
 						},
 						Eye: {
-							onClick: () => (openMenuDialog = true)
+							onClick: async () => {
+								fetchMenuAction(row.original.id);
+								currentMenuId = row.original.id;
+								openMenuDialog = true;
+							}
 						}
 					}
 				});
@@ -180,6 +195,12 @@ export default function createTableState(pageUrl: string, data: LoadMenuSchema[]
 		},
 		set openMenuDialog(data) {
 			openMenuDialog = data;
+		},
+		get menuDialog() {
+			return menuDialog;
+		},
+		get currentMenuId() {
+			return currentMenuId;
 		}
 	};
 }

@@ -2,7 +2,8 @@ import { sql } from '@vercel/postgres';
 import type {
 	InsertUpdateAppointmentSchema,
 	InsertUpdateMenuSchema,
-	LoadMenuSchema
+	LoadMenuSchema,
+	MenuDialogSchema
 } from '../../routes/(app)/menu-services/menu-schema';
 import type {
 	QueueTicketSchema,
@@ -191,6 +192,37 @@ export const updateAppointmentTicket = async (model: UpdateAppointmentTicketSche
 		await sql`update appointment set status = ${model.status}, cancel_reason = ${model.cancelReason}, last_updated_at = now() where id = ${model.id}`;
 	} catch (error) {
 		console.error('Error updating row:', error);
+		throw error;
+	}
+};
+
+export const getMenuAction = async (id: number) => {
+	try {
+		const { rows } = await sql`
+            select
+                md.id,
+                md.menu_id as "menuId",
+                md.name,
+                md.type,
+                md.link,
+                md.status,
+                md.created_at as "createdAt"
+            from 
+                menu_detail md
+            where 
+                md.menu_id = ${id}`;
+		return rows as MenuDialogSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const insertMenuAction = async (insertMenuAction: MenuDialogSchema) => {
+	try {
+		await sql`insert into menu_detail (menu_id, name, type, link, status, created_at) values (${insertMenuAction.menuId}, ${insertMenuAction.name}, ${insertMenuAction.type}, ${insertMenuAction.link}, true, now())`;
+	} catch (error) {
+		console.error('Error inserting row:', error);
 		throw error;
 	}
 };

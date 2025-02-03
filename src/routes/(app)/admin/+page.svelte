@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import DataTable from '$lib/components/page/data-table/data-table.svelte';
 	import MenuCard from '$lib/components/page/menu-card.svelte';
+	import MenuDialog from '$lib/components/page/menu-dialog.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Input } from '$lib/components/ui/input';
@@ -14,7 +15,6 @@
 	import { type InsertUpdateMenuSchema } from '../menu-services/menu-schema';
 	import type { PageData } from './$types';
 	import createTableState from './config.svelte';
-	import MenuDialog from '$lib/components/page/menu-dialog.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -250,4 +250,9 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<MenuDialog bind:openMenuDialog={tableState.openMenuDialog} bind:openOtherOptionDialog />
+<MenuDialog
+	bind:openMenuDialog={tableState.openMenuDialog}
+	bind:openOtherOptionDialog
+	menuDialog={tableState.menuDialog || []}
+	currentMenuId={tableState.currentMenuId}
+/>

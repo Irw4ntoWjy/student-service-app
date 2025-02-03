@@ -1,8 +1,12 @@
-import { getAllMenu, insertMenu, updateMenu } from '$lib/server/sql';
+import { getAllMenu, insertMenu, insertMenuAction, updateMenu } from '$lib/server/sql';
 import type { Actions } from '@sveltejs/kit';
 import fs from 'fs';
 import path from 'path';
-import type { InsertUpdateMenuSchema, LoadMenuSchema } from '../menu-services/menu-schema';
+import type {
+	InsertUpdateMenuSchema,
+	LoadMenuSchema,
+	MenuDialogSchema
+} from '../menu-services/menu-schema';
 import type { PageServerLoad } from './$types';
 
 const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) => {
@@ -26,7 +30,7 @@ const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) =
 	fs.writeFileSync(filePath, base64Data ? base64Data : '', { encoding: 'base64' });
 
 	return filePath;
-}
+};
 
 export const load: PageServerLoad = async () => {
 	const menuList: LoadMenuSchema[] = await getAllMenu();
@@ -41,7 +45,7 @@ export const actions = {
 		let imageName = rawData.get('imageName');
 
 		if (image && imageName) {
-			imageName = uploadImage(image, imageName)
+			imageName = uploadImage(image, imageName);
 		}
 
 		const formatFormData: InsertUpdateMenuSchema = {
@@ -59,7 +63,7 @@ export const actions = {
 		let imageName = rawData.get('imageName');
 
 		if (image && imageName) {
-			imageName = uploadImage(image, imageName)
+			imageName = uploadImage(image, imageName);
 		}
 
 		const formatFormData: InsertUpdateMenuSchema = {
@@ -71,5 +75,20 @@ export const actions = {
 		};
 
 		updateMenu(formatFormData);
+	},
+	addMenuAction: async ({ request }) => {
+		const rawData = await request.formData();
+
+		const formatFormData: MenuDialogSchema = {
+			id: Number(rawData.get('id')),
+			menuId: String(rawData.get('menuId')),
+			name: String(rawData.get('name')),
+			type: rawData.get('type') as 'FORM' | 'APPOINTMENT',
+			link: String(rawData.get('imageName')),
+			status: rawData.get('status') === 'true',
+			createdAt: String(rawData.get('createdAt'))
+		};
+
+		insertMenuAction(formatFormData);
 	}
 } satisfies Actions;

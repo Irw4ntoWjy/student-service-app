@@ -85,9 +85,12 @@
 						timeZone: 'Asia/Jakarta'
 					})
 				);
-				console.log(currentTime);
 
 				const timeDiff: number = currentTime.getTime() - createdTime.getTime();
+				console.log(currentTime, 'currentTime');
+				console.log(createdTime, 'createdTime');
+				console.log(timeDiff, 'timeDif');
+
 				const seconds = Math.floor(timeDiff / 1000);
 				const minutes = Math.floor(seconds / 60);
 

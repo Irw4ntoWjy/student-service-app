@@ -3,6 +3,41 @@
 	import QRCode from '@castlenine/svelte-qrcode';
 
 	let { openQrDialog, data }: { openQrDialog: boolean; data: string | undefined } = $props();
+
+	let ws: WebSocket | null = $state(null);
+
+	$effect.root(() => {
+		if (openQrDialog && data) {
+			// Connect to WebSocket server
+			ws = new WebSocket('ws://localhost:8080');
+
+			ws.onopen = () => {
+				if (ws) {
+					console.log('WebSocket connection established');
+					ws.send(data);
+				}
+			};
+
+			ws.onmessage = (event) => {
+				console.log('Message from server:', event.data);
+				alert(event.data);
+			};
+
+			ws.onclose = () => {
+				console.log('WebSocket connection closed');
+			};
+
+			ws.onerror = (error) => {
+				console.error('WebSocket error:', error);
+			};
+		}
+
+		return () => {
+			if (ws) {
+				ws.close();
+			}
+		};
+	});
 </script>
 
 <Dialog.Root bind:open={openQrDialog}>

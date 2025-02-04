@@ -11,10 +11,10 @@
 
 	let currentAppointmentNo: string | undefined = $state(undefined);
 	let openQrDialog: boolean = $state(false);
+
 	const generateQrCode = async () => {
-		const res = await fetch(`${page.url}/get-current-appointment-no`);
-		const data = await res.json();
-		currentAppointmentNo = data;
+		const res = await fetch(`${page.url}/get-current-appointment-no`).then((res) => res.json());
+		currentAppointmentNo = res;
 
 		const appointmentNo = (Number(currentAppointmentNo) + 1).toString().padStart(3, '0');
 

@@ -78,7 +78,7 @@
 		if (queueTicket.status === 'pending') {
 			const interval = setInterval(() => {
 				const createdTime = new Date(queueTicket.createdAt);
-				createdTime.setHours(createdTime.getHours() + 7);
+				// createdTime.setHours(createdTime.getHours() + 7);
 
 				const currentTime = new Date(
 					new Date().toLocaleString('en-US', {

@@ -85,6 +85,7 @@
 						timeZone: 'Asia/Jakarta'
 					})
 				);
+				console.log(currentTime);
 
 				const timeDiff: number = currentTime.getTime() - createdTime.getTime();
 				const seconds = Math.floor(timeDiff / 1000);

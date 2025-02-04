@@ -79,10 +79,14 @@
 			const interval = setInterval(() => {
 				const createdTime = new Date(queueTicket.createdAt);
 				createdTime.setHours(createdTime.getHours() + 7);
-				const currentTime = new Date();
+
+				const currentTime = new Date(
+					new Date().toLocaleString('en-US', {
+						timeZone: 'Asia/Jakarta'
+					})
+				);
 
 				const timeDiff: number = currentTime.getTime() - createdTime.getTime();
-
 				const seconds = Math.floor(timeDiff / 1000);
 				const minutes = Math.floor(seconds / 60);
 

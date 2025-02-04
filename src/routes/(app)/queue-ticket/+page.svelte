@@ -119,13 +119,29 @@
 	<div
 		class=" flex max-h-screen w-full flex-col items-center justify-start rounded-lg bg-blue-900 px-6 py-4 shadow-lg"
 	>
-		<span class="mt-2 text-2xl font-medium text-white">Nomor Antrian Selanjutnya</span>
-		<div class="mt-4 grid grid-cols-4 place-items-center gap-4">
-			{#each appointmentTicket as pendingTicket}
-				{#if pendingTicket.status === 'pending'}
-					<QueueTicket queueTicket={pendingTicket} icons="HandCoins" />
-				{/if}
-			{/each}
+		<div class="mt-4">
+			<span class=" flex justify-center text-2xl font-medium text-white"
+				>Nomor Antrian Selanjutnya</span
+			>
+			<div class="mt-8 grid grid-cols-4 place-items-center gap-8">
+				{#each appointmentTicket as pendingTicket}
+					{#if pendingTicket.status === 'pending'}
+						<QueueTicket queueTicket={pendingTicket} icons="HandCoins" />
+					{/if}
+				{/each}
+			</div>
+		</div>
+		<div class="mt-8">
+			<span class="flex justify-center text-2xl font-medium text-white"
+				>Nomor Antrian Yang Belum Dilayani</span
+			>
+			<div class="mt-6 grid grid-cols-4 place-items-center gap-8">
+				{#each appointmentTicket as waitingTicket}
+					{#if waitingTicket.status === 'waiting'}
+						<QueueTicket queueTicket={waitingTicket} icons="HandCoins" />
+					{/if}
+				{/each}
+			</div>
 		</div>
 	</div>
 </div>

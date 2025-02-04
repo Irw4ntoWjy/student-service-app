@@ -24,15 +24,14 @@
 	const cardColor = {
 		active: 'bg-green-700 text-white',
 		pending: '',
-		waiting: '',
+		waiting: 'bg-orange-700 text-white',
 		closed: 'bg-green-600 text-white',
 		cancelled: 'bg-destructive text-white'
 	};
 
 	let { icons, queueTicket }: QueueTicketProps = $props();
 
-	const statusClosedAndCancelled =
-		queueTicket.status === 'closed' || queueTicket.status === 'cancelled';
+	const finishedTicket = queueTicket.status === 'closed' || queueTicket.status === 'cancelled';
 
 	let openCancelDialog: boolean = $state(false);
 	let isHovered: boolean = $state(false);
@@ -78,7 +77,7 @@
 		if (queueTicket.status === 'pending') {
 			const interval = setInterval(() => {
 				const createdTime = new Date(queueTicket.createdAt);
-				// createdTime.setHours(createdTime.getHours() + 7);
+				createdTime.setHours(createdTime.getHours() + 7);
 
 				const currentTime = new Date(
 					new Date().toLocaleString('en-US', {
@@ -87,9 +86,6 @@
 				);
 
 				const timeDiff: number = currentTime.getTime() - createdTime.getTime();
-				console.log(currentTime, 'currentTime');
-				console.log(createdTime, 'createdTime');
-				console.log(timeDiff, 'timeDif');
 
 				const seconds = Math.floor(timeDiff / 1000);
 				const minutes = Math.floor(seconds / 60);
@@ -113,7 +109,7 @@
 <Card.Root
 	class="{queueTicket.status === 'closed' || queueTicket.status === 'cancelled'
 		? 'h-auto'
-		: 'h-[16.75rem]'}  w-[24rem] {cardColor[
+		: 'h-[16.75rem]'}  w-[22.25rem] {cardColor[
 		queueTicket.status
 	]} relative flex cursor-pointer items-center justify-center rounded-lg border-none shadow-xl transition-shadow duration-300 hover:shadow-2xl"
 	onmouseenter={() => (isHovered = true)}
@@ -123,9 +119,9 @@
 		}, 200);
 	}}
 >
-	<div class={statusClosedAndCancelled ? 'flex items-center justify-evenly p-1' : ''}>
-		{#if icons && queueTicket.name && !isHovered}
-			<Card.Header class="items-center {statusClosedAndCancelled ? '' : 'p-4'}">
+	<div class={finishedTicket ? 'flex items-center justify-evenly p-1' : ''}>
+		{#if icons && queueTicket.name && !isHovered && !finishedTicket}
+			<Card.Header class="items-center {finishedTicket ? '' : 'p-4'}">
 				<Card.Title class="flex  items-center gap-4 text-xl font-bold">
 					{@const Icons = iconMap[icons]}
 					<div class="rounded-full bg-gray-100 p-2">
@@ -136,13 +132,11 @@
 			</Card.Header>
 		{/if}
 		<Card.Content
-			class="flex flex-col {statusClosedAndCancelled
-				? 'text-right'
-				: 'items-center justify-center'} p-2"
+			class="flex flex-col {finishedTicket ? 'text-right' : 'items-center justify-center'} p-2"
 		>
 			{#if isHovered && (queueTicket.status === 'pending' || queueTicket.status === 'active')}
 				<div
-					class="flex h-[16rem] w-[23.25rem] flex-col justify-between rounded-lg {cardColor[
+					class="flex h-[16rem] w-[20.25rem] flex-col justify-between rounded-lg {cardColor[
 						queueTicket.status
 					]} p-6"
 					onmouseleave={() => (isHovered = false)}
@@ -150,7 +144,9 @@
 					aria-modal="true"
 				>
 					<div class="mb-2 flex h-[12rem] flex-col items-center justify-center text-center">
-						<p class="break-words text-xl font-medium leading-relaxed">
+						<p
+							class="w-full overflow-hidden text-ellipsis text-wrap break-words text-2xl font-medium leading-relaxed"
+						>
 							{queueTicket.reason || 'No description available'}
 						</p>
 					</div>
@@ -177,9 +173,8 @@
 				</div>
 			{:else}
 				<span
-					class="{statusClosedAndCancelled
-						? 'text-4xl font-semibold'
-						: 'text-5xl font-bold'} tracking-wide">{queueTicket.appointmentNo}</span
+					class="{finishedTicket ? 'text-4xl font-semibold' : 'text-5xl font-bold'} tracking-wide"
+					>{queueTicket.appointmentNo}</span
 				>
 			{/if}
 		</Card.Content>

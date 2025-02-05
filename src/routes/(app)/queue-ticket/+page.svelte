@@ -112,7 +112,7 @@
 			>
 			<div class="flex w-full flex-col items-center gap-3 overflow-y-auto">
 				{#each appointmentTicket as finishedAppointment}
-					{#if finishedAppointment.status === 'closed' || finishedAppointment.status === 'cancelled' || finishedAppointment.status === 'waiting'}
+					{#if finishedAppointment.status === 'closed' || finishedAppointment.status === 'cancelled'}
 						<QueueTicket icons="HandCoins" queueTicket={finishedAppointment} />
 					{/if}
 				{/each}
@@ -122,7 +122,7 @@
 	<div
 		class=" flex max-h-screen w-full flex-col items-center justify-start rounded-lg bg-blue-900 px-6 py-4 shadow-lg"
 	>
-		<div class="mt-4">
+		<div class="mt-4 h-1/2">
 			<span class=" flex justify-center text-2xl font-medium text-white"
 				>Nomor Antrian Selanjutnya</span
 			>
@@ -134,7 +134,7 @@
 				{/each}
 			</div>
 		</div>
-		<div class="mt-8">
+		<div class="mt-8 h-1/2">
 			<span class="flex justify-center text-2xl font-medium text-white"
 				>Nomor Antrian Yang Belum Dilayani</span
 			>

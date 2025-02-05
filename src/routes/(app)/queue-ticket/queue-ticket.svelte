@@ -22,11 +22,11 @@
 	};
 
 	const cardColor = {
-		active: 'bg-green-700 text-white',
+		active: 'bg-green-700 text-gray-50',
 		pending: '',
-		waiting: 'bg-orange-700 text-white',
-		closed: 'bg-green-600 text-white',
-		cancelled: 'bg-destructive text-white'
+		waiting: '',
+		closed: 'bg-green-600 text-gray-50',
+		cancelled: 'bg-destructive text-gray-50'
 	};
 
 	let { icons, queueTicket }: QueueTicketProps = $props();
@@ -41,6 +41,7 @@
 		const formData = new FormData();
 		formData.append('id', id);
 		formData.append('status', newStatus);
+
 		if (queueTicket.status === 'cancelled') formData.append('cancelReason', String(cancelReason));
 
 		if (queueTicket.status === 'pending' && newStatus === 'active') {
@@ -62,8 +63,8 @@
 		});
 
 		if (response.status === 200) {
-			await invalidateAll();
 			openCancelDialog = false;
+			await invalidateAll();
 			toast.success('Berhasil Mengubah Status Tiket', {
 				class: 'text-lg '
 			});
@@ -72,9 +73,10 @@
 
 	let timeGap: string = $state('00 : 00');
 	let isTimeLimitReached: boolean = $state(false);
+	let totalSeconds: number = $state(0);
 
 	$effect(() => {
-		if (queueTicket.status === 'pending') {
+		if (queueTicket.status === 'pending' || queueTicket.status === 'waiting') {
 			const interval = setInterval(() => {
 				const createdTime = new Date(queueTicket.createdAt);
 				createdTime.setHours(createdTime.getHours() + 7);
@@ -91,14 +93,33 @@
 				const minutes = Math.floor(seconds / 60);
 
 				timeGap = `${(minutes % 60).toString().padStart(2, '0')} : ${(seconds % 60).toString().padStart(2, '0')}`;
-				const totalSeconds = Math.floor(timeDiff / 1000);
+				totalSeconds = Math.floor(timeDiff / 1000);
 
-				if (totalSeconds > 180) {
+				if (totalSeconds > 180 && queueTicket.status === 'pending') {
 					isTimeLimitReached = true;
 				}
 			}, 1000);
 
 			return () => clearInterval(interval);
+		}
+	});
+
+	$effect(() => {
+		if (isTimeLimitReached) {
+			updateTicketStatus(queueTicket.id.toString(), 'waiting');
+
+			isTimeLimitReached = false;
+			invalidateAll();
+		}
+	});
+
+	$effect(() => {
+		//auto cancel appointment if out of time limit
+		if (totalSeconds > 5400) {
+			updateTicketStatus(queueTicket.id.toString(), 'cancelled');
+
+			totalSeconds = 0;
+			invalidateAll();
 		}
 	});
 
@@ -109,7 +130,7 @@
 <Card.Root
 	class="{queueTicket.status === 'closed' || queueTicket.status === 'cancelled'
 		? 'h-auto'
-		: 'h-[16.75rem]'}  w-[22.25rem] {cardColor[
+		: 'h-[16.75rem]'}  w-[22.25rem]  {cardColor[
 		queueTicket.status
 	]} relative flex cursor-pointer items-center justify-center rounded-lg border-none shadow-xl transition-shadow duration-300 hover:shadow-2xl"
 	onmouseenter={() => (isHovered = true)}
@@ -125,16 +146,20 @@
 				<Card.Title class="flex  items-center gap-4 text-xl font-bold">
 					{@const Icons = iconMap[icons]}
 					<div class="rounded-full bg-gray-100 p-2">
-						<Icons class="size-8 text-gray-700" />
+						<Icons
+							class="size-8 {queueTicket.status === 'waiting' ? 'text-rose-700' : 'text-gray-700'} "
+						/>
 					</div>
-					<span class="text-3xl">{queueTicket.name}</span>
+					<span class="text-3xl {queueTicket.status === 'waiting' ? 'text-rose-700' : ''}"
+						>{queueTicket.name}</span
+					>
 				</Card.Title>
 			</Card.Header>
 		{/if}
 		<Card.Content
 			class="flex flex-col {finishedTicket ? 'text-right' : 'items-center justify-center'} p-2"
 		>
-			{#if isHovered && (queueTicket.status === 'pending' || queueTicket.status === 'active')}
+			{#if isHovered && (queueTicket.status === 'pending' || queueTicket.status === 'active' || queueTicket.status === 'waiting')}
 				<div
 					class="flex h-[16rem] w-[20.25rem] flex-col justify-between rounded-lg {cardColor[
 						queueTicket.status
@@ -158,9 +183,9 @@
 							</Button>
 						{/if}
 						<Button
-							class="bg-green-500 text-white hover:bg-green-600"
+							class="bg-green-500 text-gray-50 hover:bg-green-600"
 							onclick={async () => {
-								if (queueTicket.status === 'pending') {
+								if (queueTicket.status === 'pending' || queueTicket.status === 'waiting') {
 									await updateTicketStatus(queueTicket.id.toString(), 'active');
 								} else {
 									await updateTicketStatus(queueTicket.id.toString(), 'closed');
@@ -173,16 +198,17 @@
 				</div>
 			{:else}
 				<span
-					class="{finishedTicket ? 'text-4xl font-semibold' : 'text-5xl font-bold'} tracking-wide"
-					>{queueTicket.appointmentNo}</span
+					class=" {queueTicket.status === 'waiting' ? 'text-destructive' : ''} {finishedTicket
+						? 'text-4xl font-semibold'
+						: 'text-5xl font-bold'} tracking-wide">{queueTicket.appointmentNo}</span
 				>
 			{/if}
 		</Card.Content>
 	</div>
 
-	{#if queueTicket.status === 'pending'}
+	{#if queueTicket.status === 'pending' || queueTicket.status === 'waiting'}
 		<span
-			class="absolute bottom-2 left-2 ml-2 text-2xl font-bold {isTimeLimitReached
+			class="absolute bottom-2 left-2 ml-2 text-2xl font-bold {totalSeconds > 180
 				? 'text-destructive'
 				: 'text-green-500'}">{timeGap}</span
 		>

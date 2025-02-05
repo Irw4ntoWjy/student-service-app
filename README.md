@@ -34,9 +34,10 @@ let isQrCodeScanned: boolean = $state(false);
 
 ---
 
----
+validasi request berulang di bagian load scanned ticket
+page loader UPH yang masih ga terpakai
 
-## validasi request berulang di bagian load scanned ticket
+---
 
 # sv
 

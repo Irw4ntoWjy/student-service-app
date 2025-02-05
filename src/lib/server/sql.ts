@@ -227,3 +227,24 @@ export const insertMenuAction = async (insertMenuAction: MenuDialogSchema) => {
 		throw error;
 	}
 };
+
+export const getAppointmentTicketByAppointmentNo = async (appointmentNo: string) => {
+	try {
+		const { rows } = await sql`
+            select
+                ap.id,
+                ap.appointment_no as "appointmentNo",
+                ap.reason,
+                ap.status,
+                ap.created_at as "createdAt",
+                ap.last_updated_at as "lastUpdatedAt"
+            from 
+                appointment ap
+            where 
+                ap.appointment_no = ${appointmentNo}`;
+		return rows as QueueTicketSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};

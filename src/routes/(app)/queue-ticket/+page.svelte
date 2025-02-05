@@ -74,7 +74,6 @@
 
 			if (message.type === 'UPDATE') {
 				invalidateAll();
-				console.log(message.data);
 			}
 		};
 	});

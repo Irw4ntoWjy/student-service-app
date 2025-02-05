@@ -17,7 +17,7 @@ export type QueueTicketSchema = z.infer<typeof queueTicketSchema>;
 export const updateAppointmentTicketSchema = z.object({
 	id: z.number(),
 	status: z.enum(status),
-	cancelReason: z.string()
+	cancelReason: z.string().optional()
 });
 
 export type UpdateAppointmentTicketSchema = z.infer<typeof updateAppointmentTicketSchema>;

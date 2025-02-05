@@ -5,9 +5,9 @@ import type {
 	LoadMenuSchema,
 	MenuDialogSchema
 } from '../../routes/(app)/menu-services/menu-schema';
-import type {
-	QueueTicketSchema,
-	UpdateAppointmentTicketSchema
+import {
+	type QueueTicketSchema,
+	type UpdateAppointmentTicketSchema
 } from '../../routes/(app)/queue-ticket/queue-ticket-schema';
 
 export const initTable = async () => {
@@ -40,7 +40,7 @@ export const initTable = async () => {
 		await sql`
             create table if not exists appointment (
                 id SERIAL PRIMARY KEY,
-                status varchar(10) not null,
+                status varchar(10) not null check (status in ('created', 'active', 'pending', 'waiting', 'closed', 'cancelled' )),
                 appointment_no varchar(5) not null,
                 menu_id int4 not null references menu(id) on delete cascade on update cascade,
                 reason varchar(200) not null, 
@@ -118,7 +118,7 @@ export const getAllMenu = async (): Promise<LoadMenuSchema[]> => {
 
 export const insertAppointment = async (insertUpdateAppointment: InsertUpdateAppointmentSchema) => {
 	try {
-		await sql`insert into appointment (status, appointment_no, menu_id, reason, created_at) values ('pending', ${insertUpdateAppointment.appointmentNo}, ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, now())`;
+		await sql`insert into appointment (status, appointment_no, menu_id, reason, created_at) values ('created', ${insertUpdateAppointment.appointmentNo}, ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, now())`;
 	} catch (error) {
 		console.error('Error inserting row:', error);
 		throw error;
@@ -228,9 +228,11 @@ export const insertMenuAction = async (insertMenuAction: MenuDialogSchema) => {
 	}
 };
 
-export const getAppointmentTicketByAppointmentNo = async (appointmentNo: string) => {
+export const getAppointmentTicketByAppointmentNo = async (
+	appointmentNo: string
+): Promise<QueueTicketSchema> => {
 	try {
-		const { rows } = await sql`
+		const result = await sql`
             select
                 ap.id,
                 ap.appointment_no as "appointmentNo",
@@ -242,7 +244,8 @@ export const getAppointmentTicketByAppointmentNo = async (appointmentNo: string)
                 appointment ap
             where 
                 ap.appointment_no = ${appointmentNo}`;
-		return rows as QueueTicketSchema[];
+
+		return result.rows[0] as QueueTicketSchema;
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;

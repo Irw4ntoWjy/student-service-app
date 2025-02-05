@@ -1,4 +1,38 @@
+---
 ablynya masih pakai public env
+---
+
+---
+
+let isQrCodeScanned: boolean = $state(false);
+
+    $effect.root(() => {
+    	const ably = new Realtime({ key: 'gqo0ug.eOzcSw:e6g093vBHe3phpt2f4nBviuRBeSLkTSfQ3RXN2fBpMI' });
+    	const channel = ably.channels.get('updates');
+
+    	channel.subscribe('update', (message) => {
+    		console.log('Received update via Ably:', message.data);
+    		isQrCodeScanned = true;
+    	});
+
+    	ably.connection.on('connected', () => {
+    		console.log('Connected to Ably');
+    	});
+
+    	// Unsubscribe when the component is destroyed
+    	return () => {
+    		channel.unsubscribe();
+    		ably.close();
+    	};
+    });
+
+    $effect(() => {
+    	if (isQrCodeScanned) {
+    		goto('/');
+    	}
+    });
+
+---
 
 # sv
 

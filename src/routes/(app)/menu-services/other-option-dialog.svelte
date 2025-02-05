@@ -9,17 +9,18 @@
 	let { open = $bindable(), menuId = $bindable() }: { open: boolean; menuId: number } = $props();
 	let value: string | undefined = $state(undefined);
 
-	let currentAppointmentNo: string | undefined = $state(undefined);
+	let nextAppointmentNo: string | undefined = $state(undefined);
 	let openQrDialog: boolean = $state(false);
 
 	const generateQrCode = async () => {
+		let currentAppointmentNo: string | undefined = undefined;
 		const res = await fetch(`${page.url}/get-current-appointment-no`).then((res) => res.json());
 		currentAppointmentNo = res;
 
-		const appointmentNo = (Number(currentAppointmentNo) + 1).toString().padStart(3, '0');
+		nextAppointmentNo = (Number(currentAppointmentNo) + 1).toString().padStart(3, '0');
 
 		const formData = new FormData();
-		formData.append('appointmentNo', String(appointmentNo));
+		formData.append('appointmentNo', String(nextAppointmentNo));
 		formData.append('menuId', String(1)); // masih bug
 		formData.append('reason', String(value));
 
@@ -55,4 +56,4 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<QrCodeDialog {openQrDialog} data={currentAppointmentNo} />
+<QrCodeDialog {openQrDialog} data={nextAppointmentNo} />

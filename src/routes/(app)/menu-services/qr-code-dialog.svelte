@@ -1,8 +1,41 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import QRCode from '@castlenine/svelte-qrcode';
+	import { Realtime } from 'ably';
 
 	let { openQrDialog, data }: { openQrDialog: boolean; data: string | undefined } = $props();
+
+	let isQrCodeScanned: boolean = $state(false);
+
+	$effect.root(() => {
+		const ably = new Realtime({ key: 'gqo0ug.eOzcSw:e6g093vBHe3phpt2f4nBviuRBeSLkTSfQ3RXN2fBpMI' });
+		const channel = ably.channels.get('updates');
+
+		channel.subscribe('update', (message) => {
+			console.log('Received update via Ably:', message.data);
+			isQrCodeScanned = true;
+		});
+
+		ably.connection.on('connected', () => {
+			console.log('Connected to Ably');
+		});
+
+		// Unsubscribe when the component is destroyed
+		return () => {
+			channel.unsubscribe();
+			ably.close();
+		};
+	});
+
+	$effect(() => {
+		if (isQrCodeScanned) {
+			goto('/');
+		}
+	});
+
+	let qrCodeUrl = $derived(`${page.url}/appointment/${data}`);
 </script>
 
 <Dialog.Root bind:open={openQrDialog}>
@@ -15,7 +48,7 @@
 		</Dialog.Header>
 		<div class="flex w-full items-center justify-center">
 			{#if data}
-				<QRCode {data} />
+				<QRCode data={qrCodeUrl} />
 			{/if}
 		</div>
 	</Dialog.Content>

@@ -1,5 +1,5 @@
+import { broadcastUpdate } from '$lib/server/ably';
 import { getAppointmentTicket, getAppointmentTicketByAppointmentNo } from '$lib/server/sql';
-import { broadcastUpdate } from '$lib/server/web-socket';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {

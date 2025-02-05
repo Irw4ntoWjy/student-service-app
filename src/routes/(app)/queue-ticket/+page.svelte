@@ -4,12 +4,12 @@
 	import type { PageData } from './$types';
 	import QueueTicket from './queue-ticket.svelte';
 	let { data }: { data: PageData } = $props();
+	import { Realtime } from 'ably';
 
 	let currentTime: string = $state('');
 	let currentDate: string = $state('');
 	let currentDay: string = $state('');
 
-	let socket: WebSocket | null = $state(null);
 	let appointmentTicket = $derived(data.appointmentTicket);
 
 	// Function to format time
@@ -63,18 +63,22 @@
 	});
 
 	$effect.root(() => {
-		socket = new WebSocket('ws://localhost:8080');
+		const ably = new Realtime({ key: 'gqo0ug.eOzcSw:e6g093vBHe3phpt2f4nBviuRBeSLkTSfQ3RXN2fBpMI' });
+		const channel = ably.channels.get('updates');
 
-		socket.onopen = () => {
-			console.log('WebSocket connection established');
-		};
+		channel.subscribe('update', (message) => {
+			console.log('Received update via Ably:', message.data);
+			invalidateAll();
+		});
 
-		socket.onmessage = (event) => {
-			const message = JSON.parse(event.data);
+		ably.connection.on('connected', () => {
+			console.log('Connected to Ably');
+		});
 
-			if (message.type === 'UPDATE') {
-				invalidateAll();
-			}
+		// Unsubscribe when the component is destroyed
+		return () => {
+			channel.unsubscribe();
+			ably.close();
 		};
 	});
 </script>

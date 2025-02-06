@@ -62,6 +62,8 @@
 					</Button>
 				</label>
 			</form>
+			<span class="ml-auto cursor-pointer self-end text-sm font-medium text-primary">Sign up</span>
+			<Button type="button" class="w-full">Log in</Button>
 		</div>
 	</div>
 </div>

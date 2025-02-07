@@ -51,6 +51,7 @@
 		"@tanstack/table-core": "9.0.0-alpha.10",
 		"@vercel/postgres": "^0.10.0",
 		"ably": "^2.6.3",
+		"bcryptjs": "^2.4.3",
 		"dotenv": "^16.4.7",
 		"vercel": "^39.3.0",
 		"ws": "^8.18.0",

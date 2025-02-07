@@ -2,9 +2,60 @@
 	import src from '$lib/assets/UPH-Blue.svg';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
+	import bcrypt from 'bcryptjs';
 	import { Eye, EyeOff, KeyRound, User } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
 	let showPassword: boolean = $state(false);
+
+	type LoginSchema = {
+		username: string | undefined;
+		password: string | undefined;
+	};
+
+	const loginCredentials: LoginSchema = $state({
+		username: undefined,
+		password: undefined
+	});
+
+	// hash using bcryptjs
+	const hashPassword = async (password: string) => {
+		const SALT_ROUNDS = 12;
+
+		return await bcrypt.hash(password, SALT_ROUNDS);
+	};
+
+	const handleLogin = async () => {
+		if (!loginCredentials.username || !loginCredentials.password) {
+			toast.warning('Please enter username and password');
+		}
+
+		try {
+			if (loginCredentials.password) {
+				const hashedPassword = await hashPassword(loginCredentials.password);
+				console.log('Hashed Password:', hashedPassword);
+
+				// Send this hashed password to the backend
+				// const response = await fetch('/api/login', {
+				// 	method: 'POST',
+				// 	headers: { 'Content-Type': 'application/json' },
+				// 	body: JSON.stringify({
+				// 		username: loginCredentials.username,
+				// 		password: hashedPassword
+				// 	})
+				// });
+
+				// const result = await response.json();
+				// if (response.ok) {
+				// 	alert('Login successful!');
+				// } else {
+				// 	alert(result.message || 'Login failed');
+				// }
+			}
+		} catch (error) {
+			console.error('Error hashing password:', error);
+		}
+	};
 </script>
 
 <div class="background flex h-screen w-full flex-col items-center justify-center">
@@ -63,7 +114,7 @@
 				</label>
 			</form>
 			<span class="ml-auto cursor-pointer self-end text-sm font-medium text-primary">Sign up</span>
-			<Button type="button" class="w-full">Log in</Button>
+			<Button type="button" class="w-full" onclick={handleLogin}>Log in</Button>
 		</div>
 	</div>
 </div>

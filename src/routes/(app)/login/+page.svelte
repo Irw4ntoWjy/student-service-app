@@ -2,9 +2,24 @@
 	import src from '$lib/assets/UPH-Blue.svg';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
+	// import bcrypt from 'bcrypt';
 	import { Eye, EyeOff, KeyRound, User } from 'lucide-svelte';
 
 	let showPassword: boolean = $state(false);
+
+	let loginCredential: { username: string | undefined; password: string | undefined } = $state({
+		username: undefined,
+		password: undefined
+	});
+
+	// hash using sha256
+	const hashLoginPassword = async (password: string): Promise<string> => {
+		const SALT_ROUNDS = 12;
+
+		return hashPassword;
+	};
+
+	// $inspect(loginCredential);
 </script>
 
 <div class="background flex h-screen w-full flex-col items-center justify-center">
@@ -25,6 +40,7 @@
 			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
 				<label class="flex h-10 w-full items-center">
 					<Input
+						bind:value={loginCredential.username}
 						required
 						placeholder="Username"
 						type="text"
@@ -39,10 +55,17 @@
 			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
 				<label class="relative flex h-10 w-full items-center">
 					<Input
+						bind:value={loginCredential.password}
 						required
 						placeholder="Password"
 						type={showPassword ? 'text' : 'password'}
 						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none"
+						oninput={async () => {
+							// if (loginCredential.password) {
+							// 	const pw = hashLoginPassword(loginCredential.password);
+							// 	loginCredential.password = await pw;
+							// }
+						}}
 					/>
 					<div class="absolute left-3 text-gray-500">
 						<KeyRound class="size-4" />
@@ -63,7 +86,7 @@
 				</label>
 			</form>
 			<span class="ml-auto cursor-pointer self-end text-sm font-medium text-primary">Sign up</span>
-			<Button type="button" class="w-full">Log in</Button>
+			<Button type="button" class="mt-8 w-full">Log in</Button>
 		</div>
 	</div>
 </div>

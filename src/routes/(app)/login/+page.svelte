@@ -1,15 +1,30 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import src from '$lib/assets/UPH-Blue.svg';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import { Eye, EyeOff, KeyRound, User } from 'lucide-svelte';
+	import { Eye, EyeOff, KeyRound, Mail, User } from 'lucide-svelte';
 
 	let showPassword: boolean = $state(false);
+	let currentStatus: 'login' | 'signup' = $state('login');
 
-	let loginCredential: { username: string | undefined; password: string | undefined } = $state({
+	let loginCreds: { username: string | undefined; password: string | undefined } = $state({
 		username: undefined,
 		password: undefined
 	});
+
+	let signupCreds: {
+		useremail: string | undefined;
+		username: string | undefined;
+		password: string | undefined;
+	} = $state({
+		useremail: undefined,
+		username: undefined,
+		password: undefined
+	});
+
+	const isEmailValid = $derived(signupCreds.useremail?.includes('@uph.edu'));
+	$inspect(isEmailValid);
 
 	// hash using sha256
 	const hashLoginPassword = async (password: string): Promise<string> => {
@@ -20,6 +35,24 @@
 		const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('');
 
 		return hashHex;
+	};
+
+	const generateVerificationCode = (): string => {
+		return Math.floor(100000 + Math.random() * 900000).toString();
+	};
+
+	const verifyEmail = async () => {
+		const verifCode = generateVerificationCode();
+
+		const response = await fetch(`${page.url.pathname}/verify-email`, {
+			method: 'POST',
+			body: JSON.stringify({
+				email: signupCreds.useremail,
+				code: verifCode
+			})
+		});
+
+		await response.json();
 	};
 </script>
 
@@ -38,14 +71,46 @@
 				>
 			</div>
 
+			{#if currentStatus === 'signup'}
+				<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
+					<label class="flex h-10 w-full items-center">
+						<Input
+							bind:value={signupCreds.useremail}
+							required
+							placeholder="Email"
+							type="text"
+							class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none"
+							oninput={() => {}}
+						/>
+						<div
+							class="absolute left-3 text-gray-500 transition-transform duration-300 ease-in-out"
+						>
+							<Mail class="size-4" />
+						</div>
+					</label>
+				</form>
+				{#if isEmailValid}
+					<button
+						class="ml-auto cursor-pointer self-end text-sm font-medium text-primary"
+						onclick={verifyEmail}
+					>
+						Verifikasi Email
+					</button>
+				{/if}
+			{/if}
+
 			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
 				<label class="flex h-10 w-full items-center">
 					<Input
-						bind:value={loginCredential.username}
+						disabled={!isEmailValid}
+						bind:value={loginCreds.username}
 						required
 						placeholder="Username"
 						type="text"
-						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none"
+						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none {!isEmailValid &&
+						currentStatus === 'signup'
+							? 'py-0 disabled:bg-blue-100 disabled:text-gray-500'
+							: ''}"
 					/>
 					<div class="absolute left-3 text-gray-500 transition-transform duration-300 ease-in-out">
 						<User class="size-4" />
@@ -56,15 +121,16 @@
 			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
 				<label class="relative flex h-10 w-full items-center">
 					<Input
-						bind:value={loginCredential.password}
+						disabled={!isEmailValid}
+						bind:value={loginCreds.password}
 						required
 						placeholder="Password"
 						type={showPassword ? 'text' : 'password'}
 						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none"
 						oninput={async () => {
-							if (loginCredential.password) {
-								const pw = hashLoginPassword(loginCredential.password);
-								loginCredential.password = await pw;
+							if (loginCreds.password) {
+								const pw = hashLoginPassword(loginCreds.password);
+								loginCreds.password = await pw;
 							}
 						}}
 					/>
@@ -73,6 +139,7 @@
 					</div>
 
 					<Button
+						disabled={!isEmailValid}
 						type="button"
 						variant="ghost"
 						class="absolute right-3 text-gray-500 focus:outline-none"
@@ -86,8 +153,27 @@
 					</Button>
 				</label>
 			</form>
-			<span class="ml-auto cursor-pointer self-end text-sm font-medium text-primary">Sign up</span>
-			<Button type="button" class="mt-8 w-full">Log in</Button>
+
+			<span
+				class="ml-auto cursor-pointer self-end text-sm font-medium text-primary"
+				tabindex="0"
+				role="button"
+				onclick={() => (currentStatus = currentStatus === 'signup' ? 'login' : 'signup')}
+				onkeydown={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						currentStatus = currentStatus === 'signup' ? 'login' : 'signup';
+					}
+				}}
+			>
+				{currentStatus === 'signup' ? 'Login' : 'Sign up'}
+			</span>
+
+			<Button
+				type="button"
+				class="mt-8 w-full"
+				disabled={!isEmailValid && currentStatus === 'signup'}
+				>{currentStatus === 'signup' ? 'Sign up' : 'Login'}
+			</Button>
 		</div>
 	</div>
 </div>

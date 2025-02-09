@@ -17,11 +17,27 @@
 		const res = await fetch(`${page.url}/get-current-appointment-no`).then((res) => res.json());
 		currentAppointmentNo = res;
 
-		nextAppointmentNo = (Number(currentAppointmentNo) + 1).toString().padStart(3, '0');
+		// Extract the sequence number (XXX), month letter (M), and year (YY)
+		const match = currentAppointmentNo?.match(/^(\d{3})([A-L])(\d{2})$/);
 
+		if (match) {
+			let sequence = Number(match[1]) + 1; // Increment sequence number
+			const monthLetter = match[2];
+			const year = match[3];
+
+			nextAppointmentNo = `${sequence.toString().padStart(3, '0')}${monthLetter}${year}`;
+		} else {
+			// If no previous ticket exists, start from 001 with current month/year
+			const currentYear = new Date().getFullYear() % 100;
+			const currentMonthLetter = String.fromCharCode(65 + new Date().getMonth());
+
+			nextAppointmentNo = `001${currentMonthLetter}${currentYear}`;
+		}
+
+		// Send the new appointment number
 		const formData = new FormData();
-		formData.append('appointmentNo', String(nextAppointmentNo));
-		formData.append('menuId', String(1)); // masih bug
+		formData.append('appointmentNo', nextAppointmentNo);
+		formData.append('menuId', String(1));
 		formData.append('reason', String(value));
 
 		const response = await fetch(`?/insertAppointment`, {

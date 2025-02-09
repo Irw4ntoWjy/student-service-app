@@ -19,6 +19,8 @@
 		"@sveltejs/adapter-auto": "^4.0.0",
 		"@sveltejs/kit": "^2.15.3",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
+		"@types/express": "^5.0.0",
+		"@types/nodemailer": "^6.4.17",
 		"@types/ws": "^8.5.14",
 		"autoprefixer": "^10.4.20",
 		"bits-ui": "1.0.0-next.84",
@@ -53,6 +55,8 @@
 		"ably": "^2.6.3",
 		"bcryptjs": "^2.4.3",
 		"dotenv": "^16.4.7",
+		"express": "^4.21.2",
+		"nodemailer": "^6.10.0",
 		"vercel": "^39.3.0",
 		"ws": "^8.18.0",
 		"zod": "^3.24.1"

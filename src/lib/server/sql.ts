@@ -41,7 +41,7 @@ export const initTable = async () => {
             create table if not exists appointment (
                 id SERIAL PRIMARY KEY,
                 status varchar(10) not null check (status in ('created', 'active', 'pending', 'waiting', 'closed', 'cancelled' )),
-                appointment_no varchar(5) not null,
+                appointment_no varchar(10) not null,
                 menu_id int4 not null references menu(id) on delete cascade on update cascade,
                 reason varchar(200) not null, 
                 created_at timestamp default NOW(),
@@ -127,6 +127,9 @@ export const insertAppointment = async (insertUpdateAppointment: InsertUpdateApp
 
 export const getCurrentAppointmentNo = async (): Promise<string> => {
 	try {
+		const currentYear = new Date().getFullYear() % 100;
+		const currentMonthLetter = String.fromCharCode(65 + new Date().getMonth());
+
 		const { rows } = await sql`
             select
                 appointment_no
@@ -136,11 +139,12 @@ export const getCurrentAppointmentNo = async (): Promise<string> => {
                 created_at desc
             limit 1
         `;
-		// return 0 for when the no appointment is null
 		if (rows.length === 0) {
-			return '000';
+			// If no appointments exist for this month/year, start at 001
+			return `000${currentMonthLetter}${currentYear}`;
 		}
-		return String(rows[0].appointment_no).padStart(3, '0');
+
+		return rows[0].appointment_no;
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;

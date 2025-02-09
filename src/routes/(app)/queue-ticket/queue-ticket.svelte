@@ -3,12 +3,12 @@
 	import * as Card from '$lib/components/ui/card';
 	import * as Dialog from '$lib/components/ui/dialog';
 
+	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { Check, HandCoins, Home, User, X } from 'lucide-svelte';
-	import type { QueueTicketSchema, Status } from './queue-ticket-schema';
 	import { toast } from 'svelte-sonner';
-	import { page } from '$app/state';
+	import type { QueueTicketSchema, Status } from './queue-ticket-schema';
 
 	const iconMap = {
 		HandCoins,

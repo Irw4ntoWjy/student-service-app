@@ -2,59 +2,24 @@
 	import src from '$lib/assets/UPH-Blue.svg';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import bcrypt from 'bcryptjs';
 	import { Eye, EyeOff, KeyRound, User } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
 
 	let showPassword: boolean = $state(false);
 
-	type LoginSchema = {
-		username: string | undefined;
-		password: string | undefined;
-	};
-
-	const loginCredentials: LoginSchema = $state({
+	let loginCredential: { username: string | undefined; password: string | undefined } = $state({
 		username: undefined,
 		password: undefined
 	});
 
-	// hash using bcryptjs
-	const hashPassword = async (password: string) => {
-		const SALT_ROUNDS = 12;
+	// hash using sha256
+	const hashLoginPassword = async (password: string): Promise<string> => {
+		const encoder = new TextEncoder();
+		const data = encoder.encode(password);
+		const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+		const hashArray = Array.from(new Uint8Array(hashBuffer));
+		const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('');
 
-		return await bcrypt.hash(password, SALT_ROUNDS);
-	};
-
-	const handleLogin = async () => {
-		if (!loginCredentials.username || !loginCredentials.password) {
-			toast.warning('Please enter username and password');
-		}
-
-		try {
-			if (loginCredentials.password) {
-				const hashedPassword = await hashPassword(loginCredentials.password);
-				console.log('Hashed Password:', hashedPassword);
-
-				// Send this hashed password to the backend
-				// const response = await fetch('/api/login', {
-				// 	method: 'POST',
-				// 	headers: { 'Content-Type': 'application/json' },
-				// 	body: JSON.stringify({
-				// 		username: loginCredentials.username,
-				// 		password: hashedPassword
-				// 	})
-				// });
-
-				// const result = await response.json();
-				// if (response.ok) {
-				// 	alert('Login successful!');
-				// } else {
-				// 	alert(result.message || 'Login failed');
-				// }
-			}
-		} catch (error) {
-			console.error('Error hashing password:', error);
-		}
+		return hashHex;
 	};
 </script>
 
@@ -76,6 +41,7 @@
 			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
 				<label class="flex h-10 w-full items-center">
 					<Input
+						bind:value={loginCredential.username}
 						required
 						placeholder="Username"
 						type="text"
@@ -90,10 +56,17 @@
 			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
 				<label class="relative flex h-10 w-full items-center">
 					<Input
+						bind:value={loginCredential.password}
 						required
 						placeholder="Password"
 						type={showPassword ? 'text' : 'password'}
 						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none"
+						oninput={async () => {
+							if (loginCredential.password) {
+								const pw = hashLoginPassword(loginCredential.password);
+								loginCredential.password = await pw;
+							}
+						}}
 					/>
 					<div class="absolute left-3 text-gray-500">
 						<KeyRound class="size-4" />
@@ -114,7 +87,7 @@
 				</label>
 			</form>
 			<span class="ml-auto cursor-pointer self-end text-sm font-medium text-primary">Sign up</span>
-			<Button type="button" class="w-full" onclick={handleLogin}>Log in</Button>
+			<Button type="button" class="mt-8 w-full">Log in</Button>
 		</div>
 	</div>
 </div>

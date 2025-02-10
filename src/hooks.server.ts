@@ -1,7 +1,7 @@
-import dotenv from 'dotenv';
 import { initTable } from '$lib/server/sql';
 import type { ServerInit } from '@sveltejs/kit';
-// import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
+// import { redirect, type Handle } from '@sveltejs/kit';
+import dotenv from 'dotenv';
 
 export const init: ServerInit = async () => {
 	dotenv.config();

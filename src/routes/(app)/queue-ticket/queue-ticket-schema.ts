@@ -18,7 +18,7 @@ export const appointmentTicketSchema = z.object({
 	id: z.number(),
 	status: z.enum(status),
 	appointmentNo: z.string(),
-	menuId: z.string(),
+	menuName: z.string(),
 	reason: z.string(),
 	createdAt: z.string(),
 	scannedAt: z.string().optional(),

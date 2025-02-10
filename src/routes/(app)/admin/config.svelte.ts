@@ -247,13 +247,19 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 			id: 'appointmentNo',
 			accessorFn: (row) => row.appointmentNo,
 			header: () => 'Nomor Appointment',
-			size: 250
+			size: 225
 		},
+		// {
+		// 	id: 'menuName',
+		// 	accessorFn: (row) => row.menuName,
+		// 	header: () => 'Divisi Yang Dicari',
+		// 	size: 200
+		// },
 		{
 			id: 'status',
 			accessorFn: (row) => appointmentStatus[row.status],
 			header: () => 'Status Appointment',
-			size: 250
+			size: 225
 		},
 		{
 			id: 'reason',
@@ -277,13 +283,13 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 			id: 'appointmentStartAt',
 			accessorFn: (row) => dateTimeFormatString(row.appointmentStartAt),
 			header: () => 'Appointment Dimulai Pada',
-			size: 250
+			size: 275
 		},
 		{
 			id: 'appointmentFinishedAt',
 			accessorFn: (row) => dateTimeFormatString(row.appointmentFinishedAt),
 			header: () => 'Appointment Selesai Pada',
-			size: 250
+			size: 275
 		},
 		{
 			id: 'cancelAt',

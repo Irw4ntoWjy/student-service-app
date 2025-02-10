@@ -122,20 +122,22 @@ export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> =>
 	try {
 		const { rows } = await sql`
             select 
-                id,
-				status,
-				appointment_no as "appointmentNo",
-				menu_id as menuId,
-				reason,
-				created_at as "createdAt",
-				scanned_at as "scannedAt",
-				appointment_start_at as "appointmentStartAt",
-				appointment_finished_at as "appointmentFinishedAt",
-				cancel_at as "cancelAt",
-				cancel_reason as "cancelReason"
+                ap.id,
+				ap.status,
+				ap.appointment_no as "appointmentNo",
+				m.name as menuName,				
+				ap.reason,
+				ap.created_at as "createdAt",
+				ap.scanned_at as "scannedAt",
+				ap.appointment_start_at as "appointmentStartAt",
+				ap.appointment_finished_at as "appointmentFinishedAt",
+				ap.cancel_at as "cancelAt",
+				ap.cancel_reason as "cancelReason"
             from 
-                appointment 
-            order by created_at desc
+                appointment ap
+			inner join 
+				menu m on m.id = ap.menu_id
+            order by ap.created_at desc
         `;
 		return rows as AppointmentTicketSchema[];
 	} catch (error) {

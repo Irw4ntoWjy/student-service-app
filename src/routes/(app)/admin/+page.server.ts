@@ -1,4 +1,10 @@
-import { getAllMenu, insertMenu, insertMenuAction, updateMenu } from '$lib/server/sql';
+import {
+	getAllAppointment,
+	getAllMenu,
+	insertMenu,
+	insertMenuAction,
+	updateMenu
+} from '$lib/server/sql';
 import type { Actions } from '@sveltejs/kit';
 import fs from 'fs';
 import path from 'path';
@@ -7,6 +13,7 @@ import type {
 	LoadMenuSchema,
 	MenuDialogSchema
 } from '../menu-services/menu-schema';
+import type { AppointmentTicketSchema } from '../queue-ticket/queue-ticket-schema';
 import type { PageServerLoad } from './$types';
 
 const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) => {
@@ -34,7 +41,8 @@ const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) =
 
 export const load: PageServerLoad = async () => {
 	const menuList: LoadMenuSchema[] = await getAllMenu();
-	return { menuList };
+	const appointmentList: AppointmentTicketSchema[] = await getAllAppointment();
+	return { menuList, appointmentList };
 };
 
 export const actions = {

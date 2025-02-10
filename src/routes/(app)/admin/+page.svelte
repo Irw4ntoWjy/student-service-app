@@ -14,15 +14,22 @@
 	import { toast } from 'svelte-sonner';
 	import { type InsertUpdateMenuSchema } from '../menu-services/menu-schema';
 	import type { PageData } from './$types';
-	import createTableState from './config.svelte';
+	import { createAppointmentTable, createMenuTable } from './config.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	//init table
-	const tableState = createTableState(page.url.pathname, data.menuList);
+	const menuTableState = createMenuTable(page.url.pathname, data.menuList);
 	$effect(() => {
-		tableState.updateTable = {
+		menuTableState.updateTable = {
 			data: data.menuList
+		};
+	});
+
+	const appointmentTableState = createAppointmentTable(page.url.pathname, data.appointmentList);
+	$effect(() => {
+		appointmentTableState.updateTable = {
+			data: data.appointmentList
 		};
 	});
 
@@ -36,13 +43,13 @@
 	});
 
 	$effect(() => {
-		if (tableState.openEditDialog && !isEditMenuDataEmpty() && !formModel.id) {
-			formModel.id = tableState.editMenuData.id ?? 0;
-			formModel.name = tableState.editMenuData.menuName ?? '';
-			formModel.description = tableState.editMenuData.menuDescription ?? '';
-			formModel.imageBase64 = `uploads/${tableState.editMenuData.imageName}`;
-			formModel.imageName = tableState.editMenuData.imageName;
-			formModel.status = tableState.editMenuData.status;
+		if (menuTableState.openEditDialog && !isEditMenuDataEmpty() && !formModel.id) {
+			formModel.id = menuTableState.editMenuData.id ?? 0;
+			formModel.name = menuTableState.editMenuData.menuName ?? '';
+			formModel.description = menuTableState.editMenuData.menuDescription ?? '';
+			formModel.imageBase64 = `uploads/${menuTableState.editMenuData.imageName}`;
+			formModel.imageName = menuTableState.editMenuData.imageName;
+			formModel.status = menuTableState.editMenuData.status;
 		}
 	});
 
@@ -94,7 +101,7 @@
 			if (response.ok) {
 				await invalidateAll();
 				resetModel();
-				tableState.openEditDialog = false;
+				menuTableState.openEditDialog = false;
 				toast.success('Berhasil Menambahkan Menu Baru');
 			} else {
 				toast.error('Gagal untuk Menambahkan Menu Baru');
@@ -108,7 +115,7 @@
 			if (response.ok) {
 				await invalidateAll();
 				resetModel();
-				tableState.openEditDialog = false;
+				menuTableState.openEditDialog = false;
 				toast.success('Berhasil Mengubah Data Menu');
 			} else {
 				toast.error('Gagal untuk Mengubah Data Menu');
@@ -125,15 +132,15 @@
 
 	const isEditMenuDataEmpty = () => {
 		return (
-			tableState.editMenuData.id === undefined &&
-			tableState.editMenuData.menuName === undefined &&
-			tableState.editMenuData.menuDescription === undefined &&
-			tableState.editMenuData.imageName === undefined
+			menuTableState.editMenuData.id === undefined &&
+			menuTableState.editMenuData.menuName === undefined &&
+			menuTableState.editMenuData.menuDescription === undefined &&
+			menuTableState.editMenuData.imageName === undefined
 		);
 	};
 
 	const resetModel = () => {
-		tableState.editMenuData = {
+		menuTableState.editMenuData = {
 			id: undefined,
 			menuName: undefined,
 			menuDescription: undefined,
@@ -160,17 +167,22 @@
 		<Button
 			class="h-10 items-center border md:w-auto"
 			variant="ghost"
-			onclick={() => (tableState.openEditDialog = true)}
+			onclick={() => (menuTableState.openEditDialog = true)}
 		>
 			<CirclePlus class="mr-2 h-4 w-4" /> Tambah
 		</Button>
 	</div>
 
-	<DataTable table={tableState.table} toggleSorting={tableState.toggleSorting} />
+	<DataTable table={menuTableState.table} toggleSorting={menuTableState.toggleSorting} />
+
+	<DataTable
+		table={appointmentTableState.table}
+		toggleSorting={appointmentTableState.toggleSorting}
+	/>
 </div>
 
 <Dialog.Root
-	bind:open={tableState.openEditDialog}
+	bind:open={menuTableState.openEditDialog}
 	onOpenChange={() => {
 		resetModel();
 	}}
@@ -180,7 +192,7 @@
 			<Dialog.Title
 				>{isEditMenuDataEmpty()
 					? 'Tambah Menu Student Services'
-					: `Edit Menu ${tableState.editMenuData.menuName}`}</Dialog.Title
+					: `Edit Menu ${menuTableState.editMenuData.menuName}`}</Dialog.Title
 			>
 			<Dialog.Description>
 				{isEditMenuDataEmpty()
@@ -251,8 +263,8 @@
 </Dialog.Root>
 
 <MenuDialog
-	bind:openMenuDialog={tableState.openMenuDialog}
+	bind:openMenuDialog={menuTableState.openMenuDialog}
 	bind:openOtherOptionDialog
-	menuDialog={tableState.menuDialog || []}
-	currentMenuId={tableState.currentMenuId}
+	menuDialog={menuTableState.menuDialog || []}
+	currentMenuId={menuTableState.currentMenuId}
 />

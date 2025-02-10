@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import src from '$lib/assets/UPH-White.png';
+	import { Realtime } from 'ably';
 	import type { PageData } from './$types';
 	import QueueTicket from './queue-ticket.svelte';
-	let { data }: { data: PageData } = $props();
-	import { Realtime } from 'ably';
 
+	let { data }: { data: PageData } = $props();
 	let currentTime: string = $state('');
 	let currentDate: string = $state('');
 	let currentDay: string = $state('');
@@ -85,6 +85,20 @@
 
 <div class="mb-8 flex justify-between">
 	<img {src} alt="uph-white" class="mt-4 w-72" />
+	<div class="flex gap-4">
+		<div class="flex items-center gap-4">
+			<div class="size-8 rounded-full bg-green-700"></div>
+			<div class="text-xl font-bold text-white">Sedang Diproses</div>
+		</div>
+		<div class="flex items-center gap-4">
+			<div class="size-8 rounded-full bg-green-600"></div>
+			<div class="text-xl font-bold text-white">Selesai Diproses</div>
+		</div>
+		<div class="flex items-center gap-4">
+			<div class="size-8 rounded-full bg-destructive"></div>
+			<div class="text-xl font-bold text-white">Dibatalkan</div>
+		</div>
+	</div>
 	<div class="flex flex-col gap-2 text-white shadow-lg">
 		<span class="text-right text-6xl">{currentTime}</span>
 		<span class="text-4xl">{`${currentDay}, ${currentDate}`}</span>

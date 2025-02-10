@@ -28,6 +28,9 @@ export const insertUpdateAppointment = z.object({
 	menuId: z.number(),
 	reason: z.string(),
 	cancelAt: z.string().optional(),
+	scannedAt: z.string().optional(),
+	appointmentStartAt: z.string().optional(),
+	appointmentFinishedAt: z.string().optional(),
 	cancelReason: z.string().optional()
 });
 export type InsertUpdateAppointmentSchema = z.infer<typeof insertUpdateAppointment>;

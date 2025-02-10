@@ -6,8 +6,8 @@ import type {
 	MenuDialogSchema
 } from '../../routes/(app)/menu-services/menu-schema';
 import {
-	type QueueTicketSchema,
-	type UpdateAppointmentTicketSchema
+	type AppointmentTicketSchema,
+	type QueueTicketSchema
 } from '../../routes/(app)/queue-ticket/queue-ticket-schema';
 
 export const initTable = async () => {
@@ -45,7 +45,9 @@ export const initTable = async () => {
                 menu_id int4 not null references menu(id) on delete cascade on update cascade,
                 reason varchar(200) not null, 
                 created_at timestamp default NOW(),
-                last_updated_at timestamp,
+                scanned_at timestamp,
+                appointment_start_at timestamp,
+                appointment_finished_at timestamp,
                 cancel_at timestamp,
                 cancel_reason varchar(200)
             )            
@@ -116,6 +118,32 @@ export const getAllMenu = async (): Promise<LoadMenuSchema[]> => {
 	}
 };
 
+export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> => {
+	try {
+		const { rows } = await sql`
+            select 
+                id,
+				status,
+				appointment_no as "appointmentNo",
+				menu_id as menuId,
+				reason,
+				created_at as "createdAt",
+				scanned_at as "scannedAt",
+				appointment_start_at as "appointmentStartAt",
+				appointment_finished_at as "appointmentFinishedAt",
+				cancel_at as "cancelAt",
+				cancel_reason as "cancelReason"
+            from 
+                appointment 
+            order by created_at desc
+        `;
+		return rows as AppointmentTicketSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
 export const insertAppointment = async (insertUpdateAppointment: InsertUpdateAppointmentSchema) => {
 	try {
 		await sql`insert into appointment (status, appointment_no, menu_id, reason, created_at) values ('created', ${insertUpdateAppointment.appointmentNo}, ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, now())`;
@@ -160,8 +188,7 @@ export const getAppointmentTicket = async () => {
                 ap.appointment_no as "appointmentNo",
                 ap.reason,
                 ap.status,
-                ap.created_at as "createdAt",
-                ap.last_updated_at as "lastUpdatedAt"
+                ap.scanned_at as "scannedAt"
             from 
                 appointment ap
             inner join
@@ -192,9 +219,45 @@ export const getCurrentActiveTicket = async () => {
 	}
 };
 
-export const updateAppointmentTicket = async (model: UpdateAppointmentTicketSchema) => {
+export const updateAppointmentPending = async (id: number) => {
 	try {
-		await sql`update appointment set status = ${model.status}, cancel_reason = ${model.cancelReason}, last_updated_at = now() where id = ${model.id}`;
+		await sql`update appointment set status = 'pending', scanned_at = now() where id = ${id}`;
+	} catch (error) {
+		console.error('Error updating row:', error);
+		throw error;
+	}
+};
+
+export const updateAppointmentActive = async (id: number) => {
+	try {
+		await sql`update appointment set status = 'active', appointment_start_at = now() where id = ${id}`;
+	} catch (error) {
+		console.error('Error updating row:', error);
+		throw error;
+	}
+};
+
+export const updateAppointmentClosed = async (id: number) => {
+	try {
+		await sql`update appointment set status = 'closed', appointment_finished_at = now() where id = ${id}`;
+	} catch (error) {
+		console.error('Error updating row:', error);
+		throw error;
+	}
+};
+
+export const updateAppointmentWaiting = async (id: number) => {
+	try {
+		await sql`update appointment set status = 'waiting' where id = ${id}`;
+	} catch (error) {
+		console.error('Error updating row:', error);
+		throw error;
+	}
+};
+
+export const updateAppointmentCancelled = async (id: number, reason: string) => {
+	try {
+		await sql`update appointment set status = 'cancelled', cancel_reason= ${reason}, cancel_at = now() where id = ${id}`;
 	} catch (error) {
 		console.error('Error updating row:', error);
 		throw error;
@@ -242,8 +305,7 @@ export const getAppointmentTicketByAppointmentNo = async (
                 ap.appointment_no as "appointmentNo",
                 ap.reason,
                 ap.status,
-                ap.created_at as "createdAt",
-                ap.last_updated_at as "lastUpdatedAt"
+                ap.created_at as "createdAt"
             from 
                 appointment ap
             where 

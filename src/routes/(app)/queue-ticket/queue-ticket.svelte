@@ -78,7 +78,7 @@
 	$effect(() => {
 		if (queueTicket.status === 'pending' || queueTicket.status === 'waiting') {
 			const interval = setInterval(() => {
-				const createdTime = new Date(queueTicket.createdAt);
+				const createdTime = new Date(queueTicket.scannedAt);
 				createdTime.setHours(createdTime.getHours() + 7);
 
 				const currentTime = new Date(
@@ -122,9 +122,6 @@
 			invalidateAll();
 		}
 	});
-
-	// perlu tambah if isTimeLimitReached + check finished ticket ga ada yang pending
-	// sisa login, sama menu detail page
 </script>
 
 <Card.Root

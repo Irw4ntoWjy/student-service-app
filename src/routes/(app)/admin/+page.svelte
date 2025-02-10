@@ -36,6 +36,7 @@
 	let formModel: InsertUpdateMenuSchema = $state({
 		id: 0,
 		name: '',
+		code: '',
 		description: '',
 		image: undefined,
 		imageName: undefined,
@@ -87,6 +88,7 @@
 		const formData = new FormData();
 		formData.append('id', String(formModel.id));
 		formData.append('name', formModel.name);
+		formData.append('code', formModel.code);
 		formData.append('description', formModel.description);
 		formData.append('image', formModel.imageBase64 ?? '');
 		formData.append('imageName', formModel.imageName ?? '');
@@ -151,6 +153,7 @@
 		formModel = {
 			id: 0,
 			name: '',
+			code: '',
 			description: '',
 			imageBase64: undefined,
 			imageName: undefined,
@@ -223,6 +226,15 @@
 						/>
 					</div>
 					<div class="flex flex-col gap-4">
+						<Label for="name">Kode Menu</Label>
+						<Input
+							name="name"
+							placeholder="Kode Menu"
+							class="focus:border-gray-300 focus:outline-none focus:ring-0"
+							bind:value={formModel.code}
+						/>
+					</div>
+					<div class="flex flex-col gap-4">
 						<Label for="name">Deskripsi Menu</Label>
 						<Input
 							name="description"
@@ -266,5 +278,5 @@
 	bind:openMenuDialog={menuTableState.openMenuDialog}
 	bind:openOtherOptionDialog
 	menuDialog={menuTableState.menuDialog || []}
-	currentMenuId={menuTableState.currentMenuId}
+	currentMenu={menuTableState.currentMenu}
 />

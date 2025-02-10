@@ -72,7 +72,12 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 		menuDialog = data;
 	};
 
-	let currentMenuId: number | undefined = $state(undefined);
+	let currentMenu: { id: number | undefined; name: string | undefined; code: string | undefined } =
+		$state({
+			id: undefined,
+			name: undefined,
+			code: undefined
+		});
 
 	const columns: ColumnDef<LoadMenuSchema>[] = [
 		{
@@ -145,7 +150,11 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 						Eye: {
 							onClick: async () => {
 								fetchMenuAction(row.original.id);
-								currentMenuId = row.original.id;
+								currentMenu = {
+									id: row.original.id,
+									name: row.original.name,
+									code: row.original.code
+								};
 								openMenuDialog = true;
 							}
 						}
@@ -200,8 +209,8 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 		get menuDialog() {
 			return menuDialog;
 		},
-		get currentMenuId() {
-			return currentMenuId;
+		get currentMenu() {
+			return currentMenu;
 		}
 	};
 }
@@ -211,7 +220,8 @@ const appointmentStatus = {
 	pending: 'Sedang Mengantri',
 	waiting: 'Belum Terlayani',
 	closed: 'Selesai',
-	cancelled: 'Dibatalkan'
+	cancelled: 'Dibatalkan',
+	created: 'Menunggu Nomor Antrian'
 };
 
 export function createAppointmentTable(pageUrl: string, data: AppointmentTicketSchema[]) {

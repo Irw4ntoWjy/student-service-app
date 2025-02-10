@@ -13,7 +13,7 @@ export const actions = {
 		const rawData = await request.formData();
 
 		const formData: InsertUpdateAppointmentSchema = {
-			menuId: Number(rawData.get('menuId')),
+			menuId: String(rawData.get('menuId')),
 			appointmentNo: String(rawData.get('appointmentNo')),
 			reason: String(rawData.get('reason'))
 		};

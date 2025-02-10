@@ -6,7 +6,13 @@
 	import { toast } from 'svelte-sonner';
 	import QrCodeDialog from './qr-code-dialog.svelte';
 
-	let { open = $bindable(), menuId = $bindable() }: { open: boolean; menuId: number } = $props();
+	let {
+		open = $bindable(),
+		menu
+	}: {
+		open: boolean;
+		menu: { id: number | undefined; name: string | undefined; code: string | undefined };
+	} = $props();
 	let value: string | undefined = $state(undefined);
 
 	let nextAppointmentNo: string | undefined = $state(undefined);
@@ -14,40 +20,41 @@
 
 	const generateQrCode = async () => {
 		let currentAppointmentNo: string | undefined = undefined;
-		const res = await fetch(`${page.url}/get-current-appointment-no`).then((res) => res.json());
-		currentAppointmentNo = res;
+		const response = await fetch(`${page.url}/get-current-appointment-no`).then((res) =>
+			res.json()
+		);
+		currentAppointmentNo = response;
 
-		// Extract the sequence number (XXX), month letter (M), and year (YY)
-		const match = currentAppointmentNo?.match(/^(\d{3})([A-L])(\d{2})$/);
+		if (menu.name && menu.code) {
+			const now = new Date();
+			const year = String(now.getFullYear()).slice(-2);
+			const day = String(now.getDate()).padStart(2, '0');
 
-		if (match) {
-			let sequence = Number(match[1]) + 1; // Increment sequence number
-			const monthLetter = match[2];
-			const year = match[3];
+			// Extract and increment the appointment number
+			const match = currentAppointmentNo?.match(/(\d{3})$/);
+			let sequence = 1;
 
-			nextAppointmentNo = `${sequence.toString().padStart(3, '0')}${monthLetter}${year}`;
-		} else {
-			// If no previous ticket exists, start from 001 with current month/year
-			const currentYear = new Date().getFullYear() % 100;
-			const currentMonthLetter = String.fromCharCode(65 + new Date().getMonth());
+			if (match) {
+				sequence = Number(match[1]) + 1;
+			}
+			currentAppointmentNo = sequence.toString().padStart(3, '0');
+			nextAppointmentNo = `${menu.code}${year}${day}${currentAppointmentNo}`;
 
-			nextAppointmentNo = `001${currentMonthLetter}${currentYear}`;
-		}
+			// Send the new appointment number
+			const formData = new FormData();
+			formData.append('appointmentNo', nextAppointmentNo);
+			formData.append('menuId', String(menu.id));
+			formData.append('reason', String(value));
 
-		// Send the new appointment number
-		const formData = new FormData();
-		formData.append('appointmentNo', nextAppointmentNo);
-		formData.append('menuId', String(1));
-		formData.append('reason', String(value));
+			const response = await fetch(`?/insertAppointment`, {
+				method: 'POST',
+				body: formData
+			});
 
-		const response = await fetch(`?/insertAppointment`, {
-			method: 'POST',
-			body: formData
-		});
-
-		if (response.ok) {
-			openQrDialog = true;
-			toast.success('Berhasil membuat appointment');
+			if (response.ok) {
+				openQrDialog = true;
+				toast.success('Berhasil membuat appointment');
+			}
 		}
 	};
 </script>
@@ -64,7 +71,7 @@
 			<Textarea placeholder="Type your message here." bind:value />
 			{#if value}
 				<p class="mt-2 text-sm text-destructive">
-					*Anda akan langsung melakukan appointment ketika selesai
+					*Anda akan langsung melakukan appointment ketika menekan tombol selanjutnya
 				</p>
 			{/if}
 			<Button class="ml-auto mt-4 w-fit" onclick={() => generateQrCode()}>Selanjutnya</Button>

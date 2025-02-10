@@ -11,12 +11,12 @@
 		openMenuDialog = $bindable(),
 		openOtherOptionDialog = $bindable(),
 		menuDialog = $bindable(),
-		currentMenuId
+		currentMenu
 	}: {
 		openMenuDialog: boolean;
 		openOtherOptionDialog: boolean;
 		menuDialog: MenuDialogSchema[];
-		currentMenuId?: number;
+		currentMenu?: { id: number | undefined; name: string | undefined; code: string | undefined };
 	} = $props();
 
 	const isAdminPage = page.url.pathname.includes('/admin');
@@ -80,9 +80,7 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<OtherOptionDialog
-	bind:open={openOtherOptionDialog}
-	bind:menuId={() => (currentMenuId ? currentMenuId : 0), () => {}}
-/>
-
-<MenuActionFormDialog bind:openFormDialog menuId={currentMenuId} />
+{#if currentMenu}
+	<OtherOptionDialog bind:open={openOtherOptionDialog} menu={currentMenu} />
+	<MenuActionFormDialog bind:openFormDialog menuId={currentMenu.id} />
+{/if}

@@ -1,10 +1,12 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-	service: 'Outlook',
+	host: 'smtp.office365.com',
+	port: 587,
+	secure: false,
 	auth: {
 		user: 'student-service-uph@outlook.com',
-		pass: 'Studentserviceuph'
+		pass: 'igzkpfifsedcxjfo'
 	}
 });
 

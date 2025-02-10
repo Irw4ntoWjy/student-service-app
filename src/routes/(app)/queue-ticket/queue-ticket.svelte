@@ -22,7 +22,7 @@
 	};
 
 	const cardColor = {
-		active: 'bg-green-700 text-gray-50',
+		active: 'bg-sky-400 text-gray-50',
 		pending: '',
 		waiting: '',
 		closed: 'bg-green-600 text-gray-50',

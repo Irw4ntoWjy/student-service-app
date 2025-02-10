@@ -16,6 +16,13 @@
 		const data = await response.json();
 		menuAction = data;
 	};
+
+	let currentMenu: { id: number | undefined; name: string | undefined; code: string | undefined } =
+		$state({
+			id: undefined,
+			name: undefined,
+			code: undefined
+		});
 </script>
 
 <div class="mt-4 grid grid-cols-4 items-center justify-items-center gap-12 p-6">
@@ -26,10 +33,20 @@
 			src={`uploads/${items.imagePath}`}
 			onClick={() => {
 				fetchMenuDialog(items.id);
+				currentMenu = {
+					id: items.id,
+					name: items.name,
+					code: items.code
+				};
 				openMenuDialog = true;
 			}}
 		/>
 	{/each}
 </div>
 
-<MenuDialog bind:openMenuDialog bind:openOtherOptionDialog bind:menuDialog={menuAction} />
+<MenuDialog
+	bind:openMenuDialog
+	bind:openOtherOptionDialog
+	bind:menuDialog={menuAction}
+	{currentMenu}
+/>

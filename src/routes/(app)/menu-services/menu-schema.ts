@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const loadMenuSchema = z.object({
 	id: z.number(),
 	name: z.string(),
+	code: z.string(),
 	description: z.string(),
 	imagePath: z.string().optional(),
 	status: z.boolean(),
@@ -14,6 +15,7 @@ export type LoadMenuSchema = z.infer<typeof loadMenuSchema>;
 export const insertUpdateMenuSchema = z.object({
 	id: z.number(),
 	name: z.string(),
+	code: z.string().max(2),
 	description: z.string(),
 	imageBase64: z.string().optional(),
 	imageName: z.string().optional(),
@@ -25,7 +27,7 @@ export const insertUpdateAppointment = z.object({
 	id: z.number().optional(),
 	status: z.string().optional(),
 	appointmentNo: z.string(),
-	menuId: z.number(),
+	menuId: z.string(),
 	reason: z.string(),
 	cancelAt: z.string().optional(),
 	scannedAt: z.string().optional(),

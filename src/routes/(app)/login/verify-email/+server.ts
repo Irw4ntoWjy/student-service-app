@@ -1,10 +1,12 @@
+import { sendVerificationEmail } from '$lib/server/email-service';
 import { json, type RequestHandler } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ request }) => {
-	const data = await request.json();
-	console.log(data);
+	const { email, code } = await request.json();
+
+	await sendVerificationEmail(email, code);
 
 	return json({
-		data
+		message: 'Verification email sent successfully'
 	});
 };

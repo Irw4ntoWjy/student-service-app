@@ -59,6 +59,7 @@ export const actions = {
 		const formatFormData: InsertUpdateMenuSchema = {
 			id: Number(rawData.get('id')),
 			name: String(rawData.get('name')),
+			code: String(rawData.get('code')),
 			description: String(rawData.get('description')),
 			imageName: rawData.get('imageName') ? String(rawData.get('imageName')) : undefined
 		};
@@ -77,6 +78,7 @@ export const actions = {
 		const formatFormData: InsertUpdateMenuSchema = {
 			id: Number(rawData.get('id')),
 			name: String(rawData.get('name')),
+			code: String(rawData.get('code')),
 			description: String(rawData.get('description')),
 			imageName: rawData.get('imageName') ? String(rawData.get('imageName')) : undefined,
 			status: rawData.get('status') === 'true'

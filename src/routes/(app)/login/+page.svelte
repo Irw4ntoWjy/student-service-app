@@ -4,6 +4,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { Eye, EyeOff, KeyRound, Mail, User } from 'lucide-svelte';
+	import InputOtpDialog from './input-otp-dialog.svelte';
 
 	let showPassword: boolean = $state(false);
 	let currentStatus: 'login' | 'signup' = $state('login');
@@ -23,8 +24,8 @@
 		password: undefined
 	});
 
-	const isEmailValid = $derived(signupCreds.useremail?.includes('@uph.edu'));
-	$inspect(isEmailValid);
+	//NOTES diganti ketika validasi email uph
+	const isEmailValid = $derived(signupCreds.useremail?.includes('@outlook.com'));
 
 	// hash using sha256
 	const hashLoginPassword = async (password: string): Promise<string> => {
@@ -41,8 +42,9 @@
 		return Math.floor(100000 + Math.random() * 900000).toString();
 	};
 
+	let verifCode: string = $state('');
 	const verifyEmail = async () => {
-		const verifCode = generateVerificationCode();
+		verifCode = generateVerificationCode();
 
 		const response = await fetch(`${page.url.pathname}/verify-email`, {
 			method: 'POST',
@@ -54,6 +56,10 @@
 
 		await response.json();
 	};
+
+	$inspect(verifCode);
+
+	let openInputOtp: boolean = $state(false);
 </script>
 
 <div class="background flex h-screen w-full flex-col items-center justify-center">
@@ -92,7 +98,10 @@
 				{#if isEmailValid}
 					<button
 						class="ml-auto cursor-pointer self-end text-sm font-medium text-primary"
-						onclick={verifyEmail}
+						onclick={() => {
+							verifyEmail();
+							openInputOtp = true;
+						}}
 					>
 						Verifikasi Email
 					</button>
@@ -177,6 +186,8 @@
 		</div>
 	</div>
 </div>
+
+<InputOtpDialog bind:open={openInputOtp} />
 
 <style>
 	.background {

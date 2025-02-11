@@ -1,30 +1,29 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-	host: 'smtp.office365.com',
-	port: 587,
-	secure: false,
-	auth: {
-		user: 'student-service-uph@outlook.com',
-		pass: 'igzkpfifsedcxjfo'
-	}
-});
+const resend = new Resend('re_SQq3uV8e_2d165QcEn1qnn1BUoDW6HZsf');
 
 export const sendVerificationEmail = async (toEmail: string, verificationCode: string) => {
-	const mailOptions = {
-		from: 'student-service-uph@outlook.com',
+	const { data, error } = await resend.emails.send({
+		from: 'onboarding@resend.dev',
 		to: toEmail,
 		subject: 'Your Verification Code',
-		text: `Your verification code is: ${verificationCode}`,
-		html: `<p>Your verification code is: <strong>${verificationCode}</strong></p>`
-	};
+		html: ` 
+		<div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; text-align: center;">
+			<h2 style="color: #333;">Your Verification Code</h2>
+			<p style="font-size: 16px; color: #555;">Use the code below to verify your account:</p>
+			<div style="font-size: 24px; font-weight: bold; padding: 15px; background-color: #007bff; color: #fff; border-radius: 5px; display: inline-block; margin: 10px 0;">
+			${verificationCode}
+			</div>
+			<p style="font-size: 14px; color: #777;">If you didn’t request this code, you can ignore this email.</p>
+			<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+			<p style="font-size: 12px; color: #999;">© ${new Date().getFullYear()} Your Company. All rights reserved.</p>
+      	</div>
+		`
+	});
 
-	try {
-		const info = await transporter.sendMail(mailOptions);
-		console.log('Email sent: ', info.response);
-		return true;
-	} catch (error) {
-		console.error('Error sending email:', error);
-		return false;
+	if (error) {
+		return console.error({ error });
 	}
+
+	console.log({ data });
 };

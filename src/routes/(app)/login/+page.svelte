@@ -3,7 +3,7 @@
 	import src from '$lib/assets/UPH-Blue.svg';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import { Eye, EyeOff, KeyRound, Mail, User } from 'lucide-svelte';
+	import { CircleCheck, Eye, EyeOff, KeyRound, Mail, User } from 'lucide-svelte';
 	import InputOtpDialog from './input-otp-dialog.svelte';
 
 	let showPassword: boolean = $state(false);
@@ -25,7 +25,7 @@
 	});
 
 	//NOTES diganti ketika validasi email uph
-	const isEmailValid = $derived(signupCreds.useremail?.includes('@outlook.com'));
+	const isEmailValid = $derived(signupCreds.useremail?.includes('@gmail.com'));
 
 	// hash using sha256
 	const hashLoginPassword = async (password: string): Promise<string> => {
@@ -57,7 +57,7 @@
 		await response.json();
 	};
 
-	$inspect(verifCode);
+	let emailValid: boolean = $state(false);
 
 	let openInputOtp: boolean = $state(false);
 </script>
@@ -81,21 +81,24 @@
 				<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
 					<label class="flex h-10 w-full items-center">
 						<Input
+							disabled={emailValid}
 							bind:value={signupCreds.useremail}
 							required
 							placeholder="Email"
 							type="text"
 							class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none"
-							oninput={() => {}}
 						/>
 						<div
 							class="absolute left-3 text-gray-500 transition-transform duration-300 ease-in-out"
 						>
 							<Mail class="size-4" />
 						</div>
+						{#if emailValid}
+							<CircleCheck class="mr-2 size-5 text-green-700" />
+						{/if}
 					</label>
 				</form>
-				{#if isEmailValid}
+				{#if isEmailValid && !emailValid}
 					<button
 						class="ml-auto cursor-pointer self-end text-sm font-medium text-primary"
 						onclick={() => {
@@ -108,15 +111,15 @@
 				{/if}
 			{/if}
 
-			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
+			<form class="relative w-full rounded-md border bg-white shadow-md">
 				<label class="flex h-10 w-full items-center">
 					<Input
-						disabled={!isEmailValid}
+						disabled={!emailValid && currentStatus !== 'login'}
 						bind:value={loginCreds.username}
 						required
 						placeholder="Username"
 						type="text"
-						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none {!isEmailValid &&
+						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none {!emailValid &&
 						currentStatus === 'signup'
 							? 'py-0 disabled:bg-blue-100 disabled:text-gray-500'
 							: ''}"
@@ -127,15 +130,18 @@
 				</label>
 			</form>
 
-			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
+			<form class="relative w-full rounded-md border bg-white shadow-md">
 				<label class="relative flex h-10 w-full items-center">
 					<Input
-						disabled={!isEmailValid}
+						disabled={!emailValid && currentStatus !== 'login'}
 						bind:value={loginCreds.password}
 						required
 						placeholder="Password"
 						type={showPassword ? 'text' : 'password'}
-						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none"
+						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none disabled:bg-blue-100 disabled:py-0 disabled:text-gray-500 {!isEmailValid &&
+						currentStatus === 'signup'
+							? 'py-0 disabled:bg-blue-100 disabled:text-gray-500 '
+							: ''}"
 						oninput={async () => {
 							if (loginCreds.password) {
 								const pw = hashLoginPassword(loginCreds.password);
@@ -163,20 +169,21 @@
 				</label>
 			</form>
 
-			<span
-				class="ml-auto cursor-pointer self-end text-sm font-medium text-primary"
-				tabindex="0"
-				role="button"
-				onclick={() => (currentStatus = currentStatus === 'signup' ? 'login' : 'signup')}
-				onkeydown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
-						currentStatus = currentStatus === 'signup' ? 'login' : 'signup';
-					}
-				}}
-			>
-				{currentStatus === 'signup' ? 'Login' : 'Sign up'}
-			</span>
-
+			{#if currentStatus === 'login'}
+				<span
+					class="ml-auto cursor-pointer self-end text-sm font-medium text-primary"
+					tabindex="0"
+					role="button"
+					onclick={() => (currentStatus = currentStatus === 'signup' ? 'login' : 'signup')}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							currentStatus = currentStatus === 'signup' ? 'login' : 'signup';
+						}
+					}}
+				>
+					Sign Up
+				</span>
+			{/if}
 			<Button
 				type="button"
 				class="mt-8 w-full"
@@ -187,7 +194,12 @@
 	</div>
 </div>
 
-<InputOtpDialog bind:open={openInputOtp} />
+<InputOtpDialog
+	bind:open={openInputOtp}
+	useremail={signupCreds.useremail}
+	code={verifCode}
+	bind:emailValid
+/>
 
 <style>
 	.background {

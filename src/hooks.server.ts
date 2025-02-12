@@ -1,6 +1,6 @@
 import { initTable } from '$lib/server/sql';
 import type { ServerInit } from '@sveltejs/kit';
-// import { redirect, type Handle } from '@sveltejs/kit';
+import { redirect, type Handle } from '@sveltejs/kit';
 import dotenv from 'dotenv';
 
 export const init: ServerInit = async () => {
@@ -14,17 +14,17 @@ export const init: ServerInit = async () => {
 	await initTable();
 };
 
-// export const handle: Handle = async ({ event, resolve }) => {
-// 	const excludedRoutes = ['/queue-ticket', '/admin'];
-// 	const userSession = event.cookies.get('user_session');
+export const handle: Handle = async ({ event, resolve }) => {
+	const excludedRoutes = ['/queue-ticket', '/admin'];
+	const userSession = event.cookies.get('user_session');
 
-// 	if (excludedRoutes.includes(event.url.pathname) && !userSession) {
-// 		throw redirect(302, '/login');
-// 	}
+	if (excludedRoutes.includes(event.url.pathname) && !userSession) {
+		throw redirect(302, '/login');
+	}
 
-// 	if (event.route.id?.startsWith('/logout')) {
-// 		throw redirect(302, '/login');
-// 	}
+	if (event.route.id?.startsWith('/logout')) {
+		throw redirect(302, '/login');
+	}
 
-// 	return resolve(event);
-// };
+	return resolve(event);
+};

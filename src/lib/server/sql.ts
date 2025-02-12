@@ -13,6 +13,15 @@ import {
 export const initTable = async () => {
 	try {
 		await sql`
+            create table if not exists admin (
+                id SERIAL PRIMARY KEY,
+								user_email varchar(50) not null,
+                user_name varchar(50) not null,
+								user_password TEXT not null,
+                created_at timestamp default NOW()
+            )            
+        `;
+		await sql`
             create table if not exists menu (
                 id SERIAL PRIMARY KEY,
                 name varchar(50) not null,
@@ -59,6 +68,31 @@ export const initTable = async () => {
 	}
 };
 
+export const insertAdmin = async (useremail: string, username: string, password: string) => {
+	try {
+		await sql`insert into admin (user_email, user_name, user_password) values (${useremail}, ${username}, ${password})`;
+	} catch (err) {
+		console.error('Error inserting row:', err);
+		throw err;
+	}
+};
+
+export const getAdminAccountPw = async (username: string) => {
+	try {
+		const { rows } = await sql`
+            select
+                a.user_password as password
+            from 
+                admin a
+            where 
+                a.user_name = ${username}`;
+		return rows[0].password as string;
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
 export const insertMenu = async (model: InsertUpdateMenuSchema) => {
 	try {
 		await sql`insert into menu (name, code, description, image_path, status) values (${model.name}, ${model.code}, ${model.description},${model.imageName}, true)`;
@@ -89,7 +123,8 @@ export const getAllDisplayMenu = async (): Promise<LoadMenuSchema[]> => {
             from 
                 menu 
             where 
-                status = true
+                status = true 
+						order by created_at asc
         `;
 		return rows as LoadMenuSchema[];
 	} catch (error) {

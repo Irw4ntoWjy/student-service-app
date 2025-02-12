@@ -43,6 +43,12 @@
 			toast.success('Berhasil menambahkan action menu');
 		}
 	};
+
+	$effect(() => {
+		if (!openFormDialog) {
+			name = '';
+		}
+	});
 </script>
 
 <Dialog.Root bind:open={openFormDialog}>

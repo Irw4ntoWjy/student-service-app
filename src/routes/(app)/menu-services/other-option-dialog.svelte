@@ -17,21 +17,21 @@
 
 	let nextAppointmentNo: string | undefined = $state(undefined);
 	let openQrDialog: boolean = $state(false);
-
+	$inspect(menu);
 	const generateQrCode = async () => {
 		let currentAppointmentNo: string | undefined = undefined;
 		const response = await fetch(`${page.url}/get-current-appointment-no`).then((res) =>
 			res.json()
 		);
 		currentAppointmentNo = response;
-
-		if (menu.name && menu.code) {
+		if (menu.name) {
 			const now = new Date();
 			const year = String(now.getFullYear()).slice(-2);
 			const day = String(now.getDate()).padStart(2, '0');
 
 			// Extract and increment the appointment number
 			const match = currentAppointmentNo?.match(/(\d{3})$/);
+
 			let sequence = 1;
 
 			if (match) {
@@ -39,18 +39,20 @@
 			}
 			currentAppointmentNo = sequence.toString().padStart(3, '0');
 			nextAppointmentNo = `${menu.code}${year}${day}${currentAppointmentNo}`;
+			console.log(nextAppointmentNo);
 
 			// Send the new appointment number
 			const formData = new FormData();
 			formData.append('appointmentNo', nextAppointmentNo);
 			formData.append('menuId', String(menu.id));
 			formData.append('reason', String(value));
+			console.log(formData);
 
 			const response = await fetch(`?/insertAppointment`, {
 				method: 'POST',
 				body: formData
 			});
-
+			console.log(response);
 			if (response.ok) {
 				openQrDialog = true;
 				toast.success('Berhasil membuat appointment');

@@ -11,6 +11,7 @@ export const load: PageServerLoad = async () => {
 export const actions = {
 	insertAppointment: async ({ request }) => {
 		const rawData = await request.formData();
+		console.log(rawData);
 
 		const formData: InsertUpdateAppointmentSchema = {
 			menuId: String(rawData.get('menuId')),

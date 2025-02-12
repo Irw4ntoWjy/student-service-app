@@ -5,17 +5,14 @@
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { CircleCheck, Eye, EyeOff, KeyRound, Mail, User } from 'lucide-svelte';
 	import InputOtpDialog from './input-otp-dialog.svelte';
+	import { toast } from 'svelte-sonner';
+	import { goto } from '$app/navigation';
 
 	let showPassword: boolean = $state(false);
 	let currentStatus: 'login' | 'signup' = $state('login');
 
-	let loginCreds: { username: string | undefined; password: string | undefined } = $state({
-		username: undefined,
-		password: undefined
-	});
-
-	let signupCreds: {
-		useremail: string | undefined;
+	let userCreds: {
+		useremail?: string | undefined;
 		username: string | undefined;
 		password: string | undefined;
 	} = $state({
@@ -25,10 +22,10 @@
 	});
 
 	//NOTES diganti ketika validasi email uph
-	const isEmailValid = $derived(signupCreds.useremail?.includes('@gmail.com'));
+	const isEmailValid = $derived(userCreds.useremail?.includes('@gmail.com'));
 
 	// hash using sha256
-	const hashLoginPassword = async (password: string): Promise<string> => {
+	export const hashLoginPassword = async (password: string): Promise<string> => {
 		const encoder = new TextEncoder();
 		const data = encoder.encode(password);
 		const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -36,6 +33,48 @@
 		const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('');
 
 		return hashHex;
+	};
+
+	const createAccount = async () => {
+		if (userCreds.password) {
+			const pw = hashLoginPassword(userCreds.password);
+
+			const formData = new FormData();
+			formData.append('userEmail', String(userCreds.useremail));
+			formData.append('userName', String(userCreds.username));
+			formData.append('password', String(await pw));
+
+			const response = await fetch(`?/insertAccount`, {
+				method: 'POST',
+				body: formData
+			});
+
+			if (response.ok) {
+				toast.success('Berhasil Membuat Akun');
+				goto('/login');
+			}
+		}
+	};
+
+	const handleLogin = async () => {
+		if (userCreds.username && userCreds.password) {
+			const response = await fetch(`${page.url.pathname}/get-user-password`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					username: userCreds.username,
+					password: userCreds.password
+				}),
+				credentials: 'include'
+			}).then((res) => res.json());
+
+			if (response.success) {
+				goto('/admin');
+				toast.success(`Selamat Datang ! ${userCreds.username}`);
+			} else {
+				toast.error('Maaf, username atau password yang anda masukkan salah !');
+			}
+		}
 	};
 
 	const generateVerificationCode = (): string => {
@@ -49,7 +88,7 @@
 		const response = await fetch(`${page.url.pathname}/verify-email`, {
 			method: 'POST',
 			body: JSON.stringify({
-				email: signupCreds.useremail,
+				email: userCreds.useremail,
 				code: verifCode
 			})
 		});
@@ -82,7 +121,7 @@
 					<label class="flex h-10 w-full items-center">
 						<Input
 							disabled={emailValid}
-							bind:value={signupCreds.useremail}
+							bind:value={userCreds.useremail}
 							required
 							placeholder="Email"
 							type="text"
@@ -115,7 +154,7 @@
 				<label class="flex h-10 w-full items-center">
 					<Input
 						disabled={!emailValid && currentStatus !== 'login'}
-						bind:value={loginCreds.username}
+						bind:value={userCreds.username}
 						required
 						placeholder="Username"
 						type="text"
@@ -134,7 +173,7 @@
 				<label class="relative flex h-10 w-full items-center">
 					<Input
 						disabled={!emailValid && currentStatus !== 'login'}
-						bind:value={loginCreds.password}
+						bind:value={userCreds.password}
 						required
 						placeholder="Password"
 						type={showPassword ? 'text' : 'password'}
@@ -142,28 +181,22 @@
 						currentStatus === 'signup'
 							? 'py-0 disabled:bg-blue-100 disabled:text-gray-500 '
 							: ''}"
-						oninput={async () => {
-							if (loginCreds.password) {
-								const pw = hashLoginPassword(loginCreds.password);
-								loginCreds.password = await pw;
-							}
-						}}
 					/>
 					<div class="absolute left-3 text-gray-500">
 						<KeyRound class="size-4" />
 					</div>
 
 					<Button
-						disabled={!isEmailValid}
+						disabled={!emailValid && currentStatus !== 'login'}
 						type="button"
 						variant="ghost"
 						class="absolute right-3 text-gray-500 focus:outline-none"
 						onclick={() => (showPassword = !showPassword)}
 					>
 						{#if showPassword}
-							<EyeOff class="size-4" />
-						{:else}
 							<Eye class="size-4" />
+						{:else}
+							<EyeOff class="size-4" />
 						{/if}
 					</Button>
 				</label>
@@ -185,6 +218,13 @@
 				</span>
 			{/if}
 			<Button
+				onclick={() => {
+					if (currentStatus == 'signup') {
+						createAccount();
+					} else {
+						handleLogin();
+					}
+				}}
 				type="button"
 				class="mt-8 w-full"
 				disabled={!isEmailValid && currentStatus === 'signup'}
@@ -196,7 +236,7 @@
 
 <InputOtpDialog
 	bind:open={openInputOtp}
-	useremail={signupCreds.useremail}
+	useremail={userCreds.useremail}
 	code={verifCode}
 	bind:emailValid
 />

@@ -94,7 +94,7 @@ export const actions = {
 			menuId: String(rawData.get('menuId')),
 			name: String(rawData.get('name')),
 			type: rawData.get('type') as 'FORM' | 'APPOINTMENT',
-			link: String(rawData.get('imageName')),
+			link: String(rawData.get('link')),
 			status: rawData.get('status') === 'true',
 			createdAt: String(rawData.get('createdAt'))
 		};

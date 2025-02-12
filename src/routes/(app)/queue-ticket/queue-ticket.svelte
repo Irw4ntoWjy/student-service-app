@@ -95,7 +95,7 @@
 				timeGap = `${(minutes % 60).toString().padStart(2, '0')} : ${(seconds % 60).toString().padStart(2, '0')}`;
 				totalSeconds = Math.floor(timeDiff / 1000);
 
-				if (totalSeconds > 180 && queueTicket.status === 'pending') {
+				if (totalSeconds > 300 && queueTicket.status === 'pending') {
 					isTimeLimitReached = true;
 				}
 			}, 1000);

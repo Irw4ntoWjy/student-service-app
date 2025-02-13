@@ -17,7 +17,7 @@
 
 	let nextAppointmentNo: string | undefined = $state(undefined);
 	let openQrDialog: boolean = $state(false);
-	$inspect(menu);
+
 	const generateQrCode = async () => {
 		let currentAppointmentNo: string | undefined = undefined;
 		const response = await fetch(`${page.url}/get-current-appointment-no`).then((res) =>

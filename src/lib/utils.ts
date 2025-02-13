@@ -71,3 +71,11 @@ export const dateTimeFormatString = (dateTimeStr: string | undefined | null): st
 	if (!dateTimeStr) return '';
 	return dateTimeFormat(new Date(`${dateTimeStr}Z`)).replaceAll('.', ':');
 };
+
+let debounceTimer: ReturnType<typeof setTimeout>;
+export const debounce = (callback: () => void, timeout?: number) => {
+	clearTimeout(debounceTimer);
+	debounceTimer = setTimeout(() => {
+		callback();
+	}, timeout || 800);
+};

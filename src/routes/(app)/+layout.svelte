@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { navigating, page } from '$app/state';
 	import PageLoader from '$lib/components/page/page-loader.svelte';
-	import SiteHeader from '$lib/components/page/site-header.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import { type Snippet } from 'svelte';
+	import AppSidebar from '$lib/components/page/app-sidebar.svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import src from '$lib/assets/UPH-White.png';
 
 	let { children }: { children: Snippet } = $props();
 	const hasAdditionalPath = $derived(
@@ -17,25 +19,60 @@
 </script>
 
 <Toaster richColors />
-{#if hasAdditionalPath() && !queuePath()}
-	<SiteHeader />
-{/if}
 
-<main
-	id="main"
-	class="scroll-smooth {queuePath() ? 'h-screen bg-primary' : 'h-[calc(100vh-3.688rem)]'}"
->
-	<div class="grid xl:space-x-6 2xl:grid-cols-[1fr,auto]">
-		<div
-			class="order-last xl:order-first {hasAdditionalPath() && page.url.pathname !== '/login'
-				? 'p-4'
-				: ''}"
-		>
-			{#if navigating.type && !isLoading}
-				<PageLoader bind:isLoading />
-			{:else}
-				{@render children()}
-			{/if}
+{#if page.url.pathname.includes('/admin')}
+	<Sidebar.Provider>
+		<AppSidebar />
+
+		<!-- Site header -->
+		<div class="flex w-full flex-col">
+			<header class="flex h-[3.688rem] w-full items-center bg-primary">
+				<Sidebar.Trigger />
+				<a href="/" class="ml-6 transition-opacity hover:opacity-75">
+					<img alt="uph-logo" {src} class="h-[2.625rem] w-[8.375rem]" />
+				</a>
+			</header>
+
+			<main
+				id="main"
+				class="scroll-smooth {queuePath() ? 'h-screen bg-primary' : 'h-[calc(100vh-3.688rem)]'}"
+			>
+				<div class="grid p-4 xl:space-x-6 2xl:grid-cols-[1fr,auto]">
+					{#if navigating.type && !isLoading}
+						<PageLoader bind:isLoading />
+					{:else}
+						{@render children()}
+					{/if}
+				</div>
+			</main>
 		</div>
-	</div>
-</main>
+	</Sidebar.Provider>
+{:else}
+	{#if hasAdditionalPath() && !queuePath()}
+		<!-- Site header -->
+		<header class="flex h-[3.688rem] w-full items-center bg-primary">
+			<a href="/" class="ml-6 transition-opacity hover:opacity-75">
+				<img alt="uph-logo" {src} class="h-[2.625rem] w-[8.375rem]" />
+			</a>
+		</header>
+	{/if}
+
+	<main
+		id="main"
+		class="scroll-smooth {queuePath() ? 'h-screen bg-primary' : 'h-[calc(100vh-3.688rem)]'}"
+	>
+		<div class="grid xl:space-x-6 2xl:grid-cols-[1fr,auto]">
+			<div
+				class="order-last xl:order-first {hasAdditionalPath() && page.url.pathname !== '/login'
+					? 'p-4'
+					: ''}"
+			>
+				{#if navigating.type && !isLoading}
+					<PageLoader bind:isLoading />
+				{:else}
+					{@render children()}
+				{/if}
+			</div>
+		</div>
+	</main>
+{/if}

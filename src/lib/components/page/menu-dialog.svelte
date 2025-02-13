@@ -21,7 +21,6 @@
 
 	const isAdminPage = page.url.pathname.includes('/admin');
 	let openFormDialog: boolean = $state(false);
-	$inspect(currentMenu, 'currentMenu');
 </script>
 
 <Dialog.Root bind:open={openMenuDialog}>

@@ -156,6 +156,31 @@ export const getAllMenu = async (): Promise<LoadMenuSchema[]> => {
 	}
 };
 
+export const getAllMenuWithFilter = async (filter: string): Promise<LoadMenuSchema[]> => {
+	try {
+		const { rows } = await sql`
+            SELECT 
+                id, 
+                name, 
+                code,
+                description,
+                image_path AS "imagePath", 
+                status, 
+                created_at AS "createdAt", 
+                last_updated_at AS "lastUpdatedAt"
+            FROM 
+                menu
+            WHERE 
+                UPPER(name) LIKE ${'%' + filter.toUpperCase() + '%'}
+            ORDER BY created_at DESC
+        `;
+		return rows as LoadMenuSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
 export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> => {
 	try {
 		const { rows } = await sql`

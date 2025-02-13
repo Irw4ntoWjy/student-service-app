@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { debounce } from '$lib/utils';
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import MenuCard from '$lib/components/page/menu-card.svelte';
@@ -9,11 +10,12 @@
 	import Label from '$lib/components/ui/label/label.svelte';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import Switch from '$lib/components/ui/switch/switch.svelte';
-	import { Upload } from 'lucide-svelte';
+	import { CirclePlus, Upload } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
-	import { type InsertUpdateMenuSchema } from '../menu-services/menu-schema';
 	import type { PageData } from './$types';
-	import { createAppointmentTable, createMenuTable } from './config.svelte';
+	import { createMenuTable } from './config.svelte';
+	import DataTable from '$lib/components/page/data-table/data-table.svelte';
+	import type { InsertUpdateMenuSchema } from '../../menu-services/menu-schema';
 
 	let { data }: { data: PageData } = $props();
 
@@ -22,13 +24,6 @@
 	$effect(() => {
 		menuTableState.updateTable = {
 			data: data.menuList
-		};
-	});
-
-	const appointmentTableState = createAppointmentTable(page.url.pathname, data.appointmentList);
-	$effect(() => {
-		appointmentTableState.updateTable = {
-			data: data.appointmentList
 		};
 	});
 
@@ -161,11 +156,23 @@
 	};
 
 	let openOtherOptionDialog: boolean = $state(false);
+
+	$effect.root(() => {
+		const filter = page.url.searchParams.get('filter') || undefined;
+		menuTableState.filterValues.filter = filter || '';
+	});
+
+	$inspect(menuTableState.filterValues.filter);
 </script>
 
-<!-- <div class="flex flex-col gap-4">
+<div class="flex flex-col gap-4">
 	<div class="flex justify-between">
-		<Input class="w-fit" placeholder="Cari menu" />
+		<Input
+			class="w-fit"
+			placeholder="Cari menu"
+			oninput={() => debounce(() => menuTableState.onPaginate())}
+			bind:value={menuTableState.filterValues.filter}
+		/>
 		<Button
 			class="h-10 items-center border md:w-auto"
 			variant="ghost"
@@ -174,14 +181,8 @@
 			<CirclePlus class="mr-2 h-4 w-4" /> Tambah
 		</Button>
 	</div>
-
 	<DataTable table={menuTableState.table} toggleSorting={menuTableState.toggleSorting} />
-
-	<DataTable
-		table={appointmentTableState.table}
-		toggleSorting={appointmentTableState.toggleSorting}
-	/>
-</div> -->
+</div>
 
 <Dialog.Root
 	bind:open={menuTableState.openEditDialog}

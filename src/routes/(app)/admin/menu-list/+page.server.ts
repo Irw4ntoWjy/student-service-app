@@ -1,6 +1,6 @@
 import {
-	getAllAppointment,
 	getAllMenu,
+	getAllMenuWithFilter,
 	insertMenu,
 	insertMenuAction,
 	updateMenu
@@ -12,9 +12,8 @@ import type {
 	InsertUpdateMenuSchema,
 	LoadMenuSchema,
 	MenuDialogSchema
-} from '../menu-services/menu-schema';
-import type { AppointmentTicketSchema } from '../queue-ticket/queue-ticket-schema';
-import type { PageServerLoad } from './$types';
+} from '../../menu-services/menu-schema';
+import type { PageServerLoad } from '../$types';
 
 const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) => {
 	// Decode the base64 image data
@@ -39,10 +38,17 @@ const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) =
 	return filePath;
 };
 
-export const load: PageServerLoad = async () => {
-	const menuList: LoadMenuSchema[] = await getAllMenu();
-	const appointmentList: AppointmentTicketSchema[] = await getAllAppointment();
-	return { menuList, appointmentList };
+export const load: PageServerLoad = async ({ url }) => {
+	const filter = url.searchParams.get('filter') || undefined;
+
+	let menuList: LoadMenuSchema[] = [];
+	if (!filter) {
+		menuList = await getAllMenu();
+	} else {
+		menuList = await getAllMenuWithFilter(filter);
+	}
+
+	return { menuList };
 };
 
 export const actions = {

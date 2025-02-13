@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
-	import DataTable from '$lib/components/page/data-table/data-table.svelte';
 	import MenuCard from '$lib/components/page/menu-card.svelte';
 	import MenuDialog from '$lib/components/page/menu-dialog.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
@@ -10,7 +9,7 @@
 	import Label from '$lib/components/ui/label/label.svelte';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import Switch from '$lib/components/ui/switch/switch.svelte';
-	import { CirclePlus, Upload } from 'lucide-svelte';
+	import { Upload } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { type InsertUpdateMenuSchema } from '../menu-services/menu-schema';
 	import type { PageData } from './$types';
@@ -164,7 +163,7 @@
 	let openOtherOptionDialog: boolean = $state(false);
 </script>
 
-<div class="flex flex-col gap-4">
+<!-- <div class="flex flex-col gap-4">
 	<div class="flex justify-between">
 		<Input class="w-fit" placeholder="Cari menu" />
 		<Button
@@ -182,7 +181,7 @@
 		table={appointmentTableState.table}
 		toggleSorting={appointmentTableState.toggleSorting}
 	/>
-</div>
+</div> -->
 
 <Dialog.Root
 	bind:open={menuTableState.openEditDialog}

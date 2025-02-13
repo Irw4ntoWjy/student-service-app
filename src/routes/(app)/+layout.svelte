@@ -6,7 +6,9 @@
 	import { type Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
-	const hasAdditionalPath = $derived(() => page.url.pathname !== '/');
+	const hasAdditionalPath = $derived(
+		() => page.url.pathname !== '/' && !(page.url.pathname === '/admin')
+	);
 	const queuePath = $derived(
 		() => page.url.pathname === '/queue-ticket' || page.url.pathname === '/login'
 	);

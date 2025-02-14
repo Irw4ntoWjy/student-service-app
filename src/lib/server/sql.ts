@@ -9,6 +9,7 @@ import {
 	type AppointmentTicketSchema,
 	type QueueTicketSchema
 } from '../../routes/(app)/queue-ticket/queue-ticket-schema';
+import type { StaffList } from '../../routes/(app)/admin/staff-list/staff-list-schema';
 
 export const initTable = async () => {
 	try {
@@ -51,7 +52,7 @@ export const initTable = async () => {
             create table if not exists appointment (
                 id SERIAL PRIMARY KEY,
                 status varchar(10) not null check (status in ('created', 'active', 'pending', 'waiting', 'closed', 'cancelled' )),
-                appointment_no varchar(15) not null,
+                appointment_no varchar(20) not null,
                 menu_id int4 not null references menu(id) on delete cascade on update cascade,
                 reason varchar(200) not null, 
                 created_at timestamp default NOW(),
@@ -62,9 +63,37 @@ export const initTable = async () => {
                 cancel_reason varchar(200)
             )            
         `;
+		await sql`
+            create table if not exists staff_list (
+                id SERIAL PRIMARY KEY,
+                name varchar(100) not null,
+								division varchar(100) not null,
+								job_desc varchar(200) not null,
+                created_at timestamp default NOW(),
+								last_updated_at timestamp
+            )            
+        `;
 	} catch (error) {
 		console.error('Error creating table:', error);
 		throw error;
+	}
+};
+
+export const insertStaff = async (staffList: StaffList) => {
+	try {
+		await sql`insert into staff_list (name, division, job_desc) values (${staffList.name}, ${staffList.division}, ${staffList.jobDesc})`;
+	} catch (err) {
+		console.error('Error inserting row:', err);
+		throw err;
+	}
+};
+
+export const updateStaff = async (staffList: StaffList) => {
+	try {
+		await sql`update menu set name = ${staffList.name}, division = ${staffList.division}, job_desc = ${staffList.jobDesc}, last_updated_at = now() where id = ${staffList.id}`;
+	} catch (err) {
+		console.error('Error inserting row:', err);
+		throw err;
 	}
 };
 

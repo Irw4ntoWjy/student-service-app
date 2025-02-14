@@ -94,6 +94,12 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 		menuDialog = data;
 	};
 
+	const showReset = $derived.by(() => {
+		return Object.values(filterValues).some((value) => {
+			return Array.isArray(value) ? value.length > 0 : value && value !== '';
+		});
+	});
+
 	let currentMenu: { id: number | undefined; name: string | undefined; code: string | undefined } =
 		$state({
 			id: undefined,
@@ -242,6 +248,9 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 		},
 		get onPaginate() {
 			return onPaginate;
+		},
+		get showReset() {
+			return showReset;
 		}
 	};
 }

@@ -10,7 +10,7 @@
 	import Label from '$lib/components/ui/label/label.svelte';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import Switch from '$lib/components/ui/switch/switch.svelte';
-	import { CirclePlus, Upload } from 'lucide-svelte';
+	import { CirclePlus, Upload, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageData } from './$types';
 	import { createMenuTable } from './config.svelte';
@@ -161,18 +161,33 @@
 		const filter = page.url.searchParams.get('filter') || undefined;
 		menuTableState.filterValues.filter = filter || '';
 	});
-
-	$inspect(menuTableState.filterValues.filter);
 </script>
 
 <div class="flex flex-col gap-4">
 	<div class="flex justify-between">
-		<Input
-			class="w-fit"
-			placeholder="Cari menu"
-			oninput={() => debounce(() => menuTableState.onPaginate())}
-			bind:value={menuTableState.filterValues.filter}
-		/>
+		<div class="flex items-center gap-4">
+			<Input
+				class="w-fit"
+				placeholder="Cari menu"
+				oninput={() => debounce(() => menuTableState.onPaginate())}
+				bind:value={menuTableState.filterValues.filter}
+			/>
+
+			{#if menuTableState.showReset}
+				<Button
+					onclick={() => {
+						menuTableState.filterValues.filter = '';
+						debounce(() => menuTableState.onPaginate());
+					}}
+					variant="ghost"
+					class="h-8 px-2 lg:px-3"
+				>
+					Reset Filter
+					<X class="ml-2 h-4 w-4" />
+				</Button>
+			{/if}
+		</div>
+
 		<Button
 			class="h-10 items-center border md:w-auto"
 			variant="ghost"

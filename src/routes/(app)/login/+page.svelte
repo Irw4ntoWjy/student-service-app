@@ -1,12 +1,12 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import src from '$lib/assets/UPH-Blue.svg';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { CircleCheck, Eye, EyeOff, KeyRound, Mail, User } from 'lucide-svelte';
-	import InputOtpDialog from './input-otp-dialog.svelte';
 	import { toast } from 'svelte-sonner';
-	import { goto } from '$app/navigation';
+	import InputOtpDialog from './input-otp-dialog.svelte';
 
 	let showPassword: boolean = $state(false);
 	let currentStatus: 'login' | 'signup' = $state('login');
@@ -69,7 +69,7 @@
 			}).then((res) => res.json());
 
 			if (response.success) {
-				goto('/admin');
+				goto('/admin/menu-list');
 				toast.success(`Selamat Datang ! ${userCreds.username}`);
 			} else {
 				toast.error('Maaf, username atau password yang anda masukkan salah !');

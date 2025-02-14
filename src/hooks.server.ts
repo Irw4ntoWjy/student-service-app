@@ -26,5 +26,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		throw redirect(302, '/login');
 	}
 
+	if (event.route.id?.startsWith('/admin')) {
+		throw redirect(302, '/admin/menu-list');
+	}
+
 	return resolve(event);
 };

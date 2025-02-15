@@ -1,4 +1,5 @@
 import { sql } from '@vercel/postgres';
+import type { StaffList } from '../../routes/(app)/admin/staff-list/staff-list-schema';
 import type {
 	InsertUpdateAppointmentSchema,
 	InsertUpdateMenuSchema,
@@ -9,7 +10,6 @@ import {
 	type AppointmentTicketSchema,
 	type QueueTicketSchema
 } from '../../routes/(app)/queue-ticket/queue-ticket-schema';
-import type { StaffList } from '../../routes/(app)/admin/staff-list/staff-list-schema';
 
 export const initTable = async () => {
 	try {
@@ -67,10 +67,10 @@ export const initTable = async () => {
             create table if not exists staff_list (
                 id SERIAL PRIMARY KEY,
                 name varchar(100) not null,
-								division varchar(100) not null,
-								job_desc varchar(200) not null,
+				division varchar(100) not null,
+				job_desc varchar(200) not null,
                 created_at timestamp default NOW(),
-								last_updated_at timestamp
+				last_updated_at timestamp
             )            
         `;
 	} catch (error) {
@@ -94,6 +94,50 @@ export const updateStaff = async (staffList: StaffList) => {
 	} catch (err) {
 		console.error('Error inserting row:', err);
 		throw err;
+	}
+};
+
+export const getStaffList = async (): Promise<StaffList[]> => {
+	try {
+		const { rows } = await sql`
+            select 
+                id, 
+                name, 
+				division,
+                job_desc as jobDesc,
+                created_at as "createdAt", 
+                last_updated_at as "lastUpdatedAt"
+            from 
+                staff_list 
+            order by created_at desc
+        `;
+		return rows as StaffList[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const getStaffListWithFilter = async (filter: string): Promise<StaffList[]> => {
+	try {
+		const { rows } = await sql`
+            select 
+				id, 
+                name, 
+				division,
+                job_desc as jobDesc,
+                created_at as "createdAt", 
+                last_updated_at as "lastUpdatedAt"
+            from 
+                staff_list
+            where 
+                upper(name) like ${'%' + filter.toUpperCase() + '%'}
+            order by created_at desc
+        `;
+		return rows as StaffList[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
 	}
 };
 
@@ -146,7 +190,7 @@ export const getAllDisplayMenu = async (): Promise<LoadMenuSchema[]> => {
             select 
                 id, 
                 name, 
-								code,
+				code,
                 description,
                 image_path AS "imagePath"
             from 

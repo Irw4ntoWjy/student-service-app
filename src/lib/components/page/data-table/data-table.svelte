@@ -35,7 +35,10 @@
 				{@const isPinned = header.column.getIsPinned()
 					? `sticky ${header.column.getIsPinned()}-0`
 					: ''}
-				<DataTable.Head class={isPinned} style="width: {header.column.getSize()}px;">
+				<DataTable.Head
+					class={cn(isPinned, 'overflow-hidden')}
+					style="width: {header.column.getSize()}px;"
+				>
 					{#if !header.isPlaceholder}
 						{#if header.column.getCanSort()}
 							<Button
@@ -54,7 +57,7 @@
 						{/if}
 					{:else}
 						""
-					{/if}	
+					{/if}
 				</DataTable.Head>
 			{/each}
 		</DataTable.Row>

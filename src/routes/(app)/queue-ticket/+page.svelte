@@ -113,7 +113,11 @@
 			<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
 			{#each appointmentTicket as activeTicket}
 				{#if activeTicket.status === 'active'}
-					<QueueTicket icons="HandCoins" queueTicket={activeTicket} />
+					<QueueTicket
+						staffList={data.staffList}
+						menuList={data.menuList}
+						queueTicket={activeTicket}
+					/>
 				{/if}
 			{/each}
 		</div>
@@ -127,7 +131,11 @@
 			<div class="flex w-full flex-col items-center gap-3 overflow-y-auto">
 				{#each appointmentTicket as finishedAppointment}
 					{#if finishedAppointment.status === 'closed' || finishedAppointment.status === 'cancelled'}
-						<QueueTicket icons="HandCoins" queueTicket={finishedAppointment} />
+						<QueueTicket
+							staffList={data.staffList}
+							menuList={data.menuList}
+							queueTicket={finishedAppointment}
+						/>
 					{/if}
 				{/each}
 			</div>
@@ -143,7 +151,11 @@
 			<div class="mt-8 grid grid-cols-4 place-items-center gap-8">
 				{#each appointmentTicket as pendingTicket}
 					{#if pendingTicket.status === 'pending'}
-						<QueueTicket queueTicket={pendingTicket} icons="HandCoins" />
+						<QueueTicket
+							queueTicket={pendingTicket}
+							menuList={data.menuList}
+							staffList={data.staffList}
+						/>
 					{/if}
 				{/each}
 			</div>
@@ -155,7 +167,11 @@
 			<div class="mt-6 grid grid-cols-4 place-items-center gap-8">
 				{#each appointmentTicket as waitingTicket}
 					{#if waitingTicket.status === 'waiting'}
-						<QueueTicket queueTicket={waitingTicket} icons="HandCoins" />
+						<QueueTicket
+							queueTicket={waitingTicket}
+							menuList={data.menuList}
+							staffList={data.staffList}
+						/>
 					{/if}
 				{/each}
 			</div>

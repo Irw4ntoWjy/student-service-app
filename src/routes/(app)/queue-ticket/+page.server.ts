@@ -1,4 +1,6 @@
 import {
+	comboboxMenu,
+	comboboxStaffList,
 	getAppointmentTicket,
 	updateAppointmentActive,
 	updateAppointmentCancelled,
@@ -8,12 +10,17 @@ import {
 import type { Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { Status } from './queue-ticket-schema';
+import type { ComboboxType } from '$lib/components/ui/combobox';
 
 export const load: PageServerLoad = async () => {
 	const appointmentTicket = await getAppointmentTicket();
+	const staffList: ComboboxType[] = await comboboxStaffList();
+	const menuList: ComboboxType[] = await comboboxMenu();
 
 	return {
-		appointmentTicket
+		appointmentTicket,
+		staffList,
+		menuList
 	};
 };
 

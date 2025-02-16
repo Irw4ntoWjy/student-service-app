@@ -10,6 +10,7 @@ import {
 	type AppointmentTicketSchema,
 	type QueueTicketSchema
 } from '../../routes/(app)/queue-ticket/queue-ticket-schema';
+import type { ComboboxType } from '$lib/components/ui/combobox';
 
 export const initTable = async () => {
 	try {
@@ -67,10 +68,11 @@ export const initTable = async () => {
             create table if not exists staff_list (
                 id SERIAL PRIMARY KEY,
                 name varchar(100) not null,
-				division varchar(100) not null,
-				job_desc varchar(200) not null,
+								division varchar(100) not null,
+								job_desc varchar(200) not null,
+								status boolean not null default true,
                 created_at timestamp default NOW(),
-				last_updated_at timestamp
+								last_updated_at timestamp
             )            
         `;
 	} catch (error) {
@@ -90,7 +92,7 @@ export const insertStaff = async (staffList: StaffList) => {
 
 export const updateStaff = async (staffList: StaffList) => {
 	try {
-		await sql`update menu set name = ${staffList.name}, division = ${staffList.division}, job_desc = ${staffList.jobDesc}, last_updated_at = now() where id = ${staffList.id}`;
+		await sql`update staff_list set name = ${staffList.name}, division = ${staffList.division}, job_desc = ${staffList.jobDesc}, status = ${staffList.status}, last_updated_at = now() where id = ${staffList.id}`;
 	} catch (err) {
 		console.error('Error inserting row:', err);
 		throw err;
@@ -103,8 +105,9 @@ export const getStaffList = async (): Promise<StaffList[]> => {
             select 
                 id, 
                 name, 
-				division,
-                job_desc as jobDesc,
+								division,
+                job_desc as "jobDesc",
+								status,
                 created_at as "createdAt", 
                 last_updated_at as "lastUpdatedAt"
             from 
@@ -122,10 +125,11 @@ export const getStaffListWithFilter = async (filter: string): Promise<StaffList[
 	try {
 		const { rows } = await sql`
             select 
-				id, 
+								id, 
                 name, 
-				division,
-                job_desc as jobDesc,
+								division,
+                job_desc as "jobDesc",
+								status,
                 created_at as "createdAt", 
                 last_updated_at as "lastUpdatedAt"
             from 
@@ -134,6 +138,29 @@ export const getStaffListWithFilter = async (filter: string): Promise<StaffList[
                 upper(name) like ${'%' + filter.toUpperCase() + '%'}
             order by created_at desc
         `;
+		return rows as StaffList[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const getStaffListById = async (id: number) => {
+	try {
+		const { rows } = await sql`
+            select 
+                id, 
+                name, 
+								division,
+                job_desc as "jobDesc",
+								status,
+                created_at as "createdAt", 
+                last_updated_at as "lastUpdatedAt"
+            from 
+                staff_list 
+						where
+                id = ${id}
+  	`;
 		return rows as StaffList[];
 	} catch (error) {
 		console.error('Error fetching data:', error);
@@ -190,10 +217,10 @@ export const getAllDisplayMenu = async (): Promise<LoadMenuSchema[]> => {
             select 
                 id, 
                 name, 
-				code,
+								code,
                 description,
                 image_path AS "imagePath"
-            from 
+						from 
                 menu 
             where 
                 status = true 
@@ -259,16 +286,16 @@ export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> =>
 		const { rows } = await sql`
             select 
                 ap.id,
-				ap.status,
-				ap.appointment_no as "appointmentNo",
-				m.name as menuName,				
-				ap.reason,
-				ap.created_at as "createdAt",
-				ap.scanned_at as "scannedAt",
-				ap.appointment_start_at as "appointmentStartAt",
-				ap.appointment_finished_at as "appointmentFinishedAt",
-				ap.cancel_at as "cancelAt",
-				ap.cancel_reason as "cancelReason"
+								ap.status,
+								ap.appointment_no as "appointmentNo",
+								m.name as menuName,				
+								ap.reason,
+								ap.created_at as "createdAt",
+								ap.scanned_at as "scannedAt",
+								ap.appointment_start_at as "appointmentStartAt",
+								ap.appointment_finished_at as "appointmentFinishedAt",
+								ap.cancel_at as "cancelAt",
+								ap.cancel_reason as "cancelReason"
             from 
                 appointment ap
 			inner join 
@@ -295,8 +322,9 @@ export const getCurrentAppointmentNo = async (): Promise<string> => {
 	try {
 		const currentDate = new Date();
 		const currentYear = String(currentDate.getFullYear()).slice(-2);
+		const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
 		const currentDay = String(currentDate.getDate()).padStart(2, '0');
-		const todayPrefix = `${currentYear}${currentDay}`;
+		const todayPrefix = `${currentYear}${currentMonth}${currentDay}`;
 
 		const { rows } = await sql`
             select 
@@ -312,7 +340,7 @@ export const getCurrentAppointmentNo = async (): Promise<string> => {
 		}
 
 		const lastAppointmentNo = rows[0].appointment_no;
-		const lastDatePart = lastAppointmentNo.slice(2, 6);
+		const lastDatePart = lastAppointmentNo.slice(2, 8);
 
 		if (lastDatePart !== todayPrefix) {
 			return `${todayPrefix}000`;
@@ -461,5 +489,35 @@ export const getAppointmentTicketByAppointmentNo = async (
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;
+	}
+};
+
+export const comboboxStaffList = async (): Promise<ComboboxType[]> => {
+	try {
+		const { rows } = await sql`
+				select
+					(sl.name || ', ' || sl.division) as "label",
+					sl.id as "value"
+				from 
+						staff_list sl`;
+		return rows as ComboboxType[];
+	} catch (err) {
+		console.error('Error fetching data', err);
+		throw err;
+	}
+};
+
+export const comboboxMenu = async (): Promise<ComboboxType[]> => {
+	try {
+		const { rows } = await sql`
+				select
+					m.name AS "label",
+					m.code as "value"
+				from 
+						menu m`;
+		return rows as ComboboxType[];
+	} catch (err) {
+		console.error('Error fetching data', err);
+		throw err;
 	}
 };

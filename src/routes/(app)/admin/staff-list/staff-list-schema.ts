@@ -5,7 +5,8 @@ export const staffListSchema = z.object({
 	name: z.string(),
 	division: z.string(),
 	jobDesc: z.string(),
-	createdAt: z.string(),
+	status: z.boolean().default(true),
+	createdAt: z.string().optional(),
 	lastUpdatedAt: z.string().optional()
 });
 export type StaffList = z.infer<typeof staffListSchema>;

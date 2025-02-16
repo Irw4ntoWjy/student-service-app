@@ -6,15 +6,19 @@
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { cn } from '$lib/utils.js';
-	import type { comboboxType } from '.';
+	import type { ComboboxType } from '.';
+	import Label from '$lib/components/ui/label/label.svelte';
 
-	let { items, placeholder }: { items: comboboxType[]; placeholder: string } = $props();
+	let {
+		items,
+		placeholder,
+		value = $bindable('')
+	}: { items: ComboboxType[]; placeholder: string; value: string } = $props();
 
 	let open = $state(false);
-	let value = $state('');
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
-	const selectedValue = $derived(items.find((f) => f.value === value)?.label);
+	const selectedValue = $derived(items.find((f) => f.value.toString() === value)?.label);
 
 	function closeAndFocusTrigger() {
 		open = false;
@@ -29,32 +33,42 @@
 		{#snippet child({ props })}
 			<Button
 				variant="outline"
-				class="w-[200px] justify-between"
+				class="w-auto justify-between"
 				{...props}
 				role="combobox"
 				aria-expanded={open}
 			>
-				{selectedValue || placeholder}
-				<ChevronsUpDown class="opacity-50" />
+				<Label class="text-lg font-normal">
+					{selectedValue || 'Select a framework...'}
+				</Label>
+				<ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
 			</Button>
 		{/snippet}
 	</Popover.Trigger>
-	<Popover.Content class="w-[200px] p-0">
+	<Popover.Content class="w-auto p-0" align="start">
 		<Command.Root>
-			<Command.Input {placeholder} />
+			<Command.Input>
+				<Label class="text-xl font-normal">
+					{placeholder}
+				</Label>
+			</Command.Input>
 			<Command.List>
-				<Command.Empty>No placeholder found.</Command.Empty>
+				<Command.Empty>No Data found.</Command.Empty>
 				<Command.Group>
 					{#each items as item}
 						<Command.Item
-							value={item.value}
+							value={item.label}
 							onSelect={() => {
-								value = item.value;
+								value = item.value.toString();
 								closeAndFocusTrigger();
 							}}
 						>
-							<Check class={cn(value !== item.value && 'text-transparent')} />
-							{item.label}
+							<Check
+								class={cn('mr-2 size-4', value !== item.value.toString() && 'text-transparent')}
+							/>
+							<Label class="text-lg font-normal">
+								{item.label}
+							</Label>
 						</Command.Item>
 					{/each}
 				</Command.Group>

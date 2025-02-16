@@ -6,19 +6,18 @@
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import { Check, HandCoins, Home, User, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { QueueTicketSchema, Status } from './queue-ticket-schema';
-
-	const iconMap = {
-		HandCoins,
-		Home,
-		User
-	};
+	import { Check, Undo2, X } from 'lucide-svelte';
+	import type { ComboboxType } from '$lib/components/ui/combobox';
+	import Combobox from '$lib/components/ui/combobox/combobox.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 
 	type QueueTicketProps = {
-		icons?: 'HandCoins' | 'Home' | 'User';
 		queueTicket: QueueTicketSchema;
+		staffList: ComboboxType[];
+		menuList: ComboboxType[];
 	};
 
 	const cardColor = {
@@ -29,7 +28,7 @@
 		cancelled: 'bg-destructive text-gray-50'
 	};
 
-	let { icons, queueTicket }: QueueTicketProps = $props();
+	let { queueTicket, staffList, menuList }: QueueTicketProps = $props();
 
 	const finishedTicket = queueTicket.status === 'closed' || queueTicket.status === 'cancelled';
 
@@ -63,8 +62,8 @@
 		});
 
 		if (response.status === 200) {
-			openCancelDialog = false;
 			await invalidateAll();
+			openCancelDialog = false;
 			toast.success('Berhasil Mengubah Status Tiket', {
 				class: 'text-lg '
 			});
@@ -122,6 +121,34 @@
 			invalidateAll();
 		}
 	});
+
+	// re-create ticket logic
+	let recrateTicket: boolean = $state(false);
+	let menuCbxValue: string = $state('');
+
+	const recreateTicket = async () => {
+		let currentAppointmentNo: string = '';
+		let nextAppointmentNo: string = '';
+		const response = await fetch(
+			`${page.url.origin}/menu-services/get-current-appointment-no`
+		).then((res) => res.json());
+		currentAppointmentNo = response;
+
+		const now = new Date();
+		const year = String(now.getFullYear()).slice(-2);
+		const month = String(now.getMonth() + 1).padStart(2, '0');
+		const day = String(now.getDate()).padStart(2, '0');
+
+		const match = currentAppointmentNo?.match(/(\d{3})$/);
+
+		let sequence = 1;
+
+		if (match) {
+			sequence = Number(match[1]) + 1;
+		}
+		currentAppointmentNo = sequence.toString().padStart(3, '0');
+		nextAppointmentNo = `${menuCbxValue}${year}${month}${day}${currentAppointmentNo}`;
+	};
 </script>
 
 <Card.Root
@@ -138,27 +165,12 @@
 	}}
 >
 	<div class={finishedTicket ? 'flex items-center justify-evenly p-1' : ''}>
-		{#if icons && queueTicket.name && !isHovered && !finishedTicket}
-			<Card.Header class="items-center {finishedTicket ? '' : 'p-4'}">
-				<Card.Title class="flex  items-center gap-4 text-xl font-bold">
-					{@const Icons = iconMap[icons]}
-					<div class="rounded-full bg-gray-100 p-2">
-						<Icons
-							class="size-8 {queueTicket.status === 'waiting' ? 'text-rose-700' : 'text-gray-700'} "
-						/>
-					</div>
-					<span class="text-3xl {queueTicket.status === 'waiting' ? 'text-rose-700' : ''}"
-						>{queueTicket.name}</span
-					>
-				</Card.Title>
-			</Card.Header>
-		{/if}
 		<Card.Content
 			class="flex flex-col {finishedTicket ? 'text-right' : 'items-center justify-center'} p-2"
 		>
-			{#if isHovered && (queueTicket.status === 'pending' || queueTicket.status === 'active' || queueTicket.status === 'waiting')}
+			{#if isHovered && (queueTicket.status === 'pending' || queueTicket.status === 'waiting' || queueTicket.status === 'active')}
 				<div
-					class="flex h-[16rem] w-[20.25rem] flex-col justify-between rounded-lg {cardColor[
+					class="relative flex h-[16rem] w-[20.25rem] flex-col justify-between rounded-lg {cardColor[
 						queueTicket.status
 					]} p-6"
 					onmouseleave={() => (isHovered = false)}
@@ -174,9 +186,18 @@
 					</div>
 
 					<div class="flex justify-end gap-3">
-						{#if queueTicket.status === 'pending'}
+						{#if queueTicket.status === 'pending' || queueTicket.status === 'waiting'}
 							<Button variant="destructive" onclick={() => (openCancelDialog = true)}>
 								<X />
+							</Button>
+						{/if}
+						{#if queueTicket.status === 'active'}
+							<Button
+								variant="outline"
+								class="border transition-colors duration-200 hover:bg-gray-300"
+								onclick={() => (recrateTicket = true)}
+							>
+								<Undo2 class="size-8 text-black" />
 							</Button>
 						{/if}
 						<Button
@@ -213,7 +234,7 @@
 </Card.Root>
 
 <Dialog.Root bind:open={openCancelDialog}>
-	<Dialog.Content class="h-[13rem] max-w-[31rem]">
+	<Dialog.Content class="h-[14rem] max-w-[31rem]">
 		<Dialog.Header>
 			<Dialog.Title class="text-lg font-medium">Batalkan Appointment ini</Dialog.Title>
 
@@ -231,6 +252,7 @@
 				class="w-[88px]"
 				onclick={() => {
 					isHovered = false;
+					openCancelDialog = false;
 				}}>Kembali</Button
 			>
 			<Button
@@ -243,6 +265,52 @@
 					await invalidateAll();
 				}}>Batalkan</Button
 			>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={recrateTicket}>
+	<Dialog.Content class="h-auto max-w-[36rem]">
+		<Dialog.Header>
+			<Dialog.Title class="text-2xl font-medium">
+				Membuka kembali Ticket {queueTicket.appointmentNo}
+			</Dialog.Title>
+
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col gap-[12px]">
+					<Label class="text-xl font-medium">Pilih Divisi yang melayani</Label>
+					<Combobox items={menuList} placeholder="Pilih Divisi..." bind:value={menuCbxValue} />
+				</div>
+
+				<div class="flex flex-col gap-[12px]">
+					<Label class="text-xl font-medium">Isi Alasan pembukaan ticket dibawah ini</Label>
+					<Textarea
+						oninput={(e) => {
+							cancelReason = e.currentTarget.value;
+						}}
+					/>
+				</div>
+			</div>
+		</Dialog.Header>
+
+		<Dialog.Footer>
+			<Button
+				class="w-[88px] text-base"
+				variant="outline"
+				onclick={() => {
+					recrateTicket = false;
+				}}
+				>Kembali
+			</Button>
+			<Button
+				class="w-[88px] text-base"
+				type="submit"
+				onclick={async () => {
+					// await updateTicketStatus(queueTicket.id.toString(), 'cancelled');
+					await recreateTicket();
+				}}
+				>Tambah
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

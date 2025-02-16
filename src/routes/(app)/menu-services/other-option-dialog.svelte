@@ -27,6 +27,7 @@
 		if (menu.name) {
 			const now = new Date();
 			const year = String(now.getFullYear()).slice(-2);
+			const month = String(now.getMonth() + 1).padStart(2, '0');
 			const day = String(now.getDate()).padStart(2, '0');
 
 			// Extract and increment the appointment number
@@ -38,21 +39,18 @@
 				sequence = Number(match[1]) + 1;
 			}
 			currentAppointmentNo = sequence.toString().padStart(3, '0');
-			nextAppointmentNo = `${menu.code}${year}${day}${currentAppointmentNo}`;
-			console.log(nextAppointmentNo);
+			nextAppointmentNo = `${menu.code}${year}${month}${day}${currentAppointmentNo}`;
 
 			// Send the new appointment number
 			const formData = new FormData();
 			formData.append('appointmentNo', nextAppointmentNo);
 			formData.append('menuId', String(menu.id));
 			formData.append('reason', String(value));
-			console.log(formData);
 
 			const response = await fetch(`?/insertAppointment`, {
 				method: 'POST',
 				body: formData
 			});
-			console.log(response);
 			if (response.ok) {
 				openQrDialog = true;
 				toast.success('Berhasil membuat appointment');

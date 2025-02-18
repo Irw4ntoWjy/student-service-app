@@ -17,9 +17,9 @@ export const initTable = async () => {
 		await sql`
             create table if not exists admin (
                 id SERIAL PRIMARY KEY,
-				user_email varchar(50) not null,
+								user_email varchar(50) not null,
                 user_name varchar(50) not null,
-				user_password TEXT not null,
+								user_password TEXT not null,
                 created_at timestamp default NOW()
             )            
         `;
@@ -27,7 +27,7 @@ export const initTable = async () => {
             create table if not exists menu (
                 id SERIAL PRIMARY KEY,
                 name varchar(50) not null,
-				code varchar(3) not null,
+								code varchar(3) not null,
                 description varchar(200) not null,
                 image_path text,
                 status boolean not null,
@@ -54,27 +54,33 @@ export const initTable = async () => {
                 id SERIAL PRIMARY KEY,
                 menu_id int4 not null references menu(id) on delete cascade on update cascade,
                 status varchar(10) not null check (status in ('created', 'active', 'pending', 'waiting', 'closed', 'cancelled' )),
-				served_id int4 references staff_list(id),
+								user_status varchar(10) not null,
+								user_name varchar(100) not null,
+								user_nim varchar(100),
+								served_id int4 references staff_list(id),
                 served_by varchar(200),
-				appointment_no varchar(20) not null,
+								appointment_no varchar(20) not null,
                 reason varchar(200) not null, 
                 created_at timestamp default NOW(),
                 scanned_at timestamp,
                 appointment_start_at timestamp,
                 appointment_finished_at timestamp,
                 cancel_at timestamp,
-                cancel_reason varchar(200)
+                cancel_reason varchar(200),
+								constraint check_user_nim_active check (
+										not (status = 'active' and user_nim is null)
+								)
             )            
         `;
 		await sql`
             create table if not exists staff_list (
                 id SERIAL PRIMARY KEY,
                 name varchar(100) not null,
-				division varchar(100) not null,
-				job_desc varchar(200) not null,
-				status boolean not null default true,
+								division varchar(100) not null,
+								job_desc varchar(200) not null,
+								status boolean not null default true,
                 created_at timestamp default NOW(),
-				last_updated_at timestamp
+								last_updated_at timestamp
             )            
         `;
 	} catch (error) {
@@ -107,9 +113,9 @@ export const getStaffList = async (): Promise<StaffList[]> => {
             select 
                 id, 
                 name, 
-				division,
+								division,
                 job_desc as "jobDesc",
-				status,
+								status,
                 created_at as "createdAt", 
                 last_updated_at as "lastUpdatedAt"
             from 
@@ -127,11 +133,11 @@ export const getStaffListWithFilter = async (filter: string): Promise<StaffList[
 	try {
 		const { rows } = await sql`
             select 
-				id, 
+								id, 
                 name, 
-				division,
+								division,
                 job_desc as "jobDesc",
-				status,
+								status,
                 created_at as "createdAt", 
                 last_updated_at as "lastUpdatedAt"
             from 
@@ -153,9 +159,9 @@ export const getStaffListById = async (id: number) => {
             select 
                 id, 
                 name, 
-				division,
+								division,
                 job_desc as "jobDesc",
-				status,
+								status,
                 created_at as "createdAt", 
                 last_updated_at as "lastUpdatedAt"
             from 
@@ -261,7 +267,7 @@ export const getAllMenu = async (): Promise<LoadMenuSchema[]> => {
 export const getAllMenuWithFilter = async (filter: string): Promise<LoadMenuSchema[]> => {
 	try {
 		const { rows } = await sql`
-            SELECT 
+            select 
                 id, 
                 name, 
                 code,
@@ -270,11 +276,11 @@ export const getAllMenuWithFilter = async (filter: string): Promise<LoadMenuSche
                 status, 
                 created_at AS "createdAt", 
                 last_updated_at AS "lastUpdatedAt"
-            FROM 
+            from 
                 menu
-            WHERE 
-                UPPER(name) LIKE ${'%' + filter.toUpperCase() + '%'}
-            ORDER BY created_at DESC
+            wwhere 
+                upper(name) like ${'%' + filter.toUpperCase() + '%'}
+            order by created_at desc
         `;
 		return rows as LoadMenuSchema[];
 	} catch (error) {
@@ -286,8 +292,8 @@ export const getAllMenuWithFilter = async (filter: string): Promise<LoadMenuSche
 export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> => {
 	try {
 		const { rows } = await sql`
-            select 
-                ap.id,
+			select 
+				ap.id,
 				ap.status,
 				ap.appointment_no as "appointmentNo",
 				m.name as menuName,				
@@ -301,9 +307,9 @@ export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> =>
 				ap.served_by as "servedBy"
             from 
                 appointment ap
-			inner join 
-				menu m on m.id = ap.menu_id
-            order by ap.created_at desc
+				inner join 
+					menu m on m.id = ap.menu_id
+							order by ap.created_at desc
         `;
 		return rows as AppointmentTicketSchema[];
 	} catch (error) {
@@ -316,16 +322,16 @@ export const insertAppointment = async (insertUpdateAppointment: InsertUpdateApp
 	try {
 		if (insertUpdateAppointment.scannedAt) {
 			await sql`
-                insert into appointment (status, appointment_no, menu_id, reason, created_at, scanned_at) 
-                values (${insertUpdateAppointment.status}, ${insertUpdateAppointment.appointmentNo}, 
-                        ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, 
-                        now(), now())`;
+				insert into appointment (status, appointment_no, menu_id, reason, created_at, scanned_at) 
+				values (${insertUpdateAppointment.status}, ${insertUpdateAppointment.appointmentNo}, 
+								${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, 
+								now(), now(),  ${insertUpdateAppointment.userStatus}, ${insertUpdateAppointment.userName}, ${insertUpdateAppointment.userNim})`;
 		} else {
 			await sql`
-                insert into appointment (status, appointment_no, menu_id, reason, created_at) 
-                values (${insertUpdateAppointment.status}, ${insertUpdateAppointment.appointmentNo}, 
-                        ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, 
-                        now())`;
+				insert into appointment (status, appointment_no, menu_id, reason, created_at, user_status, user_name, user_nim) 
+				values (${insertUpdateAppointment.status}, ${insertUpdateAppointment.appointmentNo}, 
+								${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, 
+								now(), ${insertUpdateAppointment.userStatus}, ${insertUpdateAppointment.userName}, ${insertUpdateAppointment.userNim})`;
 		}
 	} catch (error) {
 		console.error('Error inserting row:', error);

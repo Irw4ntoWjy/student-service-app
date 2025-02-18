@@ -16,7 +16,10 @@ export const actions = {
 			menuId: String(rawData.get('menuId')),
 			appointmentNo: String(rawData.get('appointmentNo')),
 			reason: String(rawData.get('reason')),
-			status: 'created'
+			status: 'created',
+			userStatus: String(rawData.get('userStatus')) as 'GENERAL' | 'ACTIVE',
+			userName: String(rawData.get('userName')),
+			userNim: String(rawData.get('userNim'))
 		};
 
 		insertAppointment(formData);

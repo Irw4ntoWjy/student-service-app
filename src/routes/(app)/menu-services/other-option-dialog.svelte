@@ -8,10 +8,16 @@
 
 	let {
 		open = $bindable(),
-		menu
+		menu,
+		userData = $bindable()
 	}: {
 		open: boolean;
-		menu: { id: number | undefined; name: string | undefined; code: string | undefined };
+		menu: {
+			id: number | undefined;
+			name: string | undefined;
+			code: string | undefined;
+		};
+		userData: { name: string | undefined; nim: string | undefined; status: 'GENERAL' | 'ACTIVE' };
 	} = $props();
 	let value: string | undefined = $state(undefined);
 
@@ -46,6 +52,9 @@
 			formData.append('appointmentNo', nextAppointmentNo);
 			formData.append('menuId', String(menu.id));
 			formData.append('reason', String(value));
+			formData.append('userStatus', String(userData.status));
+			formData.append('userName', String(userData.name));
+			formData.append('userNim', String(userData.nim));
 
 			const response = await fetch(`?/insertAppointment`, {
 				method: 'POST',

@@ -33,7 +33,10 @@ export const insertUpdateAppointment = z.object({
 	scannedAt: z.string().optional(),
 	appointmentStartAt: z.string().optional(),
 	appointmentFinishedAt: z.string().optional(),
-	cancelReason: z.string().optional()
+	cancelReason: z.string().optional(),
+	userName: z.string(),
+	userNim: z.string().optional(),
+	userStatus: z.enum(['GENERAL', 'ACTIVE'])
 });
 export type InsertUpdateAppointmentSchema = z.infer<typeof insertUpdateAppointment>;
 

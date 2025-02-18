@@ -1,3 +1,4 @@
+import type { ComboboxType } from '$lib/components/ui/combobox';
 import { sql } from '@vercel/postgres';
 import type { StaffList } from '../../routes/(app)/admin/staff-list/staff-list-schema';
 import type {
@@ -10,16 +11,15 @@ import {
 	type AppointmentTicketSchema,
 	type QueueTicketSchema
 } from '../../routes/(app)/queue-ticket/queue-ticket-schema';
-import type { ComboboxType } from '$lib/components/ui/combobox';
 
 export const initTable = async () => {
 	try {
 		await sql`
             create table if not exists admin (
                 id SERIAL PRIMARY KEY,
-								user_email varchar(50) not null,
+				user_email varchar(50) not null,
                 user_name varchar(50) not null,
-								user_password TEXT not null,
+				user_password TEXT not null,
                 created_at timestamp default NOW()
             )            
         `;
@@ -27,7 +27,7 @@ export const initTable = async () => {
             create table if not exists menu (
                 id SERIAL PRIMARY KEY,
                 name varchar(50) not null,
-								code varchar(3) not null,
+				code varchar(3) not null,
                 description varchar(200) not null,
                 image_path text,
                 status boolean not null,
@@ -52,9 +52,11 @@ export const initTable = async () => {
 		await sql`
             create table if not exists appointment (
                 id SERIAL PRIMARY KEY,
-                status varchar(10) not null check (status in ('created', 'active', 'pending', 'waiting', 'closed', 'cancelled' )),
-                appointment_no varchar(20) not null,
                 menu_id int4 not null references menu(id) on delete cascade on update cascade,
+                status varchar(10) not null check (status in ('created', 'active', 'pending', 'waiting', 'closed', 'cancelled' )),
+				served_id int4 references staff_list(id),
+                served_by varchar(200),
+				appointment_no varchar(20) not null,
                 reason varchar(200) not null, 
                 created_at timestamp default NOW(),
                 scanned_at timestamp,
@@ -68,11 +70,11 @@ export const initTable = async () => {
             create table if not exists staff_list (
                 id SERIAL PRIMARY KEY,
                 name varchar(100) not null,
-								division varchar(100) not null,
-								job_desc varchar(200) not null,
-								status boolean not null default true,
+				division varchar(100) not null,
+				job_desc varchar(200) not null,
+				status boolean not null default true,
                 created_at timestamp default NOW(),
-								last_updated_at timestamp
+				last_updated_at timestamp
             )            
         `;
 	} catch (error) {
@@ -105,9 +107,9 @@ export const getStaffList = async (): Promise<StaffList[]> => {
             select 
                 id, 
                 name, 
-								division,
+				division,
                 job_desc as "jobDesc",
-								status,
+				status,
                 created_at as "createdAt", 
                 last_updated_at as "lastUpdatedAt"
             from 
@@ -125,11 +127,11 @@ export const getStaffListWithFilter = async (filter: string): Promise<StaffList[
 	try {
 		const { rows } = await sql`
             select 
-								id, 
+				id, 
                 name, 
-								division,
+				division,
                 job_desc as "jobDesc",
-								status,
+				status,
                 created_at as "createdAt", 
                 last_updated_at as "lastUpdatedAt"
             from 
@@ -151,9 +153,9 @@ export const getStaffListById = async (id: number) => {
             select 
                 id, 
                 name, 
-								division,
+				division,
                 job_desc as "jobDesc",
-								status,
+				status,
                 created_at as "createdAt", 
                 last_updated_at as "lastUpdatedAt"
             from 
@@ -286,16 +288,17 @@ export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> =>
 		const { rows } = await sql`
             select 
                 ap.id,
-								ap.status,
-								ap.appointment_no as "appointmentNo",
-								m.name as menuName,				
-								ap.reason,
-								ap.created_at as "createdAt",
-								ap.scanned_at as "scannedAt",
-								ap.appointment_start_at as "appointmentStartAt",
-								ap.appointment_finished_at as "appointmentFinishedAt",
-								ap.cancel_at as "cancelAt",
-								ap.cancel_reason as "cancelReason"
+				ap.status,
+				ap.appointment_no as "appointmentNo",
+				m.name as menuName,				
+				ap.reason,
+				ap.created_at as "createdAt",
+				ap.scanned_at as "scannedAt",
+				ap.appointment_start_at as "appointmentStartAt",
+				ap.appointment_finished_at as "appointmentFinishedAt",
+				ap.cancel_at as "cancelAt",
+				ap.cancel_reason as "cancelReason",
+				ap.served_by as "servedBy"
             from 
                 appointment ap
 			inner join 
@@ -311,7 +314,19 @@ export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> =>
 
 export const insertAppointment = async (insertUpdateAppointment: InsertUpdateAppointmentSchema) => {
 	try {
-		await sql`insert into appointment (status, appointment_no, menu_id, reason, created_at) values ('created', ${insertUpdateAppointment.appointmentNo}, ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, now())`;
+		if (insertUpdateAppointment.scannedAt) {
+			await sql`
+                insert into appointment (status, appointment_no, menu_id, reason, created_at, scanned_at) 
+                values (${insertUpdateAppointment.status}, ${insertUpdateAppointment.appointmentNo}, 
+                        ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, 
+                        now(), now())`;
+		} else {
+			await sql`
+                insert into appointment (status, appointment_no, menu_id, reason, created_at) 
+                values (${insertUpdateAppointment.status}, ${insertUpdateAppointment.appointmentNo}, 
+                        ${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, 
+                        now())`;
+		}
 	} catch (error) {
 		console.error('Error inserting row:', error);
 		throw error;
@@ -430,6 +445,7 @@ export const updateAppointmentWaiting = async (id: number) => {
 };
 
 export const updateAppointmentCancelled = async (id: number, reason: string) => {
+	console.log(reason);
 	try {
 		await sql`update appointment set status = 'cancelled', cancel_reason= ${reason}, cancel_at = now() where id = ${id}`;
 	} catch (error) {
@@ -512,12 +528,22 @@ export const comboboxMenu = async (): Promise<ComboboxType[]> => {
 		const { rows } = await sql`
 				select
 					m.name AS "label",
-					m.code as "value"
+					m.id as "value",
+					m.code as "data"
 				from 
-						menu m`;
+					menu m`;
 		return rows as ComboboxType[];
 	} catch (err) {
 		console.error('Error fetching data', err);
 		throw err;
+	}
+};
+
+export const updateAppointmentDetail = async (id: number, servedId: number, servedBy: string) => {
+	try {
+		await sql`update appointment set served_id = ${servedId}, served_by= ${servedBy} where id = ${id}`;
+	} catch (error) {
+		console.error('Error updating row:', error);
+		throw error;
 	}
 };

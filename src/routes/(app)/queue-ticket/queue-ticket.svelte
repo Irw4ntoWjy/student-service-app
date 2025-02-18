@@ -5,14 +5,14 @@
 
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import { toast } from 'svelte-sonner';
-	import type { QueueTicketSchema, Status } from './queue-ticket-schema';
-	import { Check, Undo2, X } from 'lucide-svelte';
 	import type { ComboboxType } from '$lib/components/ui/combobox';
 	import Combobox from '$lib/components/ui/combobox/combobox.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
+	import { Check, Undo2, X } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import type { QueueTicketSchema, Status } from './queue-ticket-schema';
 
 	type QueueTicketProps = {
 		queueTicket: QueueTicketSchema;
@@ -41,7 +41,9 @@
 		formData.append('id', id);
 		formData.append('status', newStatus);
 
-		if (queueTicket.status === 'cancelled') formData.append('cancelReason', String(cancelReason));
+		if (newStatus === 'cancelled') {
+			formData.append('reason', String(cancelReason));
+		}
 
 		if (queueTicket.status === 'pending' && newStatus === 'active') {
 			const fetchData = await fetch(`${page.url}/count-current-active-ticket`);
@@ -125,6 +127,7 @@
 	// re-create ticket logic
 	let recrateTicket: boolean = $state(false);
 	let menuCbxValue: string = $state('');
+	let menuCbxData: ComboboxType | undefined = $state(undefined);
 
 	const recreateTicket = async () => {
 		let currentAppointmentNo: string = '';
@@ -147,8 +150,48 @@
 			sequence = Number(match[1]) + 1;
 		}
 		currentAppointmentNo = sequence.toString().padStart(3, '0');
-		nextAppointmentNo = `${menuCbxValue}${year}${month}${day}${currentAppointmentNo}`;
+		nextAppointmentNo = `${menuCbxData?.data}${year}${month}${day}${currentAppointmentNo}`;
+
+		const formData = new FormData();
+		formData.append('appointmentNo', nextAppointmentNo);
+		formData.append('menuId', String(menuCbxValue));
+		formData.append('reason', String(cancelReason));
+
+		const res = await fetch(`?/insertAppointment`, {
+			method: 'POST',
+			body: formData
+		});
+		if (res.ok) {
+			recrateTicket = false;
+			await invalidateAll();
+			toast.success('Berhasil membuat kembali appointment');
+		}
 	};
+
+	// update appointment served staff
+	let openAppointmentDetailDialog: boolean = $state(false);
+	let staffCbxValue: string = $state('');
+	let staffCbxData: ComboboxType | undefined = $state(undefined);
+
+	const updateAppointmentDetail = async () => {
+		if (staffCbxData) {
+			const formData = new FormData();
+			formData.append('id', queueTicket.id.toString());
+			formData.append('servedBy', staffCbxData.label);
+			formData.append('servedId', staffCbxData.value);
+
+			await fetch(`?/updateAppointmentDetail`, {
+				method: 'POST',
+				body: formData
+			});
+		}
+
+		await updateTicketStatus(queueTicket.id.toString(), 'closed');
+		await invalidateAll();
+		openAppointmentDetailDialog = false;
+	};
+
+	$inspect(cancelReason);
 </script>
 
 <Card.Root
@@ -206,7 +249,7 @@
 								if (queueTicket.status === 'pending' || queueTicket.status === 'waiting') {
 									await updateTicketStatus(queueTicket.id.toString(), 'active');
 								} else {
-									await updateTicketStatus(queueTicket.id.toString(), 'closed');
+									openAppointmentDetailDialog = true;
 								}
 							}}
 						>
@@ -226,7 +269,7 @@
 
 	{#if queueTicket.status === 'pending' || queueTicket.status === 'waiting'}
 		<span
-			class="absolute bottom-2 left-2 ml-2 text-2xl font-bold {totalSeconds > 180
+			class="absolute bottom-2 left-2 ml-2 text-2xl font-bold {totalSeconds > 300
 				? 'text-destructive'
 				: 'text-green-500'}">{timeGap}</span
 		>
@@ -240,11 +283,7 @@
 
 			<div class="flex flex-col gap-[12px]">
 				<span>Isi Alasan Pembatalan Appointment dibawah ini</span>
-				<Input
-					oninput={(e) => {
-						cancelReason = e.currentTarget.value;
-					}}
-				/>
+				<Input bind:value={cancelReason} />
 			</div>
 		</Dialog.Header>
 		<Dialog.Footer>
@@ -279,7 +318,12 @@
 			<div class="flex flex-col gap-4">
 				<div class="flex flex-col gap-[12px]">
 					<Label class="text-xl font-medium">Pilih Divisi yang melayani</Label>
-					<Combobox items={menuList} placeholder="Pilih Divisi..." bind:value={menuCbxValue} />
+					<Combobox
+						items={menuList}
+						placeholder="Pilih Divisi..."
+						bind:value={menuCbxValue}
+						bind:selectedData={menuCbxData}
+					/>
 				</div>
 
 				<div class="flex flex-col gap-[12px]">
@@ -306,10 +350,51 @@
 				class="w-[88px] text-base"
 				type="submit"
 				onclick={async () => {
-					// await updateTicketStatus(queueTicket.id.toString(), 'cancelled');
+					await updateTicketStatus(queueTicket.id.toString(), 'cancelled');
 					await recreateTicket();
 				}}
 				>Tambah
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={openAppointmentDetailDialog}>
+	<Dialog.Content class="h-auto max-w-[36rem]">
+		<Dialog.Header>
+			<Dialog.Title class="text-2xl font-medium">
+				Selesai melayani Ticket {queueTicket.appointmentNo}
+			</Dialog.Title>
+
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col gap-[12px]">
+					<Label class="text-xl font-medium">Pilih Staff yang melayani</Label>
+					<Combobox
+						items={staffList}
+						placeholder="Pilih Staff..."
+						bind:value={staffCbxValue}
+						bind:selectedData={staffCbxData}
+					/>
+				</div>
+			</div>
+		</Dialog.Header>
+
+		<Dialog.Footer>
+			<Button
+				class="w-[88px] text-base"
+				variant="outline"
+				onclick={() => {
+					openAppointmentDetailDialog = false;
+				}}
+				>Kembali
+			</Button>
+			<Button
+				class="w-[88px] text-base"
+				type="submit"
+				onclick={async () => {
+					await updateAppointmentDetail();
+				}}
+				>Selesai
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

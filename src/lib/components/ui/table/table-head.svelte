@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { HTMLThAttributes } from 'svelte/elements';
-	import type { WithElementRef } from 'bits-ui';
 	import { cn } from '$lib/utils.js';
+	import type { WithElementRef } from 'bits-ui';
+	import type { HTMLThAttributes } from 'svelte/elements';
 
 	let {
 		ref = $bindable(null),
@@ -14,7 +14,7 @@
 <th
 	bind:this={ref}
 	class={cn(
-		'h-12 bg-muted px-4 text-left align-middle font-semibold capitalize text-primary [&:has([role=checkbox])]:pr-0',
+		'h-12 bg-muted px-4 text-left font-semibold capitalize text-primary [&:has([role=checkbox])]:pr-0',
 		className
 	)}
 	{...restProps}

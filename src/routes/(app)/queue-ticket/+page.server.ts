@@ -1,16 +1,19 @@
+import type { ComboboxType } from '$lib/components/ui/combobox';
 import {
 	comboboxMenu,
 	comboboxStaffList,
 	getAppointmentTicket,
+	insertAppointment,
 	updateAppointmentActive,
 	updateAppointmentCancelled,
 	updateAppointmentClosed,
+	updateAppointmentDetail,
 	updateAppointmentWaiting
 } from '$lib/server/sql';
 import type { Actions } from '@sveltejs/kit';
+import type { InsertUpdateAppointmentSchema } from '../menu-services/menu-schema';
 import type { PageServerLoad } from './$types';
 import type { Status } from './queue-ticket-schema';
-import type { ComboboxType } from '$lib/components/ui/combobox';
 
 export const load: PageServerLoad = async () => {
 	const appointmentTicket = await getAppointmentTicket();
@@ -42,7 +45,28 @@ export const actions = {
 		}
 
 		if (status === 'cancelled') {
-			updateAppointmentCancelled(Number(rawData.get('id')), String(rawData.get('cancelReason')));
+			updateAppointmentCancelled(Number(rawData.get('id')), String(rawData.get('reason')));
 		}
+	},
+	insertAppointment: async ({ request }) => {
+		const rawData = await request.formData();
+
+		const formData: InsertUpdateAppointmentSchema = {
+			menuId: String(rawData.get('menuId')),
+			appointmentNo: String(rawData.get('appointmentNo')),
+			reason: String(rawData.get('reason')),
+			status: 'pending',
+			scannedAt: 'true'
+		};
+
+		insertAppointment(formData);
+	},
+	updateAppointmentDetail: async ({ request }) => {
+		const rawData = await request.formData();
+		updateAppointmentDetail(
+			Number(rawData.get('id')),
+			Number(rawData.get('servedId')),
+			String(rawData.get('servedBy'))
+		);
 	}
 } satisfies Actions;

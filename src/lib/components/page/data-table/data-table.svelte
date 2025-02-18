@@ -5,8 +5,8 @@
 	import { cn } from '$lib/utils';
 	import type { Snippet } from 'svelte';
 	import type { HTMLTableAttributes } from 'svelte/elements';
-	import FlexRender from '../tanstack-table/flex-render.svelte';
 	import type { Table } from '../tanstack-table';
+	import FlexRender from '../tanstack-table/flex-render.svelte';
 
 	let {
 		table,
@@ -43,7 +43,7 @@
 						{#if header.column.getCanSort()}
 							<Button
 								variant="ghost"
-								class="my-2 -ml-4 h-full justify-start font-semibold capitalize data-[state=open]:bg-accent w-[{header.column.getSize()}px] text-wrap "
+								class="my-2 -ml-4 h-full justify-start font-semibold capitalize data-[state=open]:bg-accent w-[{header.column.getSize()}px] text-wrap text-left"
 								onclick={() => {
 									toggleSorting(header.column.id);
 								}}

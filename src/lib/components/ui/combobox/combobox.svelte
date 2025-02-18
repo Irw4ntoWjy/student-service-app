@@ -1,19 +1,25 @@
 <script lang="ts">
+	import { Button } from '$lib/components/ui/button/index.js';
+	import * as Command from '$lib/components/ui/command/index.js';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import * as Popover from '$lib/components/ui/popover/index.js';
+	import { cn } from '$lib/utils.js';
 	import Check from 'lucide-svelte/icons/check';
 	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
 	import { tick } from 'svelte';
-	import * as Command from '$lib/components/ui/command/index.js';
-	import * as Popover from '$lib/components/ui/popover/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { cn } from '$lib/utils.js';
 	import type { ComboboxType } from '.';
-	import Label from '$lib/components/ui/label/label.svelte';
 
 	let {
 		items,
 		placeholder,
-		value = $bindable('')
-	}: { items: ComboboxType[]; placeholder: string; value: string } = $props();
+		value = $bindable(''),
+		selectedData = $bindable(undefined)
+	}: {
+		items: ComboboxType[];
+		placeholder: string;
+		value: string;
+		selectedData?: ComboboxType;
+	} = $props();
 
 	let open = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
@@ -39,7 +45,7 @@
 				aria-expanded={open}
 			>
 				<Label class="text-lg font-normal">
-					{selectedValue || 'Select a framework...'}
+					{selectedValue || placeholder}
 				</Label>
 				<ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
 			</Button>
@@ -60,6 +66,7 @@
 							value={item.label}
 							onSelect={() => {
 								value = item.value.toString();
+								selectedData = item;
 								closeAndFocusTrigger();
 							}}
 						>

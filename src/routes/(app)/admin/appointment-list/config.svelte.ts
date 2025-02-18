@@ -1,8 +1,10 @@
 import { goto } from '$app/navigation';
+import MulitpleValueCell from '$lib/components/page/mulitple-value-cell.svelte';
 import {
 	createTable,
 	getCoreRowModel,
 	getPaginationRowModel,
+	renderComponent,
 	type ColumnDef,
 	type ColumnSort,
 	type Table
@@ -54,12 +56,53 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 			header: () => 'Nomor Appointment',
 			size: 225
 		},
-		// {
-		// 	id: 'menuName',
-		// 	accessorFn: (row) => row.menuName,
-		// 	header: () => 'Divisi Yang Dicari',
-		// 	size: 200
-		// },
+		{
+			id: 'createdAt',
+			header: () => 'Waktu Appointment',
+			size: 300,
+			cell: ({ row }) => {
+				const defaultEntry = {
+					title: 'DIBUAT',
+					titleClass: 'text-md font-bold text-orange-400',
+					value: dateTimeFormatString(row.original.createdAt),
+					class: 'text-sm font-bold text-orange-400'
+				};
+
+				const optionalFields = [
+					{
+						title: 'MENUNGGU',
+						titleClass: 'text-md font-bold text-sky-400',
+						value: row.original.scannedAt,
+						class: 'text-sm font-bold text-sky-400'
+					},
+					{
+						title: 'DIMULAI',
+						titleClass: 'text-md font-bold text-cyan-600',
+						value: row.original.appointmentStartAt,
+						class: 'text-sm font-bold text-cyan-600'
+					},
+					{
+						title: 'SELESAI',
+						titleClass: 'text-md font-bold text-green-600',
+						value: row.original.appointmentFinishedAt,
+						class: 'text-sm font-bold text-green-600'
+					},
+					{
+						title: 'DIBATALKAN',
+						titleClass: 'text-md font-bold text-destructive',
+						value: row.original.cancelAt,
+						class: 'text-sm font-bold text-destructive'
+					}
+				];
+
+				const validOptionalFields = optionalFields
+					.filter((item) => item.value)
+					.map((item) => ({ ...item, value: dateTimeFormatString(item.value) }));
+
+				const object = [defaultEntry, ...validOptionalFields];
+				return renderComponent(MulitpleValueCell, { object });
+			}
+		},
 		{
 			id: 'status',
 			accessorFn: (row) => appointmentStatus[row.status],
@@ -67,40 +110,16 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 			size: 225
 		},
 		{
+			id: 'servedBy',
+			accessorFn: (row) => row.servedBy,
+			header: () => 'Dilayani Oleh',
+			size: 225
+		},
+		{
 			id: 'reason',
 			accessorFn: (row) => row.reason,
 			header: () => 'Tujuan Appointment',
 			size: 250
-		},
-		{
-			id: 'createdAt',
-			accessorFn: (row) => dateTimeFormatString(row.createdAt),
-			header: () => 'Dibuat Pada',
-			size: 250
-		},
-		{
-			id: 'scannedAt',
-			accessorFn: (row) => dateTimeFormatString(row.scannedAt),
-			header: () => 'Antrian Dimulai Pada',
-			size: 250
-		},
-		{
-			id: 'appointmentStartAt',
-			accessorFn: (row) => dateTimeFormatString(row.appointmentStartAt),
-			header: () => 'Appointment Dimulai Pada',
-			size: 275
-		},
-		{
-			id: 'appointmentFinishedAt',
-			accessorFn: (row) => dateTimeFormatString(row.appointmentFinishedAt),
-			header: () => 'Appointment Selesai Pada',
-			size: 275
-		},
-		{
-			id: 'cancelAt',
-			accessorFn: (row) => dateTimeFormatString(row.cancelAt),
-			header: () => 'Appointment Dibatalkan Pada',
-			size: 300
 		},
 		{
 			id: 'cancelReason',

@@ -24,6 +24,7 @@ export const appointmentTicketSchema = z.object({
 	scannedAt: z.string().optional(),
 	appointmentStartAt: z.string().optional(),
 	appointmentFinishedAt: z.string().optional(),
+	servedBy: z.string().optional(),
 	cancelAt: z.string().optional(),
 	cancelReason: z.string().optional()
 });

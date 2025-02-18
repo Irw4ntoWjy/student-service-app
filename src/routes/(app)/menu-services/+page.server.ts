@@ -15,7 +15,8 @@ export const actions = {
 		const formData: InsertUpdateAppointmentSchema = {
 			menuId: String(rawData.get('menuId')),
 			appointmentNo: String(rawData.get('appointmentNo')),
-			reason: String(rawData.get('reason'))
+			reason: String(rawData.get('reason')),
+			status: 'created'
 		};
 
 		insertAppointment(formData);

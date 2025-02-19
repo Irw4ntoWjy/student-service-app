@@ -1,4 +1,5 @@
 import { goto } from '$app/navigation';
+import DataTableBadgeCell from '$lib/components/page/data-table/data-table-badge-cell.svelte';
 import MulitpleValueCell from '$lib/components/page/mulitple-value-cell.svelte';
 import {
 	createTable,
@@ -9,6 +10,7 @@ import {
 	type ColumnSort,
 	type Table
 } from '$lib/components/page/tanstack-table';
+import type { BadgeVariant } from '$lib/components/ui/badge';
 import { dateTimeFormatString } from '$lib/utils';
 import type { AppointmentTicketSchema } from '../../queue-ticket/queue-ticket-schema';
 
@@ -19,6 +21,17 @@ const appointmentStatus = {
 	closed: 'Selesai',
 	cancelled: 'Dibatalkan',
 	created: 'Menunggu Nomor Antrian'
+};
+
+export const appointmentStatusBadge: {
+	[key in keyof typeof appointmentStatus]: BadgeVariant;
+} = {
+	active: 'green',
+	pending: 'secondary',
+	waiting: 'amber',
+	closed: 'blue',
+	cancelled: 'destructive',
+	created: 'purple'
 };
 
 export function createAppointmentTable(pageUrl: string, data: AppointmentTicketSchema[]) {
@@ -105,8 +118,13 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 		},
 		{
 			id: 'status',
-			accessorFn: (row) => appointmentStatus[row.status],
-			header: () => 'Status Appointment',
+			header: () => 'Status',
+			cell: ({ row }) => {
+				return renderComponent(DataTableBadgeCell, {
+					variant: appointmentStatusBadge[row.original.status],
+					value: appointmentStatus[row.original.status]
+				});
+			},
 			size: 225
 		},
 		{

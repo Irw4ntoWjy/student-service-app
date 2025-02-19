@@ -6,11 +6,22 @@ const status = ['active', 'pending', 'waiting', 'closed', 'cancelled'] as const;
 
 export const queueTicketSchema = z.object({
 	id: z.number(),
-	name: z.string(),
+	menuId: z.number(),
+	menuName: z.string(),
+	status: z.enum(status),
+	userStatus: z.enum(['GENERAL', 'ACTIVE']),
+	userName: z.string(),
+	userNim: z.string().optional(),
+	servedId: z.number().optional(),
+	servedBy: z.string().optional(),
 	appointmentNo: z.string(),
 	reason: z.string(),
-	status: z.enum(status),
-	scannedAt: z.string()
+	createdAt: z.string(),
+	scannedAt: z.string().optional(),
+	appointmentStartAt: z.string().optional(),
+	appointmentFinishedAt: z.string().optional(),
+	cancelAt: z.string().optional(),
+	cancelReason: z.string().optional()
 });
 export type QueueTicketSchema = z.infer<typeof queueTicketSchema>;
 

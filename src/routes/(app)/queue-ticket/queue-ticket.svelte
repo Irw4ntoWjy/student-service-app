@@ -79,7 +79,9 @@
 	$effect(() => {
 		if (queueTicket.status === 'pending' || queueTicket.status === 'waiting') {
 			const interval = setInterval(() => {
-				const createdTime = new Date(queueTicket.scannedAt);
+				let createdTime = new Date();
+				if (queueTicket.scannedAt) createdTime = new Date(queueTicket.scannedAt);
+
 				createdTime.setHours(createdTime.getHours() + 7);
 
 				const currentTime = new Date(
@@ -156,6 +158,7 @@
 		formData.append('appointmentNo', nextAppointmentNo);
 		formData.append('menuId', String(menuCbxValue));
 		formData.append('reason', String(cancelReason));
+		formData.append('id', String(queueTicket.id));
 
 		const res = await fetch(`?/insertAppointment`, {
 			method: 'POST',
@@ -190,8 +193,6 @@
 		await invalidateAll();
 		openAppointmentDetailDialog = false;
 	};
-
-	$inspect(cancelReason);
 </script>
 
 <Card.Root

@@ -18,9 +18,13 @@ export const actions = {
 			reason: String(rawData.get('reason')),
 			status: 'created',
 			userStatus: String(rawData.get('userStatus')) as 'GENERAL' | 'ACTIVE',
-			userName: String(rawData.get('userName')),
-			userNim: String(rawData.get('userNim'))
+			userName: String(rawData.get('userName'))
 		};
+
+		const userNim = rawData.get('userNim');
+		if (userNim !== undefined && formData.userStatus !== 'GENERAL') {
+			formData.userNim = String(userNim);
+		}
 
 		insertAppointment(formData);
 	}

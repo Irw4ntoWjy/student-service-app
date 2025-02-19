@@ -68,7 +68,7 @@ export const initTable = async () => {
                 cancel_at timestamp,
                 cancel_reason varchar(200),
 								constraint check_user_nim_active check (
-										not (status = 'active' and user_nim is null)
+										not (user_status = 'active' and user_nim is null)
 								)
             )            
         `;
@@ -305,11 +305,11 @@ export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> =>
 				ap.cancel_at as "cancelAt",
 				ap.cancel_reason as "cancelReason",
 				ap.served_by as "servedBy"
-            from 
-                appointment ap
-				inner join 
-					menu m on m.id = ap.menu_id
-							order by ap.created_at desc
+			from 
+					appointment ap
+			inner join 
+				menu m on m.id = ap.menu_id
+						order by ap.created_at desc
         `;
 		return rows as AppointmentTicketSchema[];
 	} catch (error) {
@@ -322,16 +322,18 @@ export const insertAppointment = async (insertUpdateAppointment: InsertUpdateApp
 	try {
 		if (insertUpdateAppointment.scannedAt) {
 			await sql`
-				insert into appointment (status, appointment_no, menu_id, reason, created_at, scanned_at) 
+				insert into appointment (status, appointment_no, menu_id, reason, created_at, scanned_at, user_status, user_name, user_nim) 
 				values (${insertUpdateAppointment.status}, ${insertUpdateAppointment.appointmentNo}, 
 								${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, 
-								now(), now(),  ${insertUpdateAppointment.userStatus}, ${insertUpdateAppointment.userName}, ${insertUpdateAppointment.userNim})`;
+								now(), now(), ${insertUpdateAppointment.userStatus}, ${insertUpdateAppointment.userName}, 
+								${insertUpdateAppointment.userNim !== undefined ? insertUpdateAppointment.userNim : null})`;
 		} else {
 			await sql`
 				insert into appointment (status, appointment_no, menu_id, reason, created_at, user_status, user_name, user_nim) 
 				values (${insertUpdateAppointment.status}, ${insertUpdateAppointment.appointmentNo}, 
 								${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, 
-								now(), ${insertUpdateAppointment.userStatus}, ${insertUpdateAppointment.userName}, ${insertUpdateAppointment.userNim})`;
+								now(), ${insertUpdateAppointment.userStatus}, ${insertUpdateAppointment.userName}, 
+								${insertUpdateAppointment.userNim !== undefined ? insertUpdateAppointment.userNim : null})`;
 		}
 	} catch (error) {
 		console.error('Error inserting row:', error);
@@ -397,6 +399,40 @@ export const getAppointmentTicket = async () => {
 	}
 };
 
+export const getAppointmentTicketById = async (id: number) => {
+	try {
+		const { rows } = await sql`
+            select
+                ap.id,
+								ap.menu_id as "menuId",
+                m.name as "menuName",
+                ap.status,
+								ap.user_status as "userStatus",
+								ap.user_name as "userName",
+								ap.user_nim as "userNim",
+								ap.served_id as "servedId",
+								ap.served_by as "servedBy",
+                ap.appointment_no as "appointmentNo",
+                ap.reason,
+								ap.created_at as "createdAt",
+                ap.scanned_at as "scannedAt",
+                ap.appointment_start_at as "appointmentStartAt",
+                ap.appointment_finished_at as "appointmentFinishedAt",
+								ap.cancel_at as "cancelAt",
+								ap.cancel_reason as "cancelReason"
+            from 
+                appointment ap
+            inner join
+                menu m on ap.menu_id = m.id
+            where 
+                ap.id = ${id}`;
+		return rows[0] as QueueTicketSchema;
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
 export const getCurrentActiveTicket = async () => {
 	try {
 		const { rows } = await sql`
@@ -451,7 +487,6 @@ export const updateAppointmentWaiting = async (id: number) => {
 };
 
 export const updateAppointmentCancelled = async (id: number, reason: string) => {
-	console.log(reason);
 	try {
 		await sql`update appointment set status = 'cancelled', cancel_reason= ${reason}, cancel_at = now() where id = ${id}`;
 	} catch (error) {

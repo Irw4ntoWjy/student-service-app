@@ -11,9 +11,10 @@ import {
 	type Table
 } from '$lib/components/page/tanstack-table';
 import type { BadgeVariant } from '$lib/components/ui/badge';
-import type { AppointmentTicketSchema } from '../../queue-ticket/queue-ticket-schema';
+import type { AppointmentTicketSchema, Status } from '../../queue-ticket/queue-ticket-schema';
+import AppointmentActionTable from './appointment-action-table.svelte';
 
-const appointmentStatus = {
+export const appointmentStatus = {
 	active: 'Sedang Diproses',
 	pending: 'Sedang Mengantri',
 	waiting: 'Belum Terlayani',
@@ -40,6 +41,14 @@ export const appointmentStatusBadge: {
 	closed: 'blue',
 	cancelled: 'destructive',
 	created: 'purple'
+};
+
+export type AppointmentTime = {
+	createdAt: string;
+	scannedAt: string | undefined;
+	appointmentStartAt: string | undefined;
+	appointmentFinishedAt: string | undefined;
+	cancelAt: string | undefined;
 };
 
 export function createAppointmentTable(pageUrl: string, data: AppointmentTicketSchema[]) {
@@ -69,6 +78,16 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 		}
 		onPaginate();
 	};
+
+	let isAppointmentTrackingSheetOpen: boolean = $state(false);
+	let currentAppointmentStatus: Status = $state('pending');
+	let appointmentTimeTracking: AppointmentTime = $state({
+		createdAt: '',
+		scannedAt: undefined,
+		cancelAt: undefined,
+		appointmentStartAt: undefined,
+		appointmentFinishedAt: undefined
+	});
 
 	const columns: ColumnDef<AppointmentTicketSchema>[] = [
 		{
@@ -125,8 +144,30 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 		},
 		{
 			id: 'createdAt',
-			accessorFn: (row) => row.servedBy,
-			header: () => 'Waktu Pelayanan',
+			header: () => 'Total Waktu Pelayanan',
+			cell: ({ row }) => {
+				return renderComponent(AppointmentActionTable, {
+					appointmentTime: {
+						createdAt: row.original.createdAt,
+						scannedAt: row.original.scannedAt,
+						cancelAt: row.original.cancelAt,
+						appointmentStartAt: row.original.appointmentStartAt,
+						appointmentFinishedAt: row.original.appointmentFinishedAt
+					},
+					onclick: () => {
+						isAppointmentTrackingSheetOpen = true;
+						currentAppointmentStatus = row.original.status;
+
+						appointmentTimeTracking = {
+							createdAt: row.original.createdAt,
+							scannedAt: row.original.scannedAt,
+							cancelAt: row.original.cancelAt,
+							appointmentStartAt: row.original.appointmentStartAt,
+							appointmentFinishedAt: row.original.appointmentFinishedAt
+						};
+					}
+				});
+			},
 			size: 150
 		},
 		{
@@ -166,6 +207,18 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 		},
 		get toggleSorting() {
 			return toggleSorting;
+		},
+		get isAppointmentTrackingSheetOpen() {
+			return isAppointmentTrackingSheetOpen;
+		},
+		set isAppointmentTrackingSheetOpen(data) {
+			isAppointmentTrackingSheetOpen = data;
+		},
+		get currentAppointmentStatus() {
+			return currentAppointmentStatus;
+		},
+		get appointmentTimeTracking() {
+			return appointmentTimeTracking;
 		}
 	};
 }

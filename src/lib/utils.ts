@@ -56,6 +56,24 @@ export const flyAndScale = (
 	};
 };
 
+export const dateFormat = (
+	date: Date,
+	dateStyle?: 'full' | 'long' | 'medium' | 'short'
+): string => {
+	return new DateFormatter('id-ID', {
+		dateStyle: dateStyle ?? 'long',
+		timeZone: 'Asia/Jakarta'
+	}).format(date);
+};
+
+export const dateFormatString = (
+	dateStr: string | undefined | null,
+	dateStyle?: 'full' | 'long' | 'medium' | 'short'
+): string => {
+	if (!dateStr) return '';
+	return dateFormat(new Date(`${dateStr}Z`), dateStyle);
+};
+
 export const dateTimeFormat = (date: Date): string => {
 	return dateTimeFormatWithTz(date);
 };

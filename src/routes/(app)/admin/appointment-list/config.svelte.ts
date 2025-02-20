@@ -11,7 +11,6 @@ import {
 	type Table
 } from '$lib/components/page/tanstack-table';
 import type { BadgeVariant } from '$lib/components/ui/badge';
-import { dateTimeFormatString } from '$lib/utils';
 import type { AppointmentTicketSchema } from '../../queue-ticket/queue-ticket-schema';
 
 const appointmentStatus = {
@@ -23,12 +22,21 @@ const appointmentStatus = {
 	created: 'Menunggu Nomor Antrian'
 };
 
+const userStatus = {
+	ACTIVE: 'Mahasiswa Aktif',
+	GENERAL: 'Tamu / Alumni',
+	waiting: 'Belum Terlayani',
+	closed: 'Selesai',
+	cancelled: 'Dibatalkan',
+	created: 'Menunggu Nomor Antrian'
+};
+
 export const appointmentStatusBadge: {
 	[key in keyof typeof appointmentStatus]: BadgeVariant;
 } = {
 	active: 'green',
 	pending: 'secondary',
-	waiting: 'amber',
+	waiting: 'teal',
 	closed: 'blue',
 	cancelled: 'destructive',
 	created: 'purple'
@@ -67,54 +75,36 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 			id: 'appointmentNo',
 			accessorFn: (row) => row.appointmentNo,
 			header: () => 'Nomor Appointment',
-			size: 225
+			size: 150
 		},
 		{
-			id: 'createdAt',
-			header: () => 'Waktu Appointment',
-			size: 300,
+			id: 'fromAppointmentNo',
+			accessorFn: (row) => row.fromAppointmentNo,
+			header: () => 'Appointment Sebelumnya',
+			size: 150
+		},
+		{
+			id: 'userStatus',
+			header: () => 'Status Tamu',
+			accessorFn: (row) => userStatus[row.userStatus],
+			size: 160
+		},
+		{
+			id: 'userName',
+			header: () => 'Data identitas',
 			cell: ({ row }) => {
-				const defaultEntry = {
-					title: 'DIBUAT',
-					titleClass: 'text-md font-bold text-orange-400',
-					value: dateTimeFormatString(row.original.createdAt),
-					class: 'text-sm font-bold text-orange-400'
-				};
-
-				const optionalFields = [
-					{
-						title: 'MENUNGGU',
-						titleClass: 'text-md font-bold text-sky-400',
-						value: row.original.scannedAt,
-						class: 'text-sm font-bold text-sky-400'
-					},
-					{
-						title: 'DIMULAI',
-						titleClass: 'text-md font-bold text-cyan-600',
-						value: row.original.appointmentStartAt,
-						class: 'text-sm font-bold text-cyan-600'
-					},
-					{
-						title: 'SELESAI',
-						titleClass: 'text-md font-bold text-green-600',
-						value: row.original.appointmentFinishedAt,
-						class: 'text-sm font-bold text-green-600'
-					},
-					{
-						title: 'DIBATALKAN',
-						titleClass: 'text-md font-bold text-destructive',
-						value: row.original.cancelAt,
-						class: 'text-sm font-bold text-destructive'
-					}
-				];
-
-				const validOptionalFields = optionalFields
-					.filter((item) => item.value)
-					.map((item) => ({ ...item, value: dateTimeFormatString(item.value) }));
-
-				const object = [defaultEntry, ...validOptionalFields];
-				return renderComponent(MulitpleValueCell, { object });
-			}
+				return renderComponent(MulitpleValueCell, {
+					object: [
+						{
+							title: 'Nama',
+							titleClass: 'text-md font-bold text-indigo',
+							value: row.original.userName,
+							class: 'text-sm'
+						}
+					]
+				});
+			},
+			size: 240
 		},
 		{
 			id: 'status',
@@ -125,25 +115,31 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 					value: appointmentStatus[row.original.status]
 				});
 			},
-			size: 225
+			size: 180
 		},
 		{
 			id: 'servedBy',
 			accessorFn: (row) => row.servedBy,
 			header: () => 'Dilayani Oleh',
-			size: 225
+			size: 150
+		},
+		{
+			id: 'createdAt',
+			accessorFn: (row) => row.servedBy,
+			header: () => 'Waktu Pelayanan',
+			size: 150
 		},
 		{
 			id: 'reason',
 			accessorFn: (row) => row.reason,
 			header: () => 'Tujuan Appointment',
-			size: 250
+			size: 150
 		},
 		{
 			id: 'cancelReason',
 			accessorFn: (row) => row.cancelReason,
 			header: () => 'Alasan Pembatalan',
-			size: 250
+			size: 150
 		}
 	];
 

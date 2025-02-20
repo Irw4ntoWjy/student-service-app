@@ -53,6 +53,7 @@ export const initTable = async () => {
             create table if not exists appointment (
                 id SERIAL PRIMARY KEY,
                 menu_id int4 not null references menu(id) on delete cascade on update cascade,
+								from_appointment_id int4,
                 status varchar(10) not null check (status in ('created', 'active', 'pending', 'waiting', 'closed', 'cancelled' )),
 				user_status varchar(10) not null,
 				user_name varchar(100) not null,
@@ -296,6 +297,10 @@ export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> =>
 				ap.id,
 				ap.status,
 				ap.appointment_no as "appointmentNo",
+				(select appointment_no from appointment a where a.id = ap.from_appointment_id) as "fromAppointmentNo",
+				ap.user_name as "userName",
+				ap.user_nim as "userNim",
+				ap.user_status as "userStatus",
 				m.name as menuName,				
 				ap.reason,
 				ap.created_at as "createdAt",
@@ -322,11 +327,12 @@ export const insertAppointment = async (insertUpdateAppointment: InsertUpdateApp
 	try {
 		if (insertUpdateAppointment.scannedAt) {
 			await sql`
-				insert into appointment (status, appointment_no, menu_id, reason, created_at, scanned_at, user_status, user_name, user_nim) 
+				insert into appointment (status, appointment_no, menu_id, reason, created_at, scanned_at, user_status, user_name, user_nim, from_appointment_id) 
 				values (${insertUpdateAppointment.status}, ${insertUpdateAppointment.appointmentNo}, 
 					${insertUpdateAppointment.menuId}, ${insertUpdateAppointment.reason}, 
 					now(), now(), ${insertUpdateAppointment.userStatus}, ${insertUpdateAppointment.userName}, 
-					${insertUpdateAppointment.userNim !== undefined ? insertUpdateAppointment.userNim : null})`;
+					${insertUpdateAppointment.userNim !== undefined ? insertUpdateAppointment.userNim : null}, 
+					${insertUpdateAppointment.fromAppointmentId})`;
 		} else {
 			await sql`
 				insert into appointment (status, appointment_no, menu_id, reason, created_at, user_status, user_name, user_nim) 

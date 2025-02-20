@@ -25,6 +25,7 @@ export type InsertUpdateMenuSchema = z.infer<typeof insertUpdateMenuSchema>;
 
 export const insertUpdateAppointment = z.object({
 	id: z.number().optional(),
+	fromAppointmentId: z.number().optional(),
 	status: z.string().optional(),
 	appointmentNo: z.string(),
 	menuId: z.string(),

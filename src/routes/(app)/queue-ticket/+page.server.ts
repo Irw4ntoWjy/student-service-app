@@ -64,7 +64,8 @@ export const actions = {
 			status: 'pending',
 			scannedAt: 'true',
 			userName: appointment.userName,
-			userStatus: appointment.userStatus
+			userStatus: appointment.userStatus,
+			fromAppointmentId: Number(rawData.get('id'))
 		};
 
 		if (formData.userStatus !== 'GENERAL') {

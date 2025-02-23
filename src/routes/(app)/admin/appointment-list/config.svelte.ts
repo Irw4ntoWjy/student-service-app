@@ -51,16 +51,49 @@ export type AppointmentTime = {
 	cancelAt: string | undefined;
 };
 
+export type AppointmentFilterValue = {
+	filter: string;
+	startDate: string | undefined;
+	endDate: string | undefined;
+};
+
 export function createAppointmentTable(pageUrl: string, data: AppointmentTicketSchema[]) {
 	let results = $state(data);
 	const currentUrl = $state(pageUrl);
+
+	let filterValues: AppointmentFilterValue = $state({
+		filter: '',
+		startDate: undefined,
+		endDate: undefined
+	});
+
+	const showReset = $derived.by(() => {
+		return Object.values(filterValues).some((value) => {
+			return Array.isArray(value) ? value.length > 0 : value && value !== '';
+		});
+	});
 
 	const sort: ColumnSort = $state({
 		id: 'name',
 		desc: false
 	});
 
-	const fullUrl = $derived(currentUrl);
+	const fullUrl = $derived.by(() => {
+		let pageUrl = currentUrl;
+		let isFirstParam = !pageUrl.includes('?');
+
+		for (const key in filterValues) {
+			const value = filterValues[key as keyof typeof filterValues];
+
+			if (Array.isArray(value) ? value.length > 0 : value) {
+				pageUrl += `${isFirstParam ? '?' : '&'}${key}=${value}`;
+				isFirstParam = false;
+			}
+		}
+
+		return pageUrl;
+	});
+
 	const onPaginate = async () => {
 		await goto(`${fullUrl}`, {
 			replaceState: true,
@@ -80,7 +113,9 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 	};
 
 	let isAppointmentTrackingSheetOpen: boolean = $state(false);
+
 	let currentAppointmentStatus: Status = $state('pending');
+
 	let appointmentTimeTracking: AppointmentTime = $state({
 		createdAt: '',
 		scannedAt: undefined,
@@ -219,6 +254,18 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 		},
 		get appointmentTimeTracking() {
 			return appointmentTimeTracking;
+		},
+		get filterValues() {
+			return filterValues;
+		},
+		set filterValues(data) {
+			filterValues = data;
+		},
+		get showReset() {
+			return showReset;
+		},
+		get onPaginate() {
+			return onPaginate;
 		}
 	};
 }

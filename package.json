@@ -16,6 +16,7 @@
 		"@castlenine/svelte-qrcode": "2.3.0",
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.18.0",
+		"@internationalized/date": "^3.7.0",
 		"@sveltejs/adapter-auto": "^4.0.0",
 		"@sveltejs/kit": "^2.15.3",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
@@ -49,7 +50,6 @@
 		"node": "20.x"
 	},
 	"dependencies": {
-		"@internationalized/date": "^3.7.0",
 		"@tanstack/table-core": "9.0.0-alpha.10",
 		"@vercel/postgres": "^0.10.0",
 		"ably": "^2.6.3",

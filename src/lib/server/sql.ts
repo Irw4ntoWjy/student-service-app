@@ -323,6 +323,47 @@ export const getAllAppointment = async (): Promise<AppointmentTicketSchema[]> =>
 	}
 };
 
+export const getFilteredAppointment = async (
+	filter?: string,
+	startDate?: string,
+	endDate?: string
+): Promise<AppointmentTicketSchema[]> => {
+	try {
+		const { rows } = await sql`
+			select 
+				ap.id,
+				ap.status,
+				ap.appointment_no as "appointmentNo",
+				(select appointment_no from appointment a where a.id = ap.from_appointment_id) as "fromAppointmentNo",
+				ap.user_name as "userName",
+				ap.user_nim as "userNim",
+				ap.user_status as "userStatus",
+				m.name as "menuName",				
+				ap.reason,
+				ap.created_at as "createdAt",
+				ap.scanned_at as "scannedAt",
+				ap.appointment_start_at as "appointmentStartAt",
+				ap.appointment_finished_at as "appointmentFinishedAt",
+				ap.cancel_at as "cancelAt",
+				ap.cancel_reason as "cancelReason",
+				ap.served_by as "servedBy"
+			from 
+				appointment ap
+			inner join
+				menu m ON m.id = ap.menu_id
+			where 
+				(${filter}::text is null or upper(ap.appointment_no) like ${'%' + filter?.toUpperCase() + '%'})
+				and (${startDate}::date is null or ${endDate}::date is null or date(ap.created_at) between ${startDate}::date and ${endDate}::date)
+			order by 
+				ap.created_at desc;
+		`;
+		return rows as AppointmentTicketSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
 export const insertAppointment = async (insertUpdateAppointment: InsertUpdateAppointmentSchema) => {
 	try {
 		if (insertUpdateAppointment.scannedAt) {

@@ -5,20 +5,37 @@
 	let { appointmentTime, onclick }: { appointmentTime: AppointmentTime; onclick: () => void } =
 		$props();
 
-	// get timegap when user start waiting and be served
-	let timeDiff: number = $state(0);
-	if (appointmentTime.scannedAt && appointmentTime.appointmentStartAt) {
-		const scannedDate = new Date(appointmentTime.scannedAt);
-		const startDate = new Date(appointmentTime.appointmentStartAt);
+	// get timegap from user start waiting and be served
+	const getTotalAppointmentTime = () => {
+		if (appointmentTime.scannedAt && appointmentTime.appointmentStartAt) {
+			const scannedDate = new Date(appointmentTime.scannedAt);
+			const startDate = new Date(appointmentTime.appointmentStartAt);
 
-		const timeDifferenceMs = startDate.getTime() - scannedDate.getTime();
-		timeDiff = timeDifferenceMs / 60000;
-	}
+			let totalTimeDiff: number = 0;
+			const timeDiff = Math.floor((startDate.getTime() - scannedDate.getTime()) / 1000);
+			totalTimeDiff = timeDiff;
+
+			//check if this appoinment has been finished
+			if (appointmentTime.appointmentFinishedAt) {
+				const finishedTime = new Date(appointmentTime.appointmentFinishedAt);
+				const timeDiff = Math.floor((finishedTime.getTime() - startDate.getTime()) / 1000);
+				totalTimeDiff += timeDiff;
+			}
+
+			if (totalTimeDiff < 60) {
+				return `${totalTimeDiff} Detik`;
+			} else if (totalTimeDiff < 3600) {
+				return `${Math.floor(totalTimeDiff / 60)} Menit`;
+			} else {
+				return `${Math.floor(totalTimeDiff / 3600)} Jam`;
+			}
+		}
+	};
 </script>
 
 <div class="flex items-center gap-4">
-	<span>
-		{timeDiff.toFixed(0)} Menit
+	<span class="font-bold">
+		{getTotalAppointmentTime()}
 	</span>
-	<Info class="size-4 cursor-pointer" {onclick} />
+	<Info class="size-4 cursor-pointer text-slate-600" {onclick} />
 </div>

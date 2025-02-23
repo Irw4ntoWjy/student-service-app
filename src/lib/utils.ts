@@ -90,6 +90,22 @@ export const dateTimeFormatString = (dateTimeStr: string | undefined | null): st
 	return dateTimeFormat(new Date(`${dateTimeStr}Z`)).replaceAll('.', ':');
 };
 
+export const timeFormat = (date: Date): string =>
+	new DateFormatter('id-ID', {
+		hour: '2-digit',
+		minute: '2-digit',
+		hourCycle: 'h23',
+		timeZoneName: 'short',
+		timeZone: 'Asia/Jakarta'
+	})
+		.format(date)
+		.replaceAll('.', ':');
+
+export const timeFormatString = (timeStr: string | undefined | null): string => {
+	if (!timeStr) return '';
+	return timeFormat(new Date(`${timeStr}Z`));
+};
+
 let debounceTimer: ReturnType<typeof setTimeout>;
 export const debounce = (callback: () => void, timeout?: number) => {
 	clearTimeout(debounceTimer);

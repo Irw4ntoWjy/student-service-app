@@ -1,22 +1,23 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import DataTable from '$lib/components/page/data-table/data-table.svelte';
+	import DatePickerRange from '$lib/components/page/date-picker-range.svelte';
+	import Badge from '$lib/components/ui/badge/badge.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
+	import { dateFormatString, debounce, timeFormatString } from '$lib/utils';
+	import { CalendarDate } from '@internationalized/date';
+	import type { DateRange } from 'bits-ui';
+	import { Ban, BookCheck, Check, Download, Play, UserSearch, X } from 'lucide-svelte';
+	import * as XLSX from 'xlsx';
 	import type { PageProps } from './$types';
 	import {
 		appointmentStatus,
 		appointmentStatusBadge,
 		createAppointmentTable
 	} from './config.svelte';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import Separator from '$lib/components/ui/separator/separator.svelte';
-	import Badge from '$lib/components/ui/badge/badge.svelte';
-	import { Ban, BookCheck, Check, Play, UserSearch, X } from 'lucide-svelte';
-	import { dateFormatString, debounce, timeFormatString } from '$lib/utils';
-	import DatePickerRange from '$lib/components/page/date-picker-range.svelte';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import { CalendarDate } from '@internationalized/date';
-	import type { DateRange } from 'bits-ui';
 
 	let { data }: PageProps = $props();
 
@@ -71,6 +72,47 @@
 		appointmentTableState.filterValues.startDate = datePickerValue.start?.toString();
 		appointmentTableState.filterValues.endDate = datePickerValue.end?.toString();
 	});
+
+	const adjustAndFormatDate = (dateValue?: string) => {
+		if (!dateValue) return '';
+		const date = new Date(dateValue);
+		date.setHours(date.getHours() + 7);
+		return date.toLocaleString('en-GB', {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hour12: false
+		});
+	};
+
+	const exportToExcel = () => {
+		if (data.appointmentList) {
+			const rowData = appointmentTableState.table.getRowModel().rows.map((row) => {
+				const original = row.original;
+				return {
+					...original,
+					createdAt: adjustAndFormatDate(original.createdAt),
+					scannedAt: original.scannedAt ? adjustAndFormatDate(original.scannedAt) : '',
+					appointmentStartAt: original.appointmentStartAt
+						? adjustAndFormatDate(original.appointmentStartAt)
+						: '',
+					appointmentFinishedAt: original.appointmentFinishedAt
+						? adjustAndFormatDate(original.appointmentFinishedAt)
+						: '',
+					cancelAt: original.cancelAt ? adjustAndFormatDate(original.cancelAt) : ''
+				};
+			});
+
+			const ws = XLSX.utils.json_to_sheet(rowData);
+			const wb = XLSX.utils.book_new();
+
+			XLSX.utils.book_append_sheet(wb, ws, 'Appointments');
+			XLSX.writeFile(wb, 'Appointments.xlsx');
+		}
+	};
 </script>
 
 <div class="flex flex-col gap-4">
@@ -110,6 +152,10 @@
 				</Button>
 			{/if}
 		</div>
+		<Button onclick={exportToExcel}>
+			<Download class="size-4" />
+			Export to Excel
+		</Button>
 	</div>
 	<DataTable
 		table={appointmentTableState.table}

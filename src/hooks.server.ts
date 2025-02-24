@@ -15,12 +15,12 @@ export const init: ServerInit = async () => {
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// const excludedRoutes = ['/queue-ticket', '/admin'];
-	// const userSession = event.cookies.get('user_session');
+	const excludedRoutes = ['/queue-ticket', '/admin'];
+	const userSession = event.cookies.get('user_session');
 
-	// if (excludedRoutes.includes(event.url.pathname) && !userSession) {
-	// 	throw redirect(302, '/login');
-	// }
+	if (excludedRoutes.includes(event.url.pathname) && !userSession) {
+		throw redirect(302, '/login');
+	}
 
 	if (event.url.pathname === '/admin') {
 		throw redirect(302, '/admin/menu-list');

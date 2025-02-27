@@ -62,23 +62,64 @@
 		return () => clearInterval(interval);
 	});
 
+	let isSubscribed = false; // Track subscription state
 	$effect.root(() => {
+		if (isSubscribed) return; // Prevent duplicate subscriptions
+		isSubscribed = true;
+
 		const ably = new Realtime({ key: 'gqo0ug.eOzcSw:e6g093vBHe3phpt2f4nBviuRBeSLkTSfQ3RXN2fBpMI' });
 		const channel = ably.channels.get('updates');
 
 		channel.subscribe('update', (message) => {
 			console.log('Received update via Ably:', message.data);
+			textToSpeech('Nomor Antrian');
 			invalidateAll();
 		});
 
 		ably.connection.on('connected', () => {
 			console.log('Connected to Ably');
+			window.speechSynthesis.onvoiceschanged = () => {
+				console.log('Voices loaded:', window.speechSynthesis.getVoices());
+			};
 		});
 
-		// Unsubscribe when the component is destroyed
+		function textToSpeech(text) {
+			if ('speechSynthesis' in window) {
+				const synth = window.speechSynthesis;
+
+				// Ensure voices are loaded before speaking
+				const voices = synth.getVoices();
+				if (voices.length === 0) {
+					console.log('Voices not loaded yet, retrying...');
+					setTimeout(() => textToSpeech(text), 100);
+					return;
+				}
+
+				synth.cancel(); // Stop any ongoing speech
+
+				// Find Google's Indonesian voice explicitly
+				const googleIndonesianVoice = voices.find((v) =>
+					v.name.toLowerCase().includes('google bahasa indonesia')
+				);
+
+				const utterance = new SpeechSynthesisUtterance(text);
+				utterance.voice =
+					googleIndonesianVoice || voices.find((v) => v.lang === 'id-ID') || voices[0];
+				utterance.lang = 'id-ID';
+				utterance.rate = 1;
+				utterance.pitch = 1;
+
+				console.log('Speaking with voice:', utterance.voice?.name || 'Default');
+				synth.speak(utterance);
+			} else {
+				console.warn('Text-to-Speech is not supported in this browser.');
+			}
+		}
+
 		return () => {
 			channel.unsubscribe();
 			ably.close();
+			isSubscribed = false; // Reset subscription state
 		};
 	});
 </script>

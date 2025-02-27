@@ -1,4 +1,4 @@
-import { initTable } from '$lib/server/sql';
+import { inittable } from '$lib/server/sql/init-table';
 import type { ServerInit } from '@sveltejs/kit';
 import { redirect, type Handle } from '@sveltejs/kit';
 import dotenv from 'dotenv';
@@ -11,7 +11,7 @@ export const init: ServerInit = async () => {
 		throw new Error('Missing connection string');
 	}
 
-	await initTable();
+	await inittable();
 };
 
 export const handle: Handle = async ({ event, resolve }) => {

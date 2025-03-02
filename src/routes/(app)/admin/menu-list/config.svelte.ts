@@ -9,35 +9,32 @@ import {
 	getPaginationRowModel,
 	renderComponent,
 	type ColumnDef,
-	type ColumnSort,
 	type Table
 } from '$lib/components/page/tanstack-table';
+import type { MenuSchema } from '$lib/server/sql/menu-query';
 import { dateTimeFormatString } from '$lib/utils';
-import type { LoadMenuSchema, MenuDialogSchema } from '../../menu-services/menu-schema';
+import type { MenuActionSchema } from '../../menu-services/menu-schema';
 
-export type MenuFilterValue = {
-	filter: string;
+export type MenuTableFilter = {
+	filter: string | undefined;
+	selectedData: number | undefined;
 };
 
-export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
-	let results = $state(data);
+export function menuTable(pageUrl: string, menuData: MenuSchema[]) {
 	const currentUrl = $state(pageUrl);
+	let tableData = $state(menuData);
 
-	let filterValues: MenuFilterValue = $state({
-		filter: ''
-	});
-
-	const sort: ColumnSort = $state({
-		id: 'name',
-		desc: false
+	let filterValue: MenuTableFilter = $state({
+		filter: undefined,
+		selectedData: undefined
 	});
 
 	const fullUrl = $derived.by(() => {
 		let pageUrl = currentUrl;
 		let isFirstParam = !pageUrl.includes('?');
 
-		for (const key in filterValues) {
-			const value = filterValues[key as keyof typeof filterValues];
+		for (const key in filterValue) {
+			const value = filterValue[key as keyof typeof filterValue];
 
 			if (Array.isArray(value) ? value.length > 0 : value) {
 				pageUrl += `${isFirstParam ? '?' : '&'}${key}=${value}`;
@@ -56,19 +53,9 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 		});
 	};
 
-	const toggleSorting = (id: string) => {
-		if (sort.id === id) {
-			sort.desc = !sort.desc;
-		} else {
-			sort.id = id;
-			sort.desc = false;
-		}
-		onPaginate();
-	};
-
+	// model to contains menu data when click edit button
 	let openEditDialog: boolean = $state(false);
 
-	// model to contains menu data when click edit button
 	type EditMenuType = {
 		id: number | undefined;
 		menuName: string | undefined;
@@ -85,20 +72,14 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 		status: true
 	});
 
-	let openMenuDialog: boolean = $state(false);
-	let menuDialog: MenuDialogSchema[] | undefined = $state(undefined);
+	let openMenuAction: boolean = $state(false);
+	let menuAction: MenuActionSchema[] | undefined = $state(undefined);
 
 	const fetchMenuAction = async (id: number) => {
 		const res = await fetch(`${page.url}/get-menu-action?id=${id}`);
 		const data = await res.json();
-		menuDialog = data;
+		menuAction = data;
 	};
-
-	const showReset = $derived.by(() => {
-		return Object.values(filterValues).some((value) => {
-			return Array.isArray(value) ? value.length > 0 : value && value !== '';
-		});
-	});
 
 	let currentMenu: { id: number | undefined; name: string | undefined; code: string | undefined } =
 		$state({
@@ -107,7 +88,13 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 			code: undefined
 		});
 
-	const columns: ColumnDef<LoadMenuSchema>[] = [
+	const showReset = $derived.by(() => {
+		return Object.values(filterValue).some((value) => {
+			return Array.isArray(value) ? value.length > 0 : value && value !== '';
+		});
+	});
+
+	const columns: ColumnDef<MenuSchema>[] = [
 		{
 			id: 'name',
 			accessorFn: (row) => row.name,
@@ -177,13 +164,15 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 						},
 						Eye: {
 							onClick: async () => {
-								fetchMenuAction(row.original.id);
-								currentMenu = {
-									id: row.original.id,
-									name: row.original.name,
-									code: row.original.code
-								};
-								openMenuDialog = true;
+								if (row.original.id) {
+									await fetchMenuAction(row.original.id);
+									currentMenu = {
+										id: row.original.id,
+										name: row.original.name,
+										code: row.original.code
+									};
+									openMenuAction = true;
+								}
 							}
 						}
 					}
@@ -192,17 +181,14 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 		}
 	];
 
-	const tableConfig: Table<LoadMenuSchema> = $derived(
+	const tableConfig: Table<MenuSchema> = $derived(
 		createTable({
 			columns: columns,
-			data: results,
+			data: tableData,
 			getCoreRowModel: getCoreRowModel(),
 			getPaginationRowModel: getPaginationRowModel(),
 			manualPagination: true,
-			manualSorting: true,
-			state: {
-				sorting: [sort]
-			}
+			manualSorting: true
 		})
 	);
 
@@ -210,11 +196,8 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 		get table() {
 			return tableConfig;
 		},
-		set updateTable({ data }: { data: LoadMenuSchema[] }) {
-			results = data;
-		},
-		get toggleSorting() {
-			return toggleSorting;
+		set updateTable({ data }: { data: MenuSchema[] }) {
+			tableData = data;
 		},
 		get openEditDialog() {
 			return openEditDialog;
@@ -228,23 +211,23 @@ export function createMenuTable(pageUrl: string, data: LoadMenuSchema[]) {
 		set editMenuData(data) {
 			editMenuData = data;
 		},
-		get openMenuDialog() {
-			return openMenuDialog;
+		get openMenuAction() {
+			return openMenuAction;
 		},
-		set openMenuDialog(data) {
-			openMenuDialog = data;
+		set openMenuAction(data) {
+			openMenuAction = data;
 		},
-		get menuDialog() {
-			return menuDialog;
+		get menuAction() {
+			return menuAction;
 		},
 		get currentMenu() {
 			return currentMenu;
 		},
-		get filterValues() {
-			return filterValues;
+		get filterValue() {
+			return filterValue;
 		},
-		set filterValues(data) {
-			filterValues = data;
+		set filterValue(data) {
+			filterValue = data;
 		},
 		get onPaginate() {
 			return onPaginate;

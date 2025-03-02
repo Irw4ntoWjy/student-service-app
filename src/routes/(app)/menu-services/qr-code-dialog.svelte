@@ -7,19 +7,15 @@
 
 	let { openQrDialog, data }: { openQrDialog: boolean; data: string | undefined } = $props();
 
-	let isQrCodeScanned: boolean = $state(false);
+	let qrCodeUrl = $derived(`${page.url}/appointment/${data}`);
 
+	// NOTES creds masih kena expose
 	$effect.root(() => {
 		const ably = new Realtime({ key: 'gqo0ug.eOzcSw:e6g093vBHe3phpt2f4nBviuRBeSLkTSfQ3RXN2fBpMI' });
 		const channel = ably.channels.get('updates');
 
-		channel.subscribe('update', (message) => {
-			console.log('Received update via Ably:', message.data);
-			isQrCodeScanned = true;
-		});
-
-		ably.connection.on('connected', () => {
-			console.log('Connected to Ably');
+		channel.subscribe('update', () => {
+			goto('/');
 		});
 
 		// Unsubscribe when the component is destroyed
@@ -28,14 +24,6 @@
 			ably.close();
 		};
 	});
-
-	$effect(() => {
-		if (isQrCodeScanned) {
-			goto('/');
-		}
-	});
-
-	let qrCodeUrl = $derived(`${page.url}/appointment/${data}`);
 </script>
 
 <Dialog.Root bind:open={openQrDialog}>
@@ -43,7 +31,7 @@
 		<Dialog.Header>
 			<Dialog.Title class="text-lg font-bold">Scan QR Dibawah ini</Dialog.Title>
 			<Dialog.Description class="text-sm text-gray-500">
-				Scan untuk mengambil nomor antrian anda !
+				Berikut merupakan Nomor Antrian anda, Scan untuk mengambil nomor antrian anda !
 			</Dialog.Description>
 		</Dialog.Header>
 		<div class="flex w-full items-center justify-center">

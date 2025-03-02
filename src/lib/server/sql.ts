@@ -12,24 +12,6 @@ import {
 	type QueueTicketSchema
 } from '../../routes/(app)/queue-ticket/queue-ticket-schema';
 
-export const insertStaff = async (staffList: StaffList) => {
-	try {
-		await sql`insert into staff_list (name, division, job_desc) values (${staffList.name}, ${staffList.division}, ${staffList.jobDesc})`;
-	} catch (err) {
-		console.error('Error inserting row:', err);
-		throw err;
-	}
-};
-
-export const updateStaff = async (staffList: StaffList) => {
-	try {
-		await sql`update staff_list set name = ${staffList.name}, division = ${staffList.division}, job_desc = ${staffList.jobDesc}, status = ${staffList.status}, last_updated_at = now() where id = ${staffList.id}`;
-	} catch (err) {
-		console.error('Error inserting row:', err);
-		throw err;
-	}
-};
-
 export const getStaffList = async (): Promise<StaffList[]> => {
 	try {
 		const { rows } = await sql`
@@ -101,7 +83,7 @@ export const getStaffListById = async (id: number) => {
 
 export const insertAdmin = async (useremail: string, username: string, password: string) => {
 	try {
-		await sql`insert into admin (user_email, user_name, user_password) values (${useremail}, ${username}, ${password})`;
+		await sql`insert into admin (user_email, user_name, password) values (${useremail}, ${username}, ${password})`;
 	} catch (err) {
 		console.error('Error inserting row:', err);
 		throw err;
@@ -112,7 +94,7 @@ export const getAdminAccountPw = async (username: string) => {
 	try {
 		const { rows } = await sql`
             select
-                a.user_password as password
+                a.password as password
             from 
                 admin a
             where 

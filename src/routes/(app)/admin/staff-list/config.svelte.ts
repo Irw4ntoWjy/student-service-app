@@ -1,47 +1,42 @@
 import { goto } from '$app/navigation';
+import DataTableActionColumn from '$lib/components/page/data-table/data-table-action-column.svelte';
+import DataTableBadgeCell from '$lib/components/page/data-table/data-table-badge-cell.svelte';
+import { createTable, renderComponent } from '$lib/components/page/tanstack-table';
+import type { StaffSchema } from '$lib/server/sql/staff-list-query';
+import { dateTimeFormatString } from '$lib/utils';
 import {
-	createTable,
 	getCoreRowModel,
 	getPaginationRowModel,
-	renderComponent
-} from '$lib/components/page/tanstack-table';
-import { dateTimeFormatString } from '$lib/utils';
-import type { ColumnDef, ColumnSort, Table } from '@tanstack/table-core';
-import type { StaffList } from './staff-list-schema';
-import DataTableBadgeCell from '$lib/components/page/data-table/data-table-badge-cell.svelte';
-import DataTableActionColumn from '$lib/components/page/data-table/data-table-action-column.svelte';
-import { page } from '$app/state';
+	type ColumnDef,
+	type Table
+} from '@tanstack/table-core';
 
-export type StaffFilterValue = {
-	filter: string;
+export type StaffTableFilter = {
+	filter: string | undefined;
+	selectedData: number | undefined;
 };
 
-export function createStaffTable(pageUrl: string, data: StaffList[]) {
-	let results = $state(data);
+export function staffTable(pageUrl: string, staffData: StaffSchema[]) {
 	const currentUrl = $state(pageUrl);
+	let tableData = $state(staffData);
 
-	let filterValues: StaffFilterValue = $state({
-		filter: ''
-	});
-
-	const sort: ColumnSort = $state({
-		id: 'name',
-		desc: false
+	let filterValue: StaffTableFilter = $state({
+		filter: undefined,
+		selectedData: undefined
 	});
 
 	const fullUrl = $derived.by(() => {
 		let pageUrl = currentUrl;
 		let isFirstParam = !pageUrl.includes('?');
 
-		for (const key in filterValues) {
-			const value = filterValues[key as keyof typeof filterValues];
+		for (const key in filterValue) {
+			const value = filterValue[key as keyof typeof filterValue];
 
 			if (Array.isArray(value) ? value.length > 0 : value) {
 				pageUrl += `${isFirstParam ? '?' : '&'}${key}=${value}`;
 				isFirstParam = false;
 			}
 		}
-
 		return pageUrl;
 	});
 
@@ -53,51 +48,27 @@ export function createStaffTable(pageUrl: string, data: StaffList[]) {
 		});
 	};
 
-	const toggleSorting = (id: string) => {
-		if (sort.id === id) {
-			sort.desc = !sort.desc;
-		} else {
-			sort.id = id;
-			sort.desc = false;
-		}
-		onPaginate();
-	};
-
 	const showReset = $derived.by(() => {
-		return Object.values(filterValues).some((value) => {
+		return Object.values(filterValue).some((value) => {
 			return Array.isArray(value) ? value.length > 0 : value && value !== '';
 		});
 	});
 
-	let openStaffSheet: boolean = $state(false);
-	let staffDetail: StaffList[] = $state([]);
-	let currentSelectedStaff: number = $state(0);
-	const fetchStaff = async (id: number) => {
-		const res = await fetch(`${page.url}/get-staff-detail?id=${id}`);
-		const data = await res.json();
-		staffDetail = data;
-
-		openStaffSheet = true;
-	};
-
-	const columns: ColumnDef<StaffList>[] = [
+	const columns: ColumnDef<StaffSchema>[] = [
 		{
 			id: 'name',
 			accessorFn: (row) => row.name,
-			header: () => 'Nama Staff',
-			size: 150
+			header: () => 'Nama Staff'
 		},
 		{
 			id: 'division',
-			accessorFn: (row) => row.division,
-			header: () => 'Divisi',
-			size: 150
+			accessorFn: (row) => row.divisionId,
+			header: () => 'Divisi'
 		},
 		{
 			id: 'jobDesc',
 			accessorFn: (row) => row.jobDesc,
-			header: () => 'Jobdesc',
-			size: 100
+			header: () => 'Jobdesc'
 		},
 		{
 			id: 'status',
@@ -114,33 +85,29 @@ export function createStaffTable(pageUrl: string, data: StaffList[]) {
 						value: 'Tidak Aktif'
 					});
 				}
-			},
-			size: 75
+			}
 		},
 		{
 			id: 'createdAt',
 			header: () => 'Dibuat Pada',
-			accessorFn: (row) => dateTimeFormatString(row.createdAt),
-			size: 150
+			accessorFn: (row) => dateTimeFormatString(row.createdAt)
 		},
 		{
 			id: 'lastUpdatedAt',
 			header: () => 'Terakhir Diubah Pada',
-			accessorFn: (row) => dateTimeFormatString(row.lastUpdatedAt),
-			size: 150
+			accessorFn: (row) => dateTimeFormatString(row.lastUpdatedAt)
 		},
 		{
 			id: 'actionsColumn',
 			header: ' ',
-			size: 100,
 			cell: ({ row }) => {
 				return renderComponent(DataTableActionColumn, {
 					single: {
 						Pencil: {
 							onClick: async () => {
 								if (row.original.id) {
-									currentSelectedStaff = row.original.id;
-									await fetchStaff(row.original.id);
+									filterValue.selectedData = row.original.id;
+									// await fetchStaff(row.original.id);
 								}
 							}
 						}
@@ -150,17 +117,14 @@ export function createStaffTable(pageUrl: string, data: StaffList[]) {
 		}
 	];
 
-	const tableConfig: Table<StaffList> = $derived(
+	const tableConfig: Table<StaffSchema> = $derived(
 		createTable({
 			columns: columns,
-			data: results,
+			data: tableData,
 			getCoreRowModel: getCoreRowModel(),
 			getPaginationRowModel: getPaginationRowModel(),
 			manualPagination: true,
-			manualSorting: true,
-			state: {
-				sorting: [sort]
-			}
+			manualSorting: true
 		})
 	);
 
@@ -168,35 +132,20 @@ export function createStaffTable(pageUrl: string, data: StaffList[]) {
 		get table() {
 			return tableConfig;
 		},
-		set updateTable({ data }: { data: StaffList[] }) {
-			results = data;
+		set updateTable({ data }: { data: StaffSchema[] }) {
+			tableData = data;
 		},
-		get toggleSorting() {
-			return toggleSorting;
+		get filterValue() {
+			return filterValue;
 		},
-		get filterValues() {
-			return filterValues;
-		},
-		set filterValues(data) {
-			filterValues = data;
+		set filterValue(data) {
+			filterValue = data;
 		},
 		get onPaginate() {
 			return onPaginate;
 		},
 		get showReset() {
 			return showReset;
-		},
-		get staffDetail() {
-			return staffDetail;
-		},
-		get openStaffSheet() {
-			return openStaffSheet;
-		},
-		set openStaffSheet(data) {
-			openStaffSheet = data;
-		},
-		get currentSelectedStaff() {
-			return currentSelectedStaff;
 		}
 	};
 }

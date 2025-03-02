@@ -10,7 +10,6 @@ export const inittable = async () => {
 					user_name varchar(50) not null,
 					password text not null,
 					created_at timestamp default now(),
-					created_by int4 not null,
 					last_updated_at timestamp,
 					last_updated_by int4
 				)
@@ -115,7 +114,7 @@ export const inittable = async () => {
           served_by int4,
           user_type varchar(15) not null check (user_type in ('STUDENT', 'EXTERNAL')),
           user_name varchar(50) not null,
-          user_nim varchar(20) not null, 
+          user_nim varchar(20), 
           scanned_at timestamp,
           appointment_start_at timestamp,
           appointment_end_at timestamp,
@@ -128,7 +127,9 @@ export const inittable = async () => {
             foreign key (served_by)
               references staff_list(id) on delete cascade on update cascade,
           constraint check_reason_cannot_be_null
-              check (cancel_at is null or cancel_reason is not null)
+            check (cancel_at is null or cancel_reason is not null),
+          constraint check_user_nim_not_null
+            check (user_type = 'STUDENT' and user_nim is not null or user_type = 'EXTERNAL')
         )
       `
 		]);

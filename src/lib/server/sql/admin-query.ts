@@ -13,7 +13,6 @@ export const adminSchema = z.object({
 });
 export type AdminSchema = z.infer<typeof adminSchema>;
 
-//NOTES: missing updated_by
 export const insertAdmin = async (adminSchema: AdminSchema) => {
 	try {
 		await sql`insert into admin (user_email, user_name, password, created_by) values (${adminSchema.userEmail}, ${adminSchema.userName}, ${adminSchema.password}, ${adminSchema.createdBy})`;
@@ -26,12 +25,14 @@ export const insertAdmin = async (adminSchema: AdminSchema) => {
 export const updateAdminPassword = async (adminSchema: AdminSchema) => {
 	try {
 		const result = await sql`
-			update admin 
-			  set
-          password = ${adminSchema.password},
-          last_updated_at = now(),
-          last_updated_by = ${adminSchema.lastUpdatedBy}
-			where id = ${adminSchema.id}
+			update 
+				admin 
+			set
+				password = ${adminSchema.password},
+				last_updated_at = now(),
+				last_updated_by = ${adminSchema.lastUpdatedBy}
+			where 
+				id = ${adminSchema.id}
 			returning id
 		`;
 		return result.rows.length > 0;

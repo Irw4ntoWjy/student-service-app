@@ -68,15 +68,23 @@ export const createAppointment = async (
 	}
 };
 
+// NOTES last updated by blm sesuai
 export const updateAppointment = async (id: number, statusType: StatusType) => {
 	try {
 		await sql`
 			update 
 				appointment 
 			set  
-				status = ${statusType}, 
-				scanned_at = now()
+				status_type = ${statusType},
+				last_updated_at = now(),
+				last_updated_by = 1
 			where id = ${id}`;
+		await sql`
+			update 
+				appointment_detail
+			set  
+				scanned_at = now()
+			where appointment_id = ${id}`;
 	} catch (error) {
 		console.error('Error updating row:', error);
 		throw error;
@@ -129,9 +137,9 @@ export const findAppointmentById = async (appointmentId: number) => {
 				ap.status_type as "statusType",
 				ap.appointment_no as "appointmentNo",
 				ap.reason,
-				ap.created_at as "createdAt"
-				ap.created_by as "createdBy"
-				ap.last_updated_at as "lastUpdatedAt"
+				ap.created_at as "createdAt",
+				ap.created_by as "createdBy",
+				ap.last_updated_at as "lastUpdatedAt",
 				ap.last_updated_by as "lastUpdatedBy"
 			from 
 				appointment ap
@@ -155,9 +163,9 @@ export const findByAppointmentNo = async (appointmentNo: string) => {
 				ap.status_type as "statusType",
 				ap.appointment_no as "appointmentNo",
 				ap.reason,
-				ap.created_at as "createdAt"
-				ap.created_by as "createdBy"
-				ap.last_updated_at as "lastUpdatedAt"
+				ap.created_at as "createdAt",
+				ap.created_by as "createdBy",
+				ap.last_updated_at as "lastUpdatedAt",
 				ap.last_updated_by as "lastUpdatedBy"
 			from 
 				appointment ap

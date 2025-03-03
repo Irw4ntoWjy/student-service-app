@@ -1,15 +1,15 @@
-import type { Actions } from '@sveltejs/kit';
-import fs from 'fs';
-import path from 'path';
-import type { PageServerLoad } from '../$types';
-import type { MenuList } from './menu-list-schema';
-import type { MenuActionSchema } from '../../menu-services/menu-schema';
 import {
 	findpaginatedMenu,
 	insertMenu,
 	insertMenuAction,
 	type MenuSchema
 } from '$lib/server/sql/menu-query';
+import type { Actions } from '@sveltejs/kit';
+import fs from 'fs';
+import path from 'path';
+import type { PageServerLoad } from '../$types';
+import type { MenuActionSchema } from '../../menu-services/menu-schema';
+import type { MenuList } from './menu-list-schema';
 
 export const actions = {
 	submitMenu: async ({ request }) => {
@@ -25,7 +25,7 @@ export const actions = {
 
 		const menuData: MenuList = {
 			name: String(formData.get('name')),
-			code: String(formData.get('code')),
+			code: String(formData.get('code')).toUpperCase(),
 			description: String(formData.get('description')),
 			imagePath: String(formData.get('imagePath')),
 			createdBy: Number(1),

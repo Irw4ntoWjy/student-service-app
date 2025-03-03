@@ -50,6 +50,22 @@ export const insertMenuAction = async (menuAction: MenuActionSchema) => {
 	}
 };
 
+export const findMenuNameByCode = async (code: string) => {
+	try {
+		const rows = await sql`
+			select
+				m.name
+			from 
+				menu m
+			where upper(m.code) = ${code.toUpperCase()}
+		`;
+		return rows.rows[0].name as string;
+	} catch (err) {
+		console.error('error fetching data:', err);
+		throw err;
+	}
+};
+
 export const findpaginatedMenu = async (filter?: string | undefined) => {
 	try {
 		let query;

@@ -1,10 +1,45 @@
 <script lang="ts">
 	import src from '$lib/assets/UPH-White.png';
+	import type { AppointmentSchema } from '$lib/server/sql/appointment-query';
+	import { formatDate, formatTime, getDayOfWeek } from '$lib/utils';
+	import { Realtime } from 'ably';
 
 	// queue ticket page state
 	let currentTime: string = $state('');
 	let currentDate: string = $state('');
 	let currentDay: string = $state('');
+
+	$effect(() => {
+		const updateDateTime = () => {
+			const now = new Date();
+			currentTime = formatTime(now);
+			currentDate = formatDate(now);
+			currentDay = getDayOfWeek(now);
+		};
+
+		updateDateTime();
+		const interval = setInterval(updateDateTime, 1000);
+
+		return () => clearInterval(interval);
+	});
+
+	// NOTES creds masih kena expose
+	$effect.root(() => {
+		const ably = new Realtime({ key: 'gqo0ug.eOzcSw:e6g093vBHe3phpt2f4nBviuRBeSLkTSfQ3RXN2fBpMI' });
+		const channel = ably.channels.get('updates');
+
+		channel.subscribe('update', (message) => {
+			const updatedAppointment: AppointmentSchema = message.data.data;
+
+			//Add Text to speech logic
+		});
+
+		// Unsubscribe when the component is destroyed
+		return () => {
+			channel.unsubscribe();
+			ably.close();
+		};
+	});
 </script>
 
 <div class="mb-8 flex justify-between">

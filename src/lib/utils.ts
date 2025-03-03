@@ -113,3 +113,39 @@ export const debounce = (callback: () => void, timeout?: number) => {
 		callback();
 	}, timeout || 800);
 };
+
+// Function to format time
+export function formatTime(date: Date): string {
+	const hours = String(date.getHours()).padStart(2, '0');
+	const minutes = String(date.getMinutes()).padStart(2, '0');
+	const seconds = String(date.getSeconds()).padStart(2, '0');
+	return `${hours}:${minutes}:${seconds}`;
+}
+
+// Function to format date
+export function formatDate(date: Date): string {
+	const year = date.getFullYear();
+	const months = [
+		'Januari',
+		'Februari',
+		'Maret',
+		'April',
+		'Mei',
+		'Juni',
+		'Juli',
+		'Agustus',
+		'September',
+		'Oktober',
+		'November',
+		'Desember'
+	];
+	const month = months[date.getMonth()];
+	const day = String(date.getDate()).padStart(2, '0');
+	return `${day} ${month} ${year}`;
+}
+
+// Function to get the day of the week
+export function getDayOfWeek(date: Date): string {
+	const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+	return days[date.getDay()];
+}

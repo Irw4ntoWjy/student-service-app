@@ -37,7 +37,7 @@
 			sequence = Number(match[1]) + 1;
 		}
 		currentTodayNo = sequence.toString().padStart(3, '0');
-		nextAppointmentNo = `${currentMenu.code}${year}${month}${day}${currentTodayNo}`;
+		nextAppointmentNo = `${currentMenu.code.toUpperCase()}${year}${month}${day}${currentTodayNo}`;
 	};
 
 	const createAppointment = async () => {

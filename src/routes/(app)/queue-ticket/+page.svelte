@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import src from '$lib/assets/UPH-White.png';
 	import type { AppointmentSchema } from '$lib/server/sql/appointment-query';
+	import type { MenuSchema } from '$lib/server/sql/menu-query';
 	import { formatDate, formatTime, getDayOfWeek } from '$lib/utils';
 	import { Realtime } from 'ably';
 
@@ -23,14 +25,24 @@
 		return () => clearInterval(interval);
 	});
 
+	const speakText = (text: string) => {
+		const utterance = new SpeechSynthesisUtterance(text);
+		window.speechSynthesis.speak(utterance);
+	};
+
 	// NOTES creds masih kena expose
 	$effect.root(() => {
 		const ably = new Realtime({ key: 'gqo0ug.eOzcSw:e6g093vBHe3phpt2f4nBviuRBeSLkTSfQ3RXN2fBpMI' });
 		const channel = ably.channels.get('updates');
 
-		channel.subscribe('update', (message) => {
+		channel.subscribe('update', async (message) => {
 			const updatedAppointment: AppointmentSchema = message.data.data;
 
+			const response: MenuSchema = await fetch(
+				`${page.url.pathname}/get-menu-by-id?id=${updatedAppointment.menuId}`
+			).then(async (response) => await response.json());
+
+			speakText(`Antrian ${updatedAppointment.appointmentNo} Untuk ${response.name}`);
 			//Add Text to speech logic
 		});
 

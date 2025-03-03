@@ -26,7 +26,6 @@ export const actions = {
 			userType: String(formData.get('userType')) as 'STUDENT' | 'EXTERNAL',
 			...(formData.get('userNim') !== 'undefined' && { userNim: String(formData.get('userNim')) })
 		};
-		console.log(appointmentDetail);
 
 		createAppointment(appointment, appointmentDetail);
 

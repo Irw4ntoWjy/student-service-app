@@ -50,16 +50,16 @@ export const insertMenuAction = async (menuAction: MenuActionSchema) => {
 	}
 };
 
-export const findMenuNameByCode = async (code: string) => {
+export const findMenuById = async (id: number) => {
 	try {
 		const rows = await sql`
 			select
-				m.name
+				*
 			from 
 				menu m
-			where upper(m.code) = ${code.toUpperCase()}
+			where m.id = ${id}
 		`;
-		return rows.rows[0].name as string;
+		return rows.rows[0] as MenuSchema;
 	} catch (err) {
 		console.error('error fetching data:', err);
 		throw err;

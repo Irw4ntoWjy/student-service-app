@@ -5,6 +5,10 @@
 	import type { MenuSchema } from '$lib/server/sql/menu-query';
 	import { formatDate, formatTime, getDayOfWeek } from '$lib/utils';
 	import { Realtime } from 'ably';
+	import type { PageProps } from './$types';
+	import type { Appointment } from '../menu-services/menu-schema';
+
+	let { data }: PageProps = $props();
 
 	// queue ticket page state
 	let currentTime: string = $state('');
@@ -25,10 +29,26 @@
 		return () => clearInterval(interval);
 	});
 
+	let spokenTexts: string[] = $state([]);
+
 	const speakText = (text: string) => {
-		const utterance = new SpeechSynthesisUtterance(text);
-		console.log(utterance);
-		window.speechSynthesis.speak(utterance);
+		if (spokenTexts.includes(text)) return;
+		spokenTexts = [...spokenTexts, text];
+
+		const utterance1 = new SpeechSynthesisUtterance(text);
+		utterance1.pitch = 2;
+		utterance1.rate = 0.3;
+
+		const shortText = text.replace('New Queue Number', 'Queue Number');
+		const utterance2 = new SpeechSynthesisUtterance(shortText);
+		utterance2.pitch = 2;
+		utterance2.rate = 0.3;
+
+		utterance1.onend = () => {
+			window.speechSynthesis.speak(utterance2);
+		};
+
+		window.speechSynthesis.speak(utterance1);
 	};
 
 	// NOTES creds masih kena expose
@@ -43,14 +63,57 @@
 				`${page.url.pathname}/get-menu-by-id?id=${updatedAppointment.menuId}`
 			).then(async (response) => await response.json());
 
-			speakText(`Antrian ${updatedAppointment.appointmentNo} Untuk ${response.name}`);
-			//Add Text to speech logic
+			const regex = /(\d{3})$/;
+			const match = updatedAppointment.appointmentNo.match(regex);
+			const queueNo = match ? match[1] : updatedAppointment.appointmentNo;
+
+			speakText(`New Queue Number, ${queueNo}, ${queueNo} for ${response.name}, ${response.name}`);
 		});
 
 		// Unsubscribe when the component is destroyed
 		return () => {
 			channel.unsubscribe();
 			ably.close();
+		};
+	});
+
+	const appointmentLists = $derived.by(() => {
+		const scanned: Appointment[] = [];
+		const pending: Appointment[] = [];
+		const ongoing: Appointment[] = [];
+		const finished: Appointment[] = [];
+
+		for (const ticket of data.todayTicket) {
+			switch (ticket.statusType) {
+				case 'SCANNED':
+					scanned.push(ticket);
+					break;
+				case 'PENDING':
+					pending.push(ticket);
+					break;
+				case 'ONGOING':
+					ongoing.push(ticket);
+					break;
+				case 'CANCELLED':
+				case 'COMPLETED':
+					finished.push(ticket);
+					break;
+			}
+		}
+
+		return {
+			get scanned() {
+				return scanned;
+			},
+			get pending() {
+				return pending;
+			},
+			get ongoing() {
+				return ongoing;
+			},
+			get finished() {
+				return finished;
+			}
 		};
 	});
 </script>
@@ -86,15 +149,13 @@
 			class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-8 rounded-lg bg-blue-900 p-8 shadow-lg"
 		>
 			<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
-			<!-- {#each appointmentTicket as activeTicket}
-				{#if activeTicket.status === 'active'}
-					<QueueTicket
+			<!-- {#each appointmentLists.scanned as scannedTicket} -->
+			<!-- <QueueTicket
 						staffList={data.staffList}
 						menuList={data.menuList}
 						queueTicket={activeTicket}
-					/>
-				{/if}
-			{/each} -->
+					/> -->
+			<!-- {/each} -->
 		</div>
 
 		<div

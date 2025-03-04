@@ -193,11 +193,13 @@ export const findTodayAppointment = async () => {
 				ap.id,
 				ap.appointment_no as "appointmentNo",
 				ap.status_type as "statusType",
-				ap.reason,
+				ap.reason
 			from
-				appointment ap
+				appointment ap 
+			 where 
+				date(ap.created_at) = current_date
 		`;
-		return rows as Appointment;
+		return rows as Appointment[];
 	} catch (err) {
 		console.error('Error fetching appointment:', err);
 		throw err;

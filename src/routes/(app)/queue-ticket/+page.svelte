@@ -27,6 +27,7 @@
 
 	const speakText = (text: string) => {
 		const utterance = new SpeechSynthesisUtterance(text);
+		console.log(utterance);
 		window.speechSynthesis.speak(utterance);
 	};
 

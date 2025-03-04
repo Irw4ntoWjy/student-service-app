@@ -1,3 +1,4 @@
+import type { ComboboxType } from '$lib/components/ui/combobox';
 import { sql } from '@vercel/postgres';
 import { z } from 'zod';
 import type { MenuList } from '../../../routes/(app)/admin/menu-list/menu-list-schema';
@@ -110,6 +111,23 @@ export const findpaginatedMenu = async (filter?: string | undefined) => {
 		return rows as MenuSchema[];
 	} catch (err) {
 		console.error('error fetching data:', err);
+		throw err;
+	}
+};
+
+export const getComboboxMenu = async () => {
+	try {
+		const { rows } = await sql`
+			select
+				m.name as "label",
+				m.id as "value",
+				m.code as "data"
+			from 
+				menu m
+		`;
+		return rows as ComboboxType[];
+	} catch (err) {
+		console.error('Error fetching data', err);
 		throw err;
 	}
 };

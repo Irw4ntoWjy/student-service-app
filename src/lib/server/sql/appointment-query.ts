@@ -47,6 +47,13 @@ export const appointmentDetail = z.object({
 });
 export type AppointmentDetailSchema = z.infer<typeof appointmentDetail>;
 
+export const appointmentTicket = z.object({
+	id: z.number(),
+	menuId: z.number(),
+	appointmentNo: z.string(),
+	statusType: z.enum(statusType)
+});
+
 //NOTES created_by masih manual
 export const createAppointment = async (
 	appointment: Appointment,
@@ -175,6 +182,24 @@ export const findByAppointmentNo = async (appointmentNo: string) => {
 		return result.rows[0] as AppointmentSchema;
 	} catch (err) {
 		console.error('Error fetching appointment number:', err);
+		throw err;
+	}
+};
+
+export const findTodayAppointment = async () => {
+	try {
+		const { rows } = await sql`
+			select
+				ap.id,
+				ap.appointment_no as "appointmentNo",
+				ap.status_type as "statusType",
+				ap.reason,
+			from
+				appointment ap
+		`;
+		return rows as Appointment;
+	} catch (err) {
+		console.error('Error fetching appointment:', err);
 		throw err;
 	}
 };

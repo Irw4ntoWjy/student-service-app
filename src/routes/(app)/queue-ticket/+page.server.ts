@@ -16,6 +16,10 @@
 // import type { PageServerLoad } from './$types';
 // import type { QueueTicketSchema, Status } from './queue-ticket-schema';
 
+import type { ComboboxType } from '$lib/components/ui/combobox';
+import { getComboboxMenu } from '$lib/server/sql/menu-query';
+import type { PageServerLoad } from './$types';
+
 // export const load: PageServerLoad = async () => {
 // 	const appointmentTicket = await getAppointmentTicket();
 // 	const staffList: ComboboxType[] = await comboboxStaffList();
@@ -83,3 +87,15 @@
 // 		);
 // 	}
 // } satisfies Actions;
+
+export const load: PageServerLoad = async () => {
+	const appointmentTicket = await getAppointmentTicket();
+
+	// const staffList: ComboboxType[] = await comboboxStaffList();
+	const menuList: ComboboxType[] = await getComboboxMenu();
+
+	return {
+		appointmentTicket,
+		menuList
+	};
+};

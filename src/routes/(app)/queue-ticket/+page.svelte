@@ -8,6 +8,7 @@
 	import type { PageProps } from './$types';
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
 	import QueueTicket2 from './queue-ticket2.svelte';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data }: PageProps = $props();
 
@@ -71,6 +72,7 @@
 			speakText(`New Queue Number, ${queueNo}, ${queueNo} for ${response.name}, ${response.name}`);
 		});
 
+		invalidateAll();
 		// Unsubscribe when the component is destroyed
 		return () => {
 			channel.unsubscribe();
@@ -151,6 +153,9 @@
 				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-8 rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
 				<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
+				{#each appointmentLists.ongoing as ongoingTicket}
+					<QueueTicket2 data={ongoingTicket} />
+				{/each}
 			</div>
 
 			<div

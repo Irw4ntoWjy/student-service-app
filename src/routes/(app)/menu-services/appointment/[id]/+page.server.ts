@@ -2,7 +2,7 @@ import { broadcastUpdate } from '$lib/server/ably';
 import {
 	findAppointmentById,
 	findByAppointmentNo,
-	updateAppointment
+	updateAppointmentStatus
 } from '$lib/server/sql/appointment-query';
 import type { PageServerLoad } from './$types';
 
@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	const appointment = await findByAppointmentNo(appointmentNo);
 
 	if (appointment.statusType === 'CREATED' && appointment.id) {
-		await updateAppointment(appointment.id, 'SCANNED');
+		await updateAppointmentStatus(appointment.id, 'SCANNED');
 
 		const updatedAppointment = await findAppointmentById(appointment.id);
 		broadcastUpdate({ type: 'UPDATE', data: updatedAppointment });

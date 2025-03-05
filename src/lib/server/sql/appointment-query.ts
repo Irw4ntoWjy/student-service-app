@@ -77,7 +77,7 @@ export const createAppointment = async (
 };
 
 // NOTES last updated by blm sesuai
-export const updateAppointment = async (id: number, statusType: StatusType) => {
+export const updateAppointmentStatus = async (id: number, statusType: StatusType) => {
 	try {
 		await sql`
 			update 
@@ -212,6 +212,23 @@ export const findTodayAppointment = async () => {
 				date(ap.created_at) = current_date
 		`;
 		return rows as AppointmentWithDetail[];
+	} catch (err) {
+		console.error('Error fetching appointment:', err);
+		throw err;
+	}
+};
+
+export const findOngoingAppointment = async () => {
+	try {
+		const { rows } = await sql`
+					SELECT EXISTS (
+							SELECT 1
+							FROM appointment ap
+							WHERE date(ap.created_at) = current_date
+							AND ap.status_type = 'ONGOING'
+					) as "exists"
+			`;
+		return rows[0].exists as boolean;
 	} catch (err) {
 		console.error('Error fetching appointment:', err);
 		throw err;

@@ -1,22 +1,70 @@
 <script lang="ts">
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
-
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Card from '$lib/components/ui/card';
+	import type { StatusType } from '$lib/server/sql/appointment-query';
+	import { invalidateAll } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
+	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import { Check, X } from 'lucide-svelte';
 
 	let { data }: { data: AppointmentWithDetail } = $props();
 
 	const cardColor = {
-		SCANNED: 'bg-slate-100',
-		PENDING: 'bg-slate-100',
+		CREATED: '',
+		SCANNED: 'bg-slate-50',
+		PENDING: 'bg-slate-50',
 		ONGOING: 'bg-sky-400 text-gray-50',
 		COMPLETED: 'bg-green-600 text-gray-50',
 		CANCELLED: 'bg-destructive text-gray-50'
 	};
 
+	const userType = {
+		STUDENT: 'Mahasiswa',
+		EXTERNAL: 'Umum'
+	};
+
+	const updateAppointmentStatus = async (id: number, status: StatusType) => {
+		const formData = new FormData();
+		formData.append('id', String(id));
+		formData.append('status', status);
+
+		const response = await fetch('?/updateAppointmentStatus', {
+			method: 'POST',
+			body: formData
+		});
+
+		console.log(response);
+
+		if (response.status === 200) {
+			toast.success('Berhasil Mengubah Status Tiket', {
+				class: 'text-lg '
+			});
+			await invalidateAll();
+		} else if (response.status === 400) {
+			const errorData = await response.json();
+
+			toast.error(errorData.message || 'Gagal Mengubah Status Tiket', {
+				class: 'text-lg'
+			});
+		}
+	};
+
+	let timeElapsed = $state(0);
 	let currentTime = $state(new Date());
 	$effect(() => {
 		const interval = setInterval(() => {
 			currentTime = new Date();
+			timeElapsed += 1;
+
+			//NOTES perlu tambahin interval untuk yang status pending auto cancel appointment
+			if (timeElapsed === 5 * 60) {
+				if (data.statusType === 'SCANNED') {
+					clearInterval(interval);
+					updateAppointmentStatus(data.id, 'PENDING');
+				}
+			}
 		}, 1000);
 
 		return () => clearInterval(interval);
@@ -24,6 +72,8 @@
 
 	const currentWaitingTime = $derived.by(() => {
 		const scannedAt = new Date(data.scannedAt);
+		const timezoneOffsetHours = currentTime.getTimezoneOffset() / -60;
+		scannedAt.setHours(scannedAt.getHours() + timezoneOffsetHours);
 
 		const diffMs = currentTime.getTime() - scannedAt.getTime();
 
@@ -31,13 +81,89 @@
 		const minutes = Math.floor(totalSeconds / 60);
 		const seconds = totalSeconds % 60;
 
-		return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+		return {
+			get waitingTime() {
+				return `${minutes.toString().padStart(2, '0')} : ${seconds.toString().padStart(2, '0')}`;
+			},
+			get totalWaitingTime() {
+				return totalSeconds;
+			}
+		};
 	});
+
+	const handleUpdateAppointment = async () => {
+		//update to ongoing appointment
+		if (data.statusType === 'SCANNED' || data.statusType === 'PENDING') {
+			updateAppointmentStatus(data.id, 'ONGOING');
+		}
+	};
 </script>
 
-<Card.Root class="h-[16rem] w-[22rem] cursor-pointer rounded-lg ">
-	<Card.Content class="flex h-full items-center justify-center p-4">
-		<span class="text-4xl font-bold">{data.appointmentNo}</span>
-		<span>{currentWaitingTime}</span>
-	</Card.Content>
-</Card.Root>
+<Dialog.Root>
+	<Dialog.Trigger>
+		<Card.Root class="h-[16rem] w-[22rem] cursor-pointer rounded-lg">
+			<Card.Content
+				class="relative flex h-full items-center justify-center p-4 {cardColor[data.statusType]}"
+			>
+				<span class="text-4xl font-bold">{data.appointmentNo}</span>
+				{#if data.statusType === 'PENDING' || data.statusType === 'SCANNED'}
+					<span
+						class="absolute bottom-4 right-4 text-[28px] font-semibold {currentWaitingTime.totalWaitingTime >
+						300
+							? 'text-destructive'
+							: 'text-green-500'}">{currentWaitingTime.waitingTime}</span
+					>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+	</Dialog.Trigger>
+	<Dialog.Content>
+		<div class="flex flex-col items-center gap-2">
+			<span class="text-4xl font-bold">{data.appointmentNo}</span>
+			<Separator class="h-0.5" />
+			<span class="text-3xl"
+				>Tipe Tamu:
+				<span class="font-semibold">
+					{userType[data.userType]}
+				</span>
+			</span>
+
+			<span class="text-3xl"
+				>Nama Tamu:
+				<span class="font-semibold">
+					{data.userName}
+				</span>
+			</span>
+
+			{#if data.userType === 'STUDENT'}
+				<span class="text-3xl"
+					>NIM Mahsiswa:
+					<span class="font-semibold">
+						{data.userNim}
+					</span>
+				</span>
+			{/if}
+
+			<span class="text-3xl"
+				>Alasan Appointment:
+				<span class="font-semibold">
+					{data.reason}
+				</span>
+			</span>
+		</div>
+
+		<div class="flex justify-end gap-4">
+			<Button variant="ghost" class="h-12 w-14 bg-destructive p-2 hover:bg-destructive">
+				<X class="size-8 text-white" />
+			</Button>
+
+			<Button
+				variant="ghost"
+				class=" h-12 w-14 bg-green p-2 hover:bg-green"
+				onclick={handleUpdateAppointment}
+			>
+				<Check class="size-8 text-white" />
+			</Button>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>

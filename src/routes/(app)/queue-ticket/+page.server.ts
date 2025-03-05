@@ -17,8 +17,14 @@
 // import type { QueueTicketSchema, Status } from './queue-ticket-schema';
 
 import type { ComboboxType } from '$lib/components/ui/combobox';
-import { findTodayAppointment } from '$lib/server/sql/appointment-query';
+import {
+	findOngoingAppointment,
+	findTodayAppointment,
+	updateAppointmentStatus,
+	type StatusType
+} from '$lib/server/sql/appointment-query';
 import { getComboboxMenu } from '$lib/server/sql/menu-query';
+import { fail } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { AppointmentWithDetail } from './queue-ticket-schema';
 
@@ -99,4 +105,23 @@ export const load: PageServerLoad = async () => {
 		todayTicket,
 		menuList
 	};
+};
+
+export const actions = {
+	updateAppointmentStatus: async ({ request }) => {
+		const formData = await request.formData();
+
+		if ((formData.get('status') as StatusType) === 'ONGOING') {
+			const isAppointmentOngoing: boolean = await findOngoingAppointment();
+			if (isAppointmentOngoing) {
+				console.log('fail');
+				return fail(400, {
+					message: 'Cannot set to ONGOING: There is already an ongoing appointment'
+				});
+			}
+		}
+		await updateAppointmentStatus(Number(formData.get('id')), formData.get('status') as StatusType);
+
+		return { success: true };
+	}
 };

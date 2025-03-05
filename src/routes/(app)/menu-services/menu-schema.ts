@@ -1,4 +1,3 @@
-import { statusType, userType } from '$lib/server/sql/appointment-query';
 import { z } from 'zod';
 
 export const menuAction = z.object({
@@ -25,20 +24,3 @@ export const userData = z.object({
 	type: z.enum(['STUDENT', 'EXTERNAL'])
 });
 export type UserData = z.infer<typeof userData>;
-
-export const appoitnment = z.object({
-	menuId: z.number(),
-	fromAppointmentId: z.number().optional(),
-	statusType: z.enum(statusType),
-	appointmentNo: z.string(),
-	reason: z.string(),
-	createdBy: z.number()
-});
-export type Appointment = z.infer<typeof appoitnment>;
-
-export const appoitnmentDetail = z.object({
-	userType: z.enum(userType),
-	userName: z.string(),
-	userNim: z.string().optional()
-});
-export type AppointmentDetail = z.infer<typeof appoitnmentDetail>;

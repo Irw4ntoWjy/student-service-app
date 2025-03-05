@@ -2,8 +2,9 @@ import { sql } from '@vercel/postgres';
 import { z } from 'zod';
 import type {
 	Appointment,
-	AppointmentDetail
-} from '../../../routes/(app)/menu-services/menu-schema';
+	AppointmentDetail,
+	AppointmentWithDetail
+} from '../../../routes/(app)/queue-ticket/queue-ticket-schema';
 
 export const statusType = [
 	'CREATED',
@@ -193,13 +194,24 @@ export const findTodayAppointment = async () => {
 				ap.id,
 				ap.appointment_no as "appointmentNo",
 				ap.status_type as "statusType",
-				ap.reason
+				ap.reason,
+				apd.user_type as "userType",
+				apd.user_name as "userName",
+				apd.user_nim as "userNim",
+				ap.created_at as "createdAt",
+				apd.scanned_at as "scannedAt",
+				apd.appointment_start_at as "appointmentStartAt",
+				apd.appointment_end_at as "appointmentEndAt",
+				apd.cancel_at as "cancelAt",
+				apd.cancel_reason as "cancelReason"
 			from
 				appointment ap 
-			 where 
+			inner join 
+				appointment_detail apd on apd.appointment_id = ap.id
+			where 
 				date(ap.created_at) = current_date
 		`;
-		return rows as Appointment[];
+		return rows as AppointmentWithDetail[];
 	} catch (err) {
 		console.error('Error fetching appointment:', err);
 		throw err;

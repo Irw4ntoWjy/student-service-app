@@ -1,46 +1,36 @@
+import { statusType, userType } from '$lib/server/sql/appointment-query';
 import { z } from 'zod';
 
-export type Status = 'active' | 'pending' | 'waiting' | 'closed' | 'cancelled';
-
-const status = ['active', 'pending', 'waiting', 'closed', 'cancelled'] as const;
-
-export const queueTicketSchema = z.object({
-	id: z.number(),
+export const appoitnment = z.object({
 	menuId: z.number(),
-	menuName: z.string(),
-	status: z.enum(status),
-	userStatus: z.enum(['GENERAL', 'ACTIVE']),
-	userName: z.string(),
-	userNim: z.string().optional(),
-	servedId: z.number().optional(),
-	servedBy: z.string().optional(),
+	fromAppointmentId: z.number().optional(),
+	statusType: z.enum(statusType),
 	appointmentNo: z.string(),
 	reason: z.string(),
-	createdAt: z.string(),
-	scannedAt: z.string().optional(),
-	appointmentStartAt: z.string().optional(),
-	appointmentFinishedAt: z.string().optional(),
-	cancelAt: z.string().optional(),
-	cancelReason: z.string().optional()
+	createdBy: z.number()
 });
-export type QueueTicketSchema = z.infer<typeof queueTicketSchema>;
+export type Appointment = z.infer<typeof appoitnment>;
 
-export const appointmentTicketSchema = z.object({
+export const appoitnmentDetail = z.object({
+	userType: z.enum(userType),
+	userName: z.string(),
+	userNim: z.string().optional()
+});
+export type AppointmentDetail = z.infer<typeof appoitnmentDetail>;
+
+export const appointmentWithDetail = z.object({
 	id: z.number(),
-	status: z.enum(status),
 	appointmentNo: z.string(),
-	fromAppointmentNo: z.string().optional(),
+	statusType: z.enum(statusType),
+	reason: z.string(),
+	userType: z.enum(userType),
 	userName: z.string(),
 	userNim: z.string().optional(),
-	userStatus: z.enum(['GENERAL', 'ACTIVE']),
-	menuName: z.string(),
-	reason: z.string(),
 	createdAt: z.string(),
-	scannedAt: z.string().optional(),
+	scannedAt: z.string(),
 	appointmentStartAt: z.string().optional(),
-	appointmentFinishedAt: z.string().optional(),
-	servedBy: z.string().optional(),
+	appointmentEndAt: z.string().optional(),
 	cancelAt: z.string().optional(),
 	cancelReason: z.string().optional()
 });
-export type AppointmentTicketSchema = z.infer<typeof appointmentTicketSchema>;
+export type AppointmentWithDetail = z.infer<typeof appointmentWithDetail>;

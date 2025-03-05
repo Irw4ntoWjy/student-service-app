@@ -19,8 +19,8 @@
 import type { ComboboxType } from '$lib/components/ui/combobox';
 import { findTodayAppointment } from '$lib/server/sql/appointment-query';
 import { getComboboxMenu } from '$lib/server/sql/menu-query';
-import type { Appointment } from '../menu-services/menu-schema';
 import type { PageServerLoad } from './$types';
+import type { AppointmentWithDetail } from './queue-ticket-schema';
 
 // export const load: PageServerLoad = async () => {
 // 	const appointmentTicket = await getAppointmentTicket();
@@ -92,7 +92,7 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
 	// const staffList: ComboboxType[] = await comboboxStaffList();
-	const todayTicket: Appointment[] = await findTodayAppointment();
+	const todayTicket: AppointmentWithDetail[] = await findTodayAppointment();
 	const menuList: ComboboxType[] = await getComboboxMenu();
 
 	return {

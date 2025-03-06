@@ -8,6 +8,7 @@
 	import { Check, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
+	import { DateRangeField } from 'bits-ui';
 
 	let { data }: { data: AppointmentWithDetail } = $props();
 
@@ -17,7 +18,7 @@
 		PENDING: 'bg-slate-50',
 		ONGOING: 'bg-sky-400 text-gray-50',
 		COMPLETED: 'bg-green-600 text-gray-50',
-		CANCELLED: 'bg-destructive text-gray-50'
+		CANCELLED: 'bg-destructive text-gray-50 border-none'
 	};
 
 	const userType = {
@@ -58,7 +59,7 @@
 			currentTime = new Date();
 			timeElapsed += 1;
 
-			//NOTES perlu tambahin interval untuk yang status pending auto cancel appointment
+			//NOTES perlu adjust interval lagi
 			if (data.statusType === 'SCANNED' && timeElapsed >= 20) {
 				clearInterval(interval);
 				updateAppointmentStatus(data.id, 'PENDING');
@@ -99,20 +100,29 @@
 		if (data.statusType === 'SCANNED' || data.statusType === 'PENDING') {
 			updateAppointmentStatus(data.id, 'ONGOING');
 		}
+		if (data.statusType === 'ONGOING') {
+			updateAppointmentStatus(data.id, 'COMPLETED');
+		}
 	};
 </script>
 
 <Dialog.Root>
 	<Dialog.Trigger>
-		<Card.Root class="h-[16rem] w-[22rem] cursor-pointer rounded-lg">
+		<Card.Root
+			class="{data.statusType === 'CANCELLED'
+				? 'h-[4rem]'
+				: 'h-[16rem]'} w-[22rem] cursor-pointer rounded-lg border-none"
+		>
 			<Card.Content
-				class="relative flex h-full items-center justify-center p-4 {cardColor[data.statusType]}"
+				class="relative flex h-full items-center justify-center rounded-lg p-4 {cardColor[
+					data.statusType
+				]}"
 			>
 				<span class="text-4xl font-bold">{data.appointmentNo}</span>
 				{#if data.statusType === 'PENDING' || data.statusType === 'SCANNED'}
 					<span
-						class="absolute bottom-4 right-4 text-[28px] font-semibold {currentWaitingTime.totalWaitingTime >
-						300
+						class="absolute bottom-4 right-4 text-[28px] font-semibold {data.statusType ===
+							'SCANNED' && currentWaitingTime.totalWaitingTime > 300
 							? 'text-destructive'
 							: 'text-green-500'}">{currentWaitingTime.waitingTime}</span
 					>
@@ -156,17 +166,19 @@
 		</div>
 
 		<div class="flex justify-end gap-4">
-			<Button variant="ghost" class="h-12 w-14 bg-destructive p-2 hover:bg-destructive">
-				<X class="size-8 text-white" />
-			</Button>
+			{#if data.statusType !== 'CANCELLED' && data.statusType !== 'COMPLETED'}
+				<Button variant="ghost" class="h-12 w-14 bg-destructive p-2 hover:bg-destructive">
+					<X class="size-8 text-white" />
+				</Button>
 
-			<Button
-				variant="ghost"
-				class=" h-12 w-14 bg-green p-2 hover:bg-green"
-				onclick={handleUpdateAppointment}
-			>
-				<Check class="size-8 text-white" />
-			</Button>
+				<Button
+					variant="ghost"
+					class=" h-12 w-14 bg-green p-2 hover:bg-green"
+					onclick={handleUpdateAppointment}
+				>
+					<Check class="size-8 text-white" />
+				</Button>
+			{/if}
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

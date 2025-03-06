@@ -82,16 +82,16 @@
 		};
 	});
 
-	const scannedTicket: AppointmentWithDetail[] = $derived(
+	const scannedAppointment: AppointmentWithDetail[] = $derived(
 		data.todayTicket.filter((val) => val.statusType === 'SCANNED')
 	);
-	const pendingTicket: AppointmentWithDetail[] = $derived(
+	const pendingAppointment: AppointmentWithDetail[] = $derived(
 		data.todayTicket.filter((val) => val.statusType === 'PENDING')
 	);
-	const ongoingTicket: AppointmentWithDetail[] = $derived(
+	const ongoingAppointment: AppointmentWithDetail[] = $derived(
 		data.todayTicket.filter((val) => val.statusType === 'ONGOING')
 	);
-	const finishedTicket: AppointmentWithDetail[] = $derived(
+	const finishedAppoinment: AppointmentWithDetail[] = $derived(
 		data.todayTicket.filter(
 			(val) => val.statusType === 'COMPLETED' || val.statusType === 'CANCELLED'
 		)
@@ -130,26 +130,21 @@
 				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-8 rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
 				<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
-				{#each ongoingTicket as ongoingTicket}
-					<QueueTicket2 data={ongoingTicket} />
+				{#each ongoingAppointment as ticket}
+					<QueueTicket2 data={ticket} />
 				{/each}
 			</div>
 
 			<div
-				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-2 rounded-lg bg-blue-900 p-8 shadow-lg"
+				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-2 overflow-y-auto rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
-				<span class="-translate-y-3 text-2xl font-medium text-white"
+				<span
+					class="sticky top-0 z-10 flex w-full -translate-y-5 items-center bg-blue-900 py-2 text-2xl font-medium text-white"
 					>Nomor Antrian yang Telah Selesai</span
 				>
-				<!-- {#each appointmentTicket as finishedAppointment}
-					{#if finishedAppointment.status === 'closed' || finishedAppointment.status === 'cancelled'}
-						<QueueTicket
-							staffList={data.staffList}
-							menuList={data.menuList}
-							queueTicket={finishedAppointment}
-						/>
-					{/if}
-				{/each} -->
+				{#each finishedAppoinment as ticket}
+					<QueueTicket2 data={ticket} />
+				{/each}
 			</div>
 		</div>
 	</div>
@@ -161,8 +156,8 @@
 			>
 				<span class="text-2xl font-medium text-white">Nomor Antrian Selanjutnya</span>
 				<div class="flex w-full justify-start gap-8">
-					{#each scannedTicket as scannedTicket}
-						<QueueTicket2 data={scannedTicket} />
+					{#each scannedAppointment as tickcet}
+						<QueueTicket2 data={tickcet} />
 					{/each}
 				</div>
 			</div>
@@ -174,8 +169,8 @@
 					>Nomor Antrian Yang Belum Terlayani</span
 				>
 				<div class="flex w-full justify-start gap-8">
-					{#each pendingTicket as pendingTicket}
-						<QueueTicket2 data={pendingTicket} />
+					{#each pendingAppointment as ticket}
+						<QueueTicket2 data={ticket} />
 					{/each}
 				</div>
 			</div>

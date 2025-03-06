@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type { AppointmentWithDetail } from './queue-ticket-schema';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import * as Card from '$lib/components/ui/card';
-	import type { StatusType } from '$lib/server/sql/appointment-query';
 	import { invalidateAll } from '$app/navigation';
-	import { toast } from 'svelte-sonner';
-	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import type { StatusType } from '$lib/server/sql/appointment-query';
 	import { Check, X } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import type { AppointmentWithDetail } from './queue-ticket-schema';
 
 	let { data }: { data: AppointmentWithDetail } = $props();
 
@@ -59,11 +59,14 @@
 			timeElapsed += 1;
 
 			//NOTES perlu tambahin interval untuk yang status pending auto cancel appointment
-			if (timeElapsed === 5 * 60) {
-				if (data.statusType === 'SCANNED') {
-					clearInterval(interval);
-					updateAppointmentStatus(data.id, 'PENDING');
-				}
+			if (data.statusType === 'SCANNED' && timeElapsed >= 20) {
+				clearInterval(interval);
+				updateAppointmentStatus(data.id, 'PENDING');
+			}
+
+			if (data.statusType === 'PENDING' && timeElapsed >= 30) {
+				clearInterval(interval);
+				updateAppointmentStatus(data.id, 'CANCELLED');
 			}
 		}, 1000);
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import src from '$lib/assets/UPH-White.png';
 	import type { AppointmentSchema } from '$lib/server/sql/appointment-query';
@@ -8,7 +9,6 @@
 	import type { PageProps } from './$types';
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
 	import QueueTicket2 from './queue-ticket2.svelte';
-	import { invalidateAll } from '$app/navigation';
 
 	let { data }: PageProps = $props();
 
@@ -33,7 +33,7 @@
 
 	let spokenTexts: string[] = $state([]);
 
-	const speakText = (text: string) => {
+	const speakText = async (text: string) => {
 		if (spokenTexts.includes(text)) return;
 		spokenTexts = [...spokenTexts, text];
 
@@ -69,10 +69,12 @@
 			const match = updatedAppointment.appointmentNo.match(regex);
 			const queueNo = match ? match[1] : updatedAppointment.appointmentNo;
 
-			speakText(`New Queue Number, ${queueNo}, ${queueNo} for ${response.name}, ${response.name}`);
+			await speakText(
+				`New Queue Number, ${queueNo}, ${queueNo} for ${response.name}, ${response.name}`
+			);
+			await invalidateAll();
 		});
 
-		invalidateAll();
 		// Unsubscribe when the component is destroyed
 		return () => {
 			channel.unsubscribe();
@@ -80,45 +82,20 @@
 		};
 	});
 
-	const appointmentLists = $derived.by(() => {
-		const scanned: AppointmentWithDetail[] = [];
-		const pending: AppointmentWithDetail[] = [];
-		const ongoing: AppointmentWithDetail[] = [];
-		const finished: AppointmentWithDetail[] = [];
-
-		for (const ticket of data.todayTicket) {
-			switch (ticket.statusType) {
-				case 'SCANNED':
-					scanned.push(ticket);
-					break;
-				case 'PENDING':
-					pending.push(ticket);
-					break;
-				case 'ONGOING':
-					ongoing.push(ticket);
-					break;
-				case 'CANCELLED':
-				case 'COMPLETED':
-					finished.push(ticket);
-					break;
-			}
-		}
-
-		return {
-			get scanned() {
-				return scanned;
-			},
-			get pending() {
-				return pending;
-			},
-			get ongoing() {
-				return ongoing;
-			},
-			get finished() {
-				return finished;
-			}
-		};
-	});
+	const scannedTicket: AppointmentWithDetail[] = $derived(
+		data.todayTicket.filter((val) => val.statusType === 'SCANNED')
+	);
+	const pendingTicket: AppointmentWithDetail[] = $derived(
+		data.todayTicket.filter((val) => val.statusType === 'PENDING')
+	);
+	const ongoingTicket: AppointmentWithDetail[] = $derived(
+		data.todayTicket.filter((val) => val.statusType === 'ONGOING')
+	);
+	const finishedTicket: AppointmentWithDetail[] = $derived(
+		data.todayTicket.filter(
+			(val) => val.statusType === 'COMPLETED' || val.statusType === 'CANCELLED'
+		)
+	);
 </script>
 
 <div class="mb-8 flex justify-between">
@@ -153,7 +130,7 @@
 				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-8 rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
 				<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
-				{#each appointmentLists.ongoing as ongoingTicket}
+				{#each ongoingTicket as ongoingTicket}
 					<QueueTicket2 data={ongoingTicket} />
 				{/each}
 			</div>
@@ -184,7 +161,7 @@
 			>
 				<span class="text-2xl font-medium text-white">Nomor Antrian Selanjutnya</span>
 				<div class="flex w-full justify-start gap-8">
-					{#each appointmentLists.scanned as scannedTicket}
+					{#each scannedTicket as scannedTicket}
 						<QueueTicket2 data={scannedTicket} />
 					{/each}
 				</div>
@@ -197,7 +174,7 @@
 					>Nomor Antrian Yang Belum Terlayani</span
 				>
 				<div class="flex w-full justify-start gap-8">
-					{#each appointmentLists.pending as pendingTicket}
+					{#each pendingTicket as pendingTicket}
 						<QueueTicket2 data={pendingTicket} />
 					{/each}
 				</div>

@@ -8,7 +8,6 @@
 	import { Check, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
-	import { DateRangeField } from 'bits-ui';
 
 	let { data }: { data: AppointmentWithDetail } = $props();
 

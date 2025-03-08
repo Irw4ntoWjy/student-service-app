@@ -64,7 +64,7 @@
 				updateAppointmentStatus(data.id, 'PENDING');
 			}
 
-			if (data.statusType === 'PENDING' && timeElapsed >= 30) {
+			if (data.statusType === 'PENDING' && timeElapsed >= 300) {
 				clearInterval(interval);
 				updateAppointmentStatus(data.id, 'CANCELLED');
 			}
@@ -123,7 +123,9 @@
 						class="absolute bottom-4 right-4 text-[28px] font-semibold {data.statusType ===
 							'SCANNED' && currentWaitingTime.totalWaitingTime > 300
 							? 'text-destructive'
-							: 'text-green-500'}">{currentWaitingTime.waitingTime}</span
+							: data.statusType === 'PENDING'
+								? 'text-black'
+								: 'text-green-500'}">{currentWaitingTime.waitingTime}</span
 					>
 				{/if}
 			</Card.Content>

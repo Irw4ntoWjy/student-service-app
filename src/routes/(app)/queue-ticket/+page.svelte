@@ -152,7 +152,7 @@
 	<div class="flex max-h-screen w-full gap-4">
 		<div class="flex w-full flex-col gap-6">
 			<div
-				class="flex h-[25rem] w-full flex-col items-center justify-start gap-8 rounded-lg bg-blue-900 p-8 shadow-lg"
+				class="flex h-[25rem] w-[95rem] flex-col items-center justify-start gap-2 overflow-x-auto rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
 				<span class="text-2xl font-medium text-white">Nomor Antrian Selanjutnya</span>
 				<div class="flex w-full justify-start gap-8">
@@ -163,7 +163,7 @@
 			</div>
 
 			<div
-				class="flex h-[25rem] w-full flex-col items-center justify-start gap-2 rounded-lg bg-blue-900 p-8 shadow-lg"
+				class="flex h-[25rem] w-[95rem] flex-col items-center justify-start gap-2 overflow-x-auto rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
 				<span class="-translate-y-3 text-2xl font-medium text-white"
 					>Nomor Antrian Yang Belum Terlayani</span

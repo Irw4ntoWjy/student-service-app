@@ -5,9 +5,10 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import type { StatusType } from '$lib/server/sql/appointment-query';
-	import { Check, X } from 'lucide-svelte';
+	import { Calendar, Check, Sheet, User, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
+	import Input from '$lib/components/ui/input/input.svelte';
 
 	let { data }: { data: AppointmentWithDetail } = $props();
 
@@ -20,6 +21,15 @@
 		CANCELLED: 'bg-destructive text-gray-50 border-none'
 	};
 
+	const statusTranslation = {
+		CREATED: 'Terdaftar',
+		SCANNED: 'Sedang Menunggu',
+		PENDING: 'Belum Terlayani',
+		ONGOING: 'Sedang Dilayani',
+		COMPLETED: 'Selesai Dilayani',
+		CANCELLED: 'Dibatalkan'
+	};
+
 	const userType = {
 		STUDENT: 'Mahasiswa',
 		EXTERNAL: 'Umum'
@@ -29,26 +39,31 @@
 		const formData = new FormData();
 		formData.append('id', String(id));
 		formData.append('status', status);
+		if (status === 'CANCELLED') formData.append('cancelReason', String(cancelReason));
 
 		const response = await fetch('?/updateAppointmentStatus', {
 			method: 'POST',
 			body: formData
 		});
 
-		console.log(response);
+		const result = await response.json();
 
-		if (response.status === 200) {
+		if (result.status === 400) {
+			toast.error(result.data.message || 'Gagal Mengubah Status Tiket', {
+				class: 'text-lg',
+				description: 'Mohon pastikan tidak ada appointment yang sedang berjalan'
+			});
+		} else {
 			toast.success('Berhasil Mengubah Status Tiket', {
 				class: 'text-lg '
 			});
-			await invalidateAll();
-		} else if (response.status === 400) {
-			const errorData = await response.json();
-
-			toast.error(errorData.message || 'Gagal Mengubah Status Tiket', {
-				class: 'text-lg'
-			});
 		}
+
+		openDetailDialog = false;
+		openCancelDialog = false;
+		cancelReason = undefined;
+
+		await invalidateAll();
 	};
 
 	let timeElapsed = $state(0);
@@ -103,12 +118,16 @@
 			updateAppointmentStatus(data.id, 'COMPLETED');
 		}
 	};
+
+	let openDetailDialog: boolean = $state(false);
+	let openCancelDialog: boolean = $state(false);
+	let cancelReason: string | undefined = $state(undefined);
 </script>
 
-<Dialog.Root>
+<Dialog.Root bind:open={openDetailDialog}>
 	<Dialog.Trigger>
 		<Card.Root
-			class="{data.statusType === 'CANCELLED'
+			class="{data.statusType === 'CANCELLED' || data.statusType === 'COMPLETED'
 				? 'h-[4rem]'
 				: 'h-[16rem]'} w-[22rem] cursor-pointer rounded-lg border-none"
 		>
@@ -132,54 +151,113 @@
 		</Card.Root>
 	</Dialog.Trigger>
 	<Dialog.Content>
-		<div class="flex flex-col items-center gap-2">
+		<div class="inline-flex flex-col items-center justify-center">
+			<div class="flex items-center gap-2 rounded-lg border border-slate-300 p-2">
+				<User class="size-4" />
+				<span class="font-semibold">{statusTranslation[data.statusType]}</span>
+			</div>
+		</div>
+
+		<div class="flex flex-col items-center gap-1">
 			<span class="text-4xl font-bold">{data.appointmentNo}</span>
-			<Separator class="h-0.5" />
-			<span class="text-3xl"
-				>Tipe Tamu:
-				<span class="font-semibold">
-					{userType[data.userType]}
-				</span>
-			</span>
+			<span class="text-slate-400">Nomor Antrian</span>
+			<Separator class="mt-3 h-0.5" />
+		</div>
 
-			<span class="text-3xl"
-				>Nama Tamu:
-				<span class="font-semibold">
-					{data.userName}
-				</span>
-			</span>
+		<div class="">
+			<div class="flex items-center gap-2 text-slate-500">
+				<User class="size-4" />
+				<span class="text-lg font-medium text-slate-500">Tipe Tamu</span>
+			</div>
+			<span class="text-xl font-semibold">{userType[data.userType]}</span>
+		</div>
 
-			{#if data.userType === 'STUDENT'}
-				<span class="text-3xl"
-					>NIM Mahsiswa:
-					<span class="font-semibold">
-						{data.userNim}
-					</span>
-				</span>
-			{/if}
+		<div class="">
+			<div class="flex w-full items-center">
+				<div class="flex w-[50%] flex-col gap-2">
+					<div class="flex items-center gap-2">
+						<Calendar class="size-4" />
+						<span class="text-lg font-medium text-slate-500">Nama Tamu</span>
+					</div>
+					<span class="text-xl font-semibold">{data.userName}</span>
+				</div>
 
-			<span class="text-3xl"
-				>Alasan Appointment:
-				<span class="font-semibold">
-					{data.reason}
-				</span>
-			</span>
+				{#if data.userNim}
+					<div class="flex w-[50%] flex-col gap-2">
+						<div class="flex items-center gap-2">
+							<Sheet class="size-4" />
+							<span class="text-lg font-medium text-slate-500">NIM Tamu</span>
+						</div>
+						<span class="text-xl font-semibold">{data.userNim}</span>
+					</div>
+				{/if}
+			</div>
+		</div>
+
+		<div class="">
+			<div class="flex items-center gap-2 text-slate-500">
+				<Sheet class="size-4" />
+				<span class="text-lg font-medium text-slate-500">Alasan Appointment</span>
+			</div>
+			<span class="text-xl font-semibold">{data.reason}</span>
 		</div>
 
 		<div class="flex justify-end gap-4">
 			{#if data.statusType !== 'CANCELLED' && data.statusType !== 'COMPLETED'}
-				<Button variant="ghost" class="h-12 w-14 bg-destructive p-2 hover:bg-destructive">
-					<X class="size-8 text-white" />
-				</Button>
+				{#if data.statusType !== 'ONGOING'}
+					<Button
+						variant="ghost"
+						class="flex items-center gap-2 bg-destructive p-4 hover:bg-destructive"
+						onclick={() => (openCancelDialog = true)}
+					>
+						<X class="font-bold text-white" />
+						<span class="text-lg text-white">Dibatalkan</span>
+					</Button>
+				{/if}
 
 				<Button
 					variant="ghost"
-					class=" h-12 w-14 bg-green p-2 hover:bg-green"
+					class=" bg-green p-4 hover:bg-green"
 					onclick={handleUpdateAppointment}
 				>
 					<Check class="size-8 text-white" />
+					<span class="text-lg text-white"
+						>{data.statusType === 'SCANNED' || data.statusType === 'PENDING'
+							? 'Dilayani'
+							: 'Selesai'}</span
+					>
 				</Button>
 			{/if}
 		</div>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={openCancelDialog}>
+	<Dialog.Content class="h-[14rem] max-w-[31rem]">
+		<Dialog.Header>
+			<Dialog.Title class="text-lg font-medium">Batalkan Appointment ini</Dialog.Title>
+
+			<div class="flex flex-col gap-[12px]">
+				<span>Isi Alasan Pembatalan Appointment dibawah ini</span>
+				<Input bind:value={cancelReason} />
+			</div>
+		</Dialog.Header>
+		<Dialog.Footer>
+			<Button
+				class="w-[88px]"
+				onclick={() => {
+					openCancelDialog = false;
+				}}>Kembali</Button
+			>
+			<Button
+				class="w-[88px]"
+				type="submit"
+				variant="destructive"
+				disabled={!cancelReason}
+				onclick={async () => {
+					updateAppointmentStatus(data.id, 'CANCELLED');
+				}}>Batalkan</Button
+			>
+		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

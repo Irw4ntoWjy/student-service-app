@@ -77,7 +77,11 @@ export const createAppointment = async (
 };
 
 // NOTES last updated by blm sesuai
-export const updateAppointmentStatus = async (id: number, statusType: StatusType) => {
+export const updateAppointmentStatus = async (
+	id: number,
+	statusType: StatusType,
+	cancelReason?: string
+) => {
 	try {
 		await sql`
 			update 
@@ -87,12 +91,47 @@ export const updateAppointmentStatus = async (id: number, statusType: StatusType
 				last_updated_at = now(),
 				last_updated_by = 1
 			where id = ${id}`;
-		await sql`
-			update 
-				appointment_detail
-			set  
-				scanned_at = now()
-			where appointment_id = ${id}`;
+
+		let updateDetailQuery;
+
+		if (statusType === 'SCANNED') {
+			updateDetailQuery = sql`
+				update 	
+					appointment_detail
+				set  
+					scanned_at = now()
+				where appointment_id = ${id}`;
+		}
+
+		if (statusType === 'ONGOING') {
+			updateDetailQuery = sql`
+				update 	
+					appointment_detail
+				set  
+					appointment_start_at = now()
+				where appointment_id = ${id}`;
+		}
+
+		if (statusType === 'COMPLETED') {
+			updateDetailQuery = sql`
+				update 	
+					appointment_detail
+				set  
+					appointment_end_at = now()
+				where appointment_id = ${id}`;
+		}
+
+		if (statusType === 'CANCELLED') {
+			updateDetailQuery = sql`
+				update 	
+					appointment_detail
+				set  
+					cancel_at	 = now(),
+					cancel_reason = ${cancelReason}
+				where appointment_id = ${id}`;
+		}
+
+		await updateDetailQuery;
 	} catch (error) {
 		console.error('Error updating row:', error);
 		throw error;
@@ -221,11 +260,11 @@ export const findTodayAppointment = async () => {
 export const findOngoingAppointment = async () => {
 	try {
 		const { rows } = await sql`
-					SELECT EXISTS (
-							SELECT 1
-							FROM appointment ap
-							WHERE date(ap.created_at) = current_date
-							AND ap.status_type = 'ONGOING'
+					select exists (
+							select 1
+							from appointment ap
+							where date(ap.created_at) = current_date
+							and ap.status_type = 'ONGOING'
 					) as "exists"
 			`;
 		return rows[0].exists as boolean;

@@ -120,7 +120,16 @@ export const actions = {
 				});
 			}
 		}
-		await updateAppointmentStatus(Number(formData.get('id')), formData.get('status') as StatusType);
+
+		const params = {
+			id: Number(formData.get('id')),
+			status: formData.get('status') as StatusType,
+			...(formData.get('status') === 'CANCELLED' && {
+				cancelReason: formData.get('cancelReason') as string
+			})
+		};
+
+		await updateAppointmentStatus(params.id, params.status, params.cancelReason);
 
 		return { success: true };
 	}

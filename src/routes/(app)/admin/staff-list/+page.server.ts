@@ -1,13 +1,38 @@
-import { findpaginatedstaff, type StaffSchema } from '$lib/server/sql/staff-list-query';
+import type { ComboboxType } from '$lib/components/ui/combobox';
+import { getComboboxMenu } from '$lib/server/sql/menu-query';
+import {
+	findpaginatedstaff,
+	insertStaff,
+	type StaffSchema
+} from '$lib/server/sql/staff-list-query';
 import type { PageServerLoad } from './$types';
+import type { StaffList } from './staff-list-schema';
 // import { getStaffList, getStaffListWithFilter, insertStaff, updateStaff } from '$lib/server/sql';
 // import type { StaffList } from './staff-list-schema';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const filter = url.searchParams.get('filter') || undefined;
+
+	const menuList: ComboboxType[] = await getComboboxMenu();
 	const staffList: StaffSchema[] = await findpaginatedstaff(filter);
 
-	return { staffList };
+	return { staffList: staffList, menuList: menuList };
+};
+
+export const actions = {
+	submitStaffData: async ({ request }) => {
+		const formData = await request.formData();
+
+		const formatForm: StaffList = {
+			name: String(formData.get('name')),
+			divisionId: Number(formData.get('divisionId')),
+			jobdesc: String(formData.get('jobdesc')),
+			status: true
+		};
+
+		await insertStaff(formatForm);
+		return { status: 200 };
+	}
 };
 
 // export const actions = {

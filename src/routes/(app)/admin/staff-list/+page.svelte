@@ -12,6 +12,10 @@
 	import Label from '$lib/components/ui/label/label.svelte';
 	import type { StaffList } from './staff-list-schema';
 	import Switch from '$lib/components/ui/switch/switch.svelte';
+	import Combobox from '$lib/components/ui/combobox/combobox.svelte';
+	import type { ComboboxType } from '$lib/components/ui/combobox';
+	import { toast } from 'svelte-sonner';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data }: PageProps = $props();
 
@@ -31,6 +35,38 @@
 		jobdesc: undefined!,
 		status: true
 	});
+	let selectedDivision: ComboboxType | undefined = $state(undefined);
+
+	const submitStaffData = async () => {
+		if (selectedDivision) {
+			const formData = new FormData();
+			formData.append('name', String(staffModel.name));
+			formData.append('divisionId', String(selectedDivision.value));
+			formData.append('jobdesc', String(staffModel.jobdesc));
+			formData.append('status', String(staffModel.status));
+
+			console.log(staffModel);
+			const response = await fetch('?/submitStaffData', {
+				method: 'POST',
+				body: formData
+			});
+			const result = await response.json();
+
+			if (result.status === 400) {
+				toast.error('Gagal menambahkan data staff', {
+					class: 'text-base',
+					description: 'Mohon periksa kembali data yang anda masukkan!'
+				});
+			} else {
+				toast.success('Berhasil Menambahkan data Staff!', {
+					class: 'text-base '
+				});
+			}
+
+			openSheet = false;
+			await invalidateAll();
+		}
+	};
 </script>
 
 <div class="flex flex-col gap-4">
@@ -58,7 +94,7 @@
 				</Button>
 			{/if}
 		</div>
-		<Button variant="outline" class="bg-slate-200">
+		<Button variant="outline" class="bg-slate-200" onclick={() => (openSheet = true)}>
 			<CirclePlus />
 			Tambah Staff
 		</Button>
@@ -84,19 +120,35 @@
 
 		<div class="flex flex-grow flex-col gap-4">
 			<div class="flex flex-col space-y-2">
-				<Label>Nama Staff</Label>
+				<div class="flex items-center gap-1">
+					<Label>Nama Staff</Label>
+					<span class="text-destructive">*</span>
+				</div>
 				<Input bind:value={staffModel.name} placeholder="Isi Nama Staff" />
 			</div>
 			<div class="flex flex-col space-y-2">
-				<Label>Divisi</Label>
-				<Input bind:value={staffModel.divisionId} placeholder="Isi Divisi Staff" />
+				<div class="flex items-center gap-1">
+					<Label>Divisi</Label>
+					<span class="text-destructive">*</span>
+				</div>
+				<Combobox
+					items={data.menuList}
+					placeholder="Pilih Divisi..."
+					bind:selectedData={selectedDivision}
+				/>
 			</div>
 			<div class="flex flex-col space-y-2">
-				<Label>Job Desc</Label>
+				<div class="flex items-center gap-1">
+					<Label>Job Desc</Label>
+					<span class="text-destructive">*</span>
+				</div>
 				<Input bind:value={staffModel.jobdesc} placeholder="Isi jobdesc Staff" />
 			</div>
 			<div class="flex flex-col space-y-2">
-				<Label>Aktif</Label>
+				<div class="flex items-center gap-1">
+					<Label>Aktif</Label>
+					<span class="text-destructive">*</span>
+				</div>
 				<Switch bind:checked={staffModel.status} />
 			</div>
 		</div>
@@ -104,13 +156,8 @@
 		<Button
 			variant="default"
 			class="mt-auto"
-			onclick={() => {
-				if (selectedData) {
-					// updateStaffList();
-				} else {
-					// createStaffList();
-				}
-			}}
+			onclick={submitStaffData}
+			disabled={!selectedDivision || !staffModel.jobdesc || !staffModel.name}
 		>
 			{#if selectedData}
 				<Pencil class="mr-2 h-4 w-4" /> Ubah data

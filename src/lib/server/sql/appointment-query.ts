@@ -80,7 +80,8 @@ export const createAppointment = async (
 export const updateAppointmentStatus = async (
 	id: number,
 	statusType: StatusType,
-	cancelReason?: string
+	cancelReason?: string,
+	servedBy?: number
 ) => {
 	try {
 		await sql`
@@ -113,11 +114,14 @@ export const updateAppointmentStatus = async (
 		}
 
 		if (statusType === 'COMPLETED') {
+			console.log(servedBy);
+
 			updateDetailQuery = sql`
 				update 	
 					appointment_detail
 				set  
-					appointment_end_at = now()
+					appointment_end_at = now(),
+					served_by = ${servedBy}
 				where appointment_id = ${id}`;
 		}
 

@@ -9,8 +9,16 @@
 	import { toast } from 'svelte-sonner';
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
 	import Input from '$lib/components/ui/input/input.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import Combobox from '$lib/components/ui/combobox/combobox.svelte';
+	import type { ComboboxType } from '$lib/components/ui/combobox';
 
-	let { data }: { data: AppointmentWithDetail } = $props();
+	let {
+		data,
+		staffList,
+		menuList
+	}: { data: AppointmentWithDetail; staffList?: ComboboxType[]; menuList?: ComboboxType[] } =
+		$props();
 
 	const cardColor = {
 		CREATED: '',
@@ -40,6 +48,7 @@
 		formData.append('id', String(id));
 		formData.append('status', status);
 		if (status === 'CANCELLED') formData.append('cancelReason', String(cancelReason));
+		if (status === 'COMPLETED') formData.append('servedBy', String(staffCbxData?.value));
 
 		const response = await fetch('?/updateAppointmentStatus', {
 			method: 'POST',
@@ -115,13 +124,17 @@
 			updateAppointmentStatus(data.id, 'ONGOING');
 		}
 		if (data.statusType === 'ONGOING') {
-			updateAppointmentStatus(data.id, 'COMPLETED');
+			openServedFormDialog = true;
+			openDetailDialog = false;
 		}
 	};
 
 	let openDetailDialog: boolean = $state(false);
 	let openCancelDialog: boolean = $state(false);
+	let openServedFormDialog: boolean = $state(false);
+
 	let cancelReason: string | undefined = $state(undefined);
+	let staffCbxData: ComboboxType | undefined = $state(undefined);
 </script>
 
 <Dialog.Root bind:open={openDetailDialog}>
@@ -218,7 +231,9 @@
 				<Button
 					variant="ghost"
 					class=" bg-green p-4 hover:bg-green"
-					onclick={handleUpdateAppointment}
+					onclick={async () => {
+						await handleUpdateAppointment();
+					}}
 				>
 					<Check class="size-8 text-white" />
 					<span class="text-lg text-white"
@@ -257,6 +272,46 @@
 				onclick={async () => {
 					updateAppointmentStatus(data.id, 'CANCELLED');
 				}}>Batalkan</Button
+			>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={openServedFormDialog}>
+	<Dialog.Content class="h-[14rem] max-w-[36rem]">
+		<Dialog.Header>
+			<Dialog.Title class="text-2xl font-medium">
+				Selesai melayani Ticket
+				<span class="font-semibold">{data.appointmentNo}</span>
+			</Dialog.Title>
+
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col gap-[12px]">
+					<Label class="text-lg font-normal">Pilih Staff yang melayani</Label>
+					<Combobox
+						items={staffList || []}
+						placeholder="Pilih Staff..."
+						bind:selectedData={staffCbxData}
+					/>
+				</div>
+			</div>
+		</Dialog.Header>
+
+		<Dialog.Footer>
+			<Button
+				class="w-[88px] text-base"
+				variant="outline"
+				onclick={() => {
+					openServedFormDialog = false;
+					openDetailDialog = true;
+				}}>Kembali</Button
+			>
+			<Button
+				class="w-[88px] text-base"
+				type="submit"
+				onclick={() => {
+					updateAppointmentStatus(data.id, 'COMPLETED');
+				}}>Selesai</Button
 			>
 		</Dialog.Footer>
 	</Dialog.Content>

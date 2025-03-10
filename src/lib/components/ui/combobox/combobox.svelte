@@ -12,19 +12,23 @@
 	let {
 		items,
 		placeholder,
-		value = $bindable(''),
 		selectedData = $bindable(undefined)
 	}: {
 		items: ComboboxType[];
 		placeholder: string;
-		value: string;
 		selectedData?: ComboboxType;
 	} = $props();
 
 	let open = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
-	const selectedValue = $derived(items.find((f) => f.value.toString() === value)?.label);
+	let value = $state('');
+
+	const selectedValue = $derived.by(() => {
+		if (value) {
+			return items.find((f) => f.value.toString() === value)?.label;
+		}
+	});
 
 	function closeAndFocusTrigger() {
 		open = false;
@@ -44,7 +48,7 @@
 				role="combobox"
 				aria-expanded={open}
 			>
-				<Label class="text-lg font-normal">
+				<Label class="text-sm font-normal text-slate-500">
 					{selectedValue || placeholder}
 				</Label>
 				<ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
@@ -73,7 +77,7 @@
 							<Check
 								class={cn('mr-2 size-4', value !== item.value.toString() && 'text-transparent')}
 							/>
-							<Label class="text-lg font-normal">
+							<Label class="text-sm font-normal">
 								{item.label}
 							</Label>
 						</Command.Item>

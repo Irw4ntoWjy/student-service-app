@@ -131,7 +131,7 @@
 			>
 				<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
 				{#each ongoingAppointment as ticket}
-					<QueueTicket2 data={ticket} />
+					<QueueTicket2 data={ticket} staffList={data.staffList} />
 				{/each}
 			</div>
 

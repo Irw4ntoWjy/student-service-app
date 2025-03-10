@@ -27,6 +27,7 @@ import { getComboboxMenu } from '$lib/server/sql/menu-query';
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { AppointmentWithDetail } from './queue-ticket-schema';
+import { getComboboxStaff } from '$lib/server/sql/staff-list-query';
 
 // export const load: PageServerLoad = async () => {
 // 	const appointmentTicket = await getAppointmentTicket();
@@ -97,13 +98,14 @@ import type { AppointmentWithDetail } from './queue-ticket-schema';
 // } satisfies Actions;
 
 export const load: PageServerLoad = async () => {
-	// const staffList: ComboboxType[] = await comboboxStaffList();
 	const todayTicket: AppointmentWithDetail[] = await findTodayAppointment();
+	const staffList: ComboboxType[] = await getComboboxStaff();
 	const menuList: ComboboxType[] = await getComboboxMenu();
 
 	return {
 		todayTicket,
-		menuList
+		menuList,
+		staffList
 	};
 };
 
@@ -114,7 +116,6 @@ export const actions = {
 		if ((formData.get('status') as StatusType) === 'ONGOING') {
 			const isAppointmentOngoing: boolean = await findOngoingAppointment();
 			if (isAppointmentOngoing) {
-				console.log('fail');
 				return fail(400, {
 					message: 'Cannot set to ONGOING: There is already an ongoing appointment'
 				});
@@ -124,12 +125,15 @@ export const actions = {
 		const params = {
 			id: Number(formData.get('id')),
 			status: formData.get('status') as StatusType,
+			...(formData.get('status') === 'COMPLETED' && {
+				servedBy: Number(formData.get('servedBy'))
+			}),
 			...(formData.get('status') === 'CANCELLED' && {
 				cancelReason: formData.get('cancelReason') as string
 			})
 		};
 
-		await updateAppointmentStatus(params.id, params.status, params.cancelReason);
+		await updateAppointmentStatus(params.id, params.status, params.cancelReason, params.servedBy);
 
 		return { success: true };
 	}

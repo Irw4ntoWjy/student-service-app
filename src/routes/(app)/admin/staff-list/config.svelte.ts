@@ -19,7 +19,7 @@ export type StaffTableFilter = {
 export function staffTable(pageUrl: string, staffData: StaffSchema[]) {
 	const currentUrl = $state(pageUrl);
 	let tableData = $state(staffData);
-
+	$inspect(staffData);
 	let filterValue: StaffTableFilter = $state({
 		filter: undefined,
 		selectedData: undefined
@@ -62,12 +62,12 @@ export function staffTable(pageUrl: string, staffData: StaffSchema[]) {
 		},
 		{
 			id: 'division',
-			accessorFn: (row) => row.divisionId,
+			accessorFn: (row) => row.divisionName,
 			header: () => 'Divisi'
 		},
 		{
 			id: 'jobDesc',
-			accessorFn: (row) => row.jobDesc,
+			accessorFn: (row) => row.jobdesc,
 			header: () => 'Jobdesc'
 		},
 		{

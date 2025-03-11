@@ -12,17 +12,25 @@
 	let {
 		items,
 		placeholder,
-		selectedData = $bindable(undefined)
+		selectedData = $bindable(undefined),
+		onchange
 	}: {
 		items: ComboboxType[];
 		placeholder: string;
 		selectedData?: ComboboxType;
+		onchange?: () => void;
 	} = $props();
 
 	let open = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
-	let value = $state('');
+	let value = $state(selectedData?.value.toString() || '');
+
+	$effect(() => {
+		if (selectedData && selectedData.value.toString() !== value) {
+			value = selectedData.value.toString();
+		}
+	});
 
 	const selectedValue = $derived.by(() => {
 		if (value) {
@@ -72,6 +80,9 @@
 								value = item.value.toString();
 								selectedData = item;
 								closeAndFocusTrigger();
+								if (onchange) {
+									onchange();
+								}
 							}}
 						>
 							<Check

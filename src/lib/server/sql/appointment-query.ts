@@ -114,8 +114,6 @@ export const updateAppointmentStatus = async (
 		}
 
 		if (statusType === 'COMPLETED') {
-			console.log(servedBy);
-
 			updateDetailQuery = sql`
 				update 	
 					appointment_detail

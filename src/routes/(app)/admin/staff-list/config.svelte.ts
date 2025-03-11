@@ -1,4 +1,5 @@
 import { goto } from '$app/navigation';
+import { page } from '$app/state';
 import DataTableActionColumn from '$lib/components/page/data-table/data-table-action-column.svelte';
 import DataTableBadgeCell from '$lib/components/page/data-table/data-table-badge-cell.svelte';
 import { createTable, renderComponent } from '$lib/components/page/tanstack-table';
@@ -13,15 +14,16 @@ import {
 
 export type StaffTableFilter = {
 	filter: string | undefined;
+	selectedDivision: number | undefined;
 	selectedData: number | undefined;
 };
 
 export function staffTable(pageUrl: string, staffData: StaffSchema[]) {
 	const currentUrl = $state(pageUrl);
 	let tableData = $state(staffData);
-	$inspect(staffData);
 	let filterValue: StaffTableFilter = $state({
 		filter: undefined,
+		selectedDivision: undefined,
 		selectedData: undefined
 	});
 
@@ -53,6 +55,17 @@ export function staffTable(pageUrl: string, staffData: StaffSchema[]) {
 			return Array.isArray(value) ? value.length > 0 : value && value !== '';
 		});
 	});
+
+	let staffDetail: StaffSchema | undefined = $state(undefined);
+	let openStaffSheet: boolean = $state(false);
+
+	const fetchStaff = async (id: number) => {
+		const res = await fetch(`${page.url}/get-staff-detail?id=${id}`);
+		const data = await res.json();
+		staffDetail = data;
+
+		openStaffSheet = true;
+	};
 
 	const columns: ColumnDef<StaffSchema>[] = [
 		{
@@ -107,7 +120,7 @@ export function staffTable(pageUrl: string, staffData: StaffSchema[]) {
 							onClick: async () => {
 								if (row.original.id) {
 									filterValue.selectedData = row.original.id;
-									// await fetchStaff(row.original.id);
+									await fetchStaff(row.original.id);
 								}
 							}
 						}
@@ -146,6 +159,15 @@ export function staffTable(pageUrl: string, staffData: StaffSchema[]) {
 		},
 		get showReset() {
 			return showReset;
+		},
+		get openStaffSheet() {
+			return openStaffSheet;
+		},
+		set openStaffSheet(data) {
+			openStaffSheet = data;
+		},
+		get staffDetail() {
+			return staffDetail;
 		}
 	};
 }

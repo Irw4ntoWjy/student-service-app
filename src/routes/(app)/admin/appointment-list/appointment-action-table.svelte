@@ -7,28 +7,49 @@
 
 	// get timegap from user start waiting and be served
 	const getTotalAppointmentTime = () => {
-		if (appointmentTime.scannedAt && appointmentTime.appointmentStartAt) {
-			const scannedDate = new Date(appointmentTime.scannedAt);
-			const startDate = new Date(appointmentTime.appointmentStartAt);
+		if (!appointmentTime) return '-';
+		if (!appointmentTime.scannedAt) return '-';
 
-			let totalTimeDiff: number = 0;
-			const timeDiff = Math.floor((startDate.getTime() - scannedDate.getTime()) / 1000);
-			totalTimeDiff = timeDiff;
+		const createdDate = new Date(appointmentTime.createdAt);
+		const cancelDate = appointmentTime.cancelAt ? new Date(appointmentTime.cancelAt) : null;
+		const scannedDate = appointmentTime.scannedAt ? new Date(appointmentTime.scannedAt) : null;
+		const startDate = appointmentTime.appointmentStartAt
+			? new Date(appointmentTime.appointmentStartAt)
+			: null;
+		const finishedDate = appointmentTime.appointmentFinishedAt
+			? new Date(appointmentTime.appointmentFinishedAt)
+			: null;
 
-			//check if this appoinment has been finished
-			if (appointmentTime.appointmentFinishedAt) {
-				const finishedTime = new Date(appointmentTime.appointmentFinishedAt);
-				const timeDiff = Math.floor((finishedTime.getTime() - startDate.getTime()) / 1000);
-				totalTimeDiff += timeDiff;
+		let totalTimeDiff = 0;
+
+		if (cancelDate && !finishedDate) {
+			totalTimeDiff = Math.floor((cancelDate.getTime() - createdDate.getTime()) / 1000);
+		} else if (startDate) {
+			const effectiveStart = scannedDate || createdDate;
+			const timeFromCreationToStart = Math.floor(
+				(effectiveStart.getTime() - createdDate.getTime()) / 1000
+			);
+			totalTimeDiff += timeFromCreationToStart;
+
+			const timeToStart = Math.floor((startDate.getTime() - effectiveStart.getTime()) / 1000);
+			totalTimeDiff += timeToStart;
+
+			if (finishedDate) {
+				const timeToFinish = Math.floor((finishedDate.getTime() - startDate.getTime()) / 1000);
+				totalTimeDiff += timeToFinish;
 			}
+		} else if (!startDate && !cancelDate) {
+			totalTimeDiff = Math.floor((Date.now() - createdDate.getTime()) / 1000);
+		}
 
-			if (totalTimeDiff < 60) {
-				return `${totalTimeDiff} Detik`;
-			} else if (totalTimeDiff < 3600) {
-				return `${Math.floor(totalTimeDiff / 60)} Menit`;
-			} else {
-				return `${Math.floor(totalTimeDiff / 3600)} Jam`;
-			}
+		// Format the output
+
+		if (totalTimeDiff < 60) {
+			return `${totalTimeDiff} Detik`;
+		} else if (totalTimeDiff < 3600) {
+			return `${Math.floor(totalTimeDiff / 60)} Menit`;
+		} else {
+			return `${Math.floor(totalTimeDiff / 3600)} Jam`;
 		}
 	};
 </script>

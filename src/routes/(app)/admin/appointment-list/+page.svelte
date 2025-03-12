@@ -99,8 +99,8 @@
 					appointmentStartAt: original.appointmentStartAt
 						? adjustAndFormatDate(original.appointmentStartAt)
 						: '',
-					appointmentFinishedAt: original.appointmentFinishedAt
-						? adjustAndFormatDate(original.appointmentFinishedAt)
+					appointmentEndAt: original.appointmentEndAt
+						? adjustAndFormatDate(original.appointmentEndAt)
 						: '',
 					cancelAt: original.cancelAt ? adjustAndFormatDate(original.cancelAt) : ''
 				};

@@ -23,7 +23,7 @@
 		//eslint-disable-next-line no-undef
 		tableRow?: Snippet<[Table<T>]>;
 		class?: HTMLTableAttributes['class'];
-		toggleSorting: (id: string) => void;
+		toggleSorting?: (id: string) => void;
 		columnGroup?: Snippet;
 	} = $props();
 </script>
@@ -45,7 +45,9 @@
 								variant="ghost"
 								class="my-2 -ml-4 h-full justify-start font-semibold capitalize data-[state=open]:bg-accent w-[{header.column.getSize()}px] text-wrap text-left"
 								onclick={() => {
-									toggleSorting(header.column.id);
+									if (toggleSorting) {
+										toggleSorting(header.column.id);
+									}
 								}}
 							>
 								<FlexRender context={header.getContext()} content={header.column.columnDef.header}

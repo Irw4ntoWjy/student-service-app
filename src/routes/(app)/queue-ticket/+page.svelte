@@ -1,52 +1,21 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
+	import { page } from '$app/state';
 	import src from '$lib/assets/UPH-White.png';
+	import type { AppointmentSchema } from '$lib/server/sql/appointment-query';
+	import type { MenuSchema } from '$lib/server/sql/menu-query';
+	import { formatDate, formatTime, getDayOfWeek } from '$lib/utils';
 	import { Realtime } from 'ably';
-	import type { PageData } from './$types';
-	import QueueTicket from './queue-ticket.svelte';
+	import type { PageProps } from './$types';
+	import type { AppointmentWithDetail } from './queue-ticket-schema';
+	import QueueTicket2 from './queue-ticket2.svelte';
 
-	let { data }: { data: PageData } = $props();
+	let { data }: PageProps = $props();
+
+	// queue ticket page state
 	let currentTime: string = $state('');
 	let currentDate: string = $state('');
 	let currentDay: string = $state('');
-
-	let appointmentTicket = $derived(data.appointmentTicket);
-
-	// Function to format time
-	function formatTime(date: Date): string {
-		const hours = String(date.getHours()).padStart(2, '0');
-		const minutes = String(date.getMinutes()).padStart(2, '0');
-		const seconds = String(date.getSeconds()).padStart(2, '0');
-		return `${hours}:${minutes}:${seconds}`;
-	}
-
-	// Function to format date
-	function formatDate(date: Date): string {
-		const year = date.getFullYear();
-		const months = [
-			'Januari',
-			'Februari',
-			'Maret',
-			'April',
-			'Mei',
-			'Juni',
-			'Juli',
-			'Agustus',
-			'September',
-			'Oktober',
-			'November',
-			'Desember'
-		];
-		const month = months[date.getMonth()];
-		const day = String(date.getDate()).padStart(2, '0');
-		return `${day} ${month} ${year}`;
-	}
-
-	// Function to get the day of the week
-	function getDayOfWeek(date: Date): string {
-		const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-		return days[date.getDay()];
-	}
 
 	$effect(() => {
 		const updateDateTime = () => {
@@ -62,70 +31,77 @@
 		return () => clearInterval(interval);
 	});
 
-	let isSubscribed = false; // Track subscription state
-	$effect.root(() => {
-		if (isSubscribed) return; // Prevent duplicate subscriptions
-		isSubscribed = true;
+	let spokenTexts: string[] = $state([]);
 
+	const speakText = async (text: string) => {
+		if (spokenTexts.includes(text)) return;
+		spokenTexts = [...spokenTexts, text];
+
+		const utterance1 = new SpeechSynthesisUtterance(text);
+		utterance1.pitch = 2;
+		utterance1.rate = 0.3;
+
+		const shortText = text.replace('New Queue Number', 'Queue Number');
+		const utterance2 = new SpeechSynthesisUtterance(shortText);
+		utterance2.pitch = 2;
+		utterance2.rate = 0.3;
+
+		utterance1.onend = () => {
+			window.speechSynthesis.speak(utterance2);
+		};
+
+		window.speechSynthesis.speak(utterance1);
+	};
+
+	// NOTES creds masih kena expose
+	$effect.root(() => {
 		const ably = new Realtime({ key: 'gqo0ug.eOzcSw:e6g093vBHe3phpt2f4nBviuRBeSLkTSfQ3RXN2fBpMI' });
 		const channel = ably.channels.get('updates');
 
-		channel.subscribe('update', (message) => {
-			console.log('Received update via Ably:', message.data);
-			textToSpeech('Nomor Antrian');
-			invalidateAll();
+		channel.subscribe('update', async (message) => {
+			const updatedAppointment: AppointmentSchema = message.data.data;
+
+			const response: MenuSchema = await fetch(
+				`${page.url.pathname}/get-menu-by-id?id=${updatedAppointment.menuId}`
+			).then(async (response) => await response.json());
+
+			const regex = /(\d{3})$/;
+			const match = updatedAppointment.appointmentNo.match(regex);
+			const queueNo = match ? match[1] : updatedAppointment.appointmentNo;
+
+			await speakText(
+				`New Queue Number, ${queueNo}, ${queueNo} for ${response.name}, ${response.name}`
+			);
+			await invalidateAll();
 		});
 
-		ably.connection.on('connected', () => {
-			console.log('Connected to Ably');
-			window.speechSynthesis.onvoiceschanged = () => {
-				console.log('Voices loaded:', window.speechSynthesis.getVoices());
-			};
-		});
-
-		function textToSpeech(text) {
-			if ('speechSynthesis' in window) {
-				const synth = window.speechSynthesis;
-
-				// Ensure voices are loaded before speaking
-				const voices = synth.getVoices();
-				if (voices.length === 0) {
-					console.log('Voices not loaded yet, retrying...');
-					setTimeout(() => textToSpeech(text), 100);
-					return;
-				}
-
-				synth.cancel(); // Stop any ongoing speech
-
-				// Find Google's Indonesian voice explicitly
-				const googleIndonesianVoice = voices.find((v) =>
-					v.name.toLowerCase().includes('google bahasa indonesia')
-				);
-
-				const utterance = new SpeechSynthesisUtterance(text);
-				utterance.voice =
-					googleIndonesianVoice || voices.find((v) => v.lang === 'id-ID') || voices[0];
-				utterance.lang = 'id-ID';
-				utterance.rate = 1;
-				utterance.pitch = 1;
-
-				console.log('Speaking with voice:', utterance.voice?.name || 'Default');
-				synth.speak(utterance);
-			} else {
-				console.warn('Text-to-Speech is not supported in this browser.');
-			}
-		}
-
+		// Unsubscribe when the component is destroyed
 		return () => {
 			channel.unsubscribe();
 			ably.close();
-			isSubscribed = false; // Reset subscription state
 		};
 	});
+
+	const scannedAppointment: AppointmentWithDetail[] = $derived(
+		data.todayTicket.filter((val) => val.statusType === 'SCANNED')
+	);
+	const pendingAppointment: AppointmentWithDetail[] = $derived(
+		data.todayTicket.filter((val) => val.statusType === 'PENDING')
+	);
+	const ongoingAppointment: AppointmentWithDetail[] = $derived(
+		data.todayTicket.filter((val) => val.statusType === 'ONGOING')
+	);
+	const finishedAppoinment: AppointmentWithDetail[] = $derived(
+		data.todayTicket.filter(
+			(val) => val.statusType === 'COMPLETED' || val.statusType === 'CANCELLED'
+		)
+	);
 </script>
 
 <div class="mb-8 flex justify-between">
 	<img {src} alt="uph-white" class="mt-4 w-72" />
+
+	<!-- status color indicator -->
 	<div class="flex gap-4">
 		<div class="flex items-center gap-4">
 			<div class="size-8 rounded-full bg-sky-400"></div>
@@ -140,81 +116,62 @@
 			<div class="text-xl font-bold text-white">Dibatalkan</div>
 		</div>
 	</div>
+
 	<div class="flex flex-col gap-2 text-white shadow-lg">
 		<span class="text-right text-6xl">{currentTime}</span>
 		<span class="text-4xl">{`${currentDay}, ${currentDate}`}</span>
 	</div>
 </div>
 
-<div class="flex max-h-screen gap-4">
-	<div class="flex flex-col gap-6">
-		<div
-			class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-8 rounded-lg bg-blue-900 p-8 shadow-lg"
-		>
-			<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
-			{#each appointmentTicket as activeTicket}
-				{#if activeTicket.status === 'active'}
-					<QueueTicket
-						staffList={data.staffList}
-						menuList={data.menuList}
-						queueTicket={activeTicket}
-					/>
-				{/if}
-			{/each}
-		</div>
-
-		<div
-			class="flex h-[22rem] w-[30rem] flex-col items-center justify-start gap-2 rounded-lg bg-blue-900 p-8 shadow-lg"
-		>
-			<span class="-translate-y-3 text-2xl font-medium text-white"
-				>Nomor Antrian yang Sebelumnya</span
+<div class="flex gap-4">
+	<div class="flex max-h-screen gap-4">
+		<div class="flex flex-col gap-6">
+			<div
+				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-8 rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
-			<div class="flex w-full flex-col items-center gap-3 overflow-y-auto">
-				{#each appointmentTicket as finishedAppointment}
-					{#if finishedAppointment.status === 'closed' || finishedAppointment.status === 'cancelled'}
-						<QueueTicket
-							staffList={data.staffList}
-							menuList={data.menuList}
-							queueTicket={finishedAppointment}
-						/>
-					{/if}
+				<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
+				{#each ongoingAppointment as ticket}
+					<QueueTicket2 data={ticket} staffList={data.staffList} menuList={data.menuList} />
+				{/each}
+			</div>
+			<div
+				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-2 overflow-y-auto rounded-lg bg-blue-900 p-8 shadow-lg"
+			>
+				<span
+					class="flex h-20 w-full -translate-y-5 items-center bg-blue-900 py-2 text-2xl font-medium text-white"
+					>Nomor Antrian yang Telah Selesai</span
+				>
+				{#each finishedAppoinment as ticket}
+					<QueueTicket2 data={ticket} />
 				{/each}
 			</div>
 		</div>
 	</div>
-	<div
-		class=" flex max-h-screen w-full flex-col items-center justify-start rounded-lg bg-blue-900 px-6 py-4 shadow-lg"
-	>
-		<div class="mt-4 h-1/2">
-			<span class=" flex justify-center text-2xl font-medium text-white"
-				>Nomor Antrian Selanjutnya</span
+
+	<div class="flex max-h-screen w-full gap-4">
+		<div class="flex w-full flex-col gap-6">
+			<div
+				class="flex h-[25rem] w-[95rem] flex-col items-center justify-start gap-2 overflow-x-auto rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
-			<div class="mt-8 grid grid-cols-4 place-items-center gap-8">
-				{#each appointmentTicket as pendingTicket}
-					{#if pendingTicket.status === 'pending'}
-						<QueueTicket
-							queueTicket={pendingTicket}
-							menuList={data.menuList}
-							staffList={data.staffList}
-						/>
-					{/if}
-				{/each}
+				<span class="text-2xl font-medium text-white">Nomor Antrian Selanjutnya</span>
+				<div class="flex w-full justify-start gap-8">
+					{#each scannedAppointment as tickcet}
+						<QueueTicket2 data={tickcet} />
+					{/each}
+				</div>
 			</div>
-		</div>
-		<div class="mt-8 h-1/2">
-			<span class="flex justify-center text-2xl font-medium text-white"
-				>Nomor Antrian Yang Belum Dilayani</span
+
+			<div
+				class="flex h-[25rem] w-[95rem] flex-col items-center justify-start gap-2 overflow-x-auto rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
-			<div class="mt-6 grid grid-cols-4 place-items-center gap-8">
-				{#each appointmentTicket as waitingTicket}
-					{#if waitingTicket.status === 'waiting'}
-						<QueueTicket
-							queueTicket={waitingTicket}
-							menuList={data.menuList}
-							staffList={data.staffList}
-						/>
-					{/if}
-				{/each}
+				<span class="-translate-y-3 text-2xl font-medium text-white"
+					>Nomor Antrian Yang Belum Terlayani</span
+				>
+				<div class="flex w-full justify-start gap-8">
+					{#each pendingAppointment as ticket}
+						<QueueTicket2 data={ticket} />
+					{/each}
+				</div>
 			</div>
 		</div>
 	</div>

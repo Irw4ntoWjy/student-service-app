@@ -1,20 +1,21 @@
 import { broadcastUpdate } from '$lib/server/ably';
 import {
-	getAppointmentTicket,
-	getAppointmentTicketByAppointmentNo,
-	updateAppointmentPending
-} from '$lib/server/sql';
+	findAppointmentById,
+	findByAppointmentNo,
+	updateAppointmentStatus
+} from '$lib/server/sql/appointment-query';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const appointmentNo = params.id;
-	const fetchData = await getAppointmentTicketByAppointmentNo(appointmentNo);
+	const appointment = await findByAppointmentNo(appointmentNo);
 
-	//update the status of current ticket into pending
-	await updateAppointmentPending(fetchData.id);
+	if (appointment.statusType === 'CREATED' && appointment.id) {
+		await updateAppointmentStatus(appointment.id, 'SCANNED');
 
-	const updatedTickets = await getAppointmentTicket();
-	broadcastUpdate({ type: 'UPDATE', data: updatedTickets });
+		const updatedAppointment = await findAppointmentById(appointment.id);
+		broadcastUpdate({ type: 'UPDATE', data: updatedAppointment });
 
-	return { fetchData };
+		return { appointment };
+	}
 };

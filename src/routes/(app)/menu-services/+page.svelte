@@ -1,52 +1,53 @@
 <script lang="ts">
+	import MenuAction from '$lib/components/page/menu-action.svelte';
 	import MenuCard from '$lib/components/page/menu-card.svelte';
-	import MenuDialog from '../../../lib/components/page/menu-dialog.svelte';
-	import type { PageData } from './$types';
-	import type { MenuDialogSchema } from './menu-schema';
+	import type { PageProps } from './$types';
+	import type { CurrentMenu, MenuActionSchema } from './menu-schema';
 
-	let { data }: { data: PageData } = $props();
+	let { data }: PageProps = $props();
+	let isMenuActionOpen: boolean = $state(false);
+	let isOtherOptionDialogOpen: boolean = $state(false);
 
-	let openMenuDialog: boolean = $state(false);
-	let openOtherOptionDialog: boolean = $state(false);
-
-	let menuAction: MenuDialogSchema[] = $state([]);
-
-	const fetchMenuDialog = async (id: number) => {
-		const response = await fetch(`./admin/get-menu-action?id=${id}`);
+	// handle menu action state
+	let menuAction: MenuActionSchema[] = $state([]);
+	const getMenuAction = async (id: number) => {
+		const response = await fetch(`./admin/menu-list/get-menu-action?id=${id}`);
 		const data = await response.json();
 		menuAction = data;
 	};
 
-	let currentMenu: { id: number | undefined; name: string | undefined; code: string | undefined } =
-		$state({
-			id: undefined,
-			name: undefined,
-			code: undefined
-		});
+	let currentMenu: CurrentMenu = $state({
+		id: undefined!,
+		name: undefined!,
+		code: undefined!
+	});
 </script>
 
 <div class="mt-4 grid grid-cols-4 items-center justify-items-center gap-12 p-6">
-	{#each data.loadPage as items}
+	{#each data.menuList as menu}
 		<MenuCard
-			title={items.name}
-			description={items.description}
-			src={`uploads/${items.imagePath}`}
-			onClick={() => {
-				fetchMenuDialog(items.id);
-				currentMenu = {
-					id: items.id,
-					name: items.name,
-					code: items.code
-				};
-				openMenuDialog = true;
+			title={menu.name}
+			description={menu.description}
+			src={`uploads/${menu.imagePath}`}
+			onClick={async () => {
+				if (menu.id) {
+					currentMenu = {
+						id: menu.id,
+						code: menu.code,
+						name: menu.name
+					};
+
+					await getMenuAction(menu.id);
+					isMenuActionOpen = true;
+				}
 			}}
 		/>
 	{/each}
 </div>
 
-<MenuDialog
-	bind:openMenuDialog
-	bind:openOtherOptionDialog
-	bind:menuDialog={menuAction}
+<MenuAction
+	data={menuAction}
+	bind:openMenuAction={isMenuActionOpen}
+	bind:openOtherOptionDialog={isOtherOptionDialogOpen}
 	{currentMenu}
 />

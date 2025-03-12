@@ -12,102 +12,6 @@ import {
 	type QueueTicketSchema
 } from '../../routes/(app)/queue-ticket/queue-ticket-schema';
 
-export const initTable = async () => {
-	try {
-		await sql`
-            create table if not exists admin (
-                id SERIAL PRIMARY KEY,
-				user_email varchar(50) not null,
-                user_name varchar(50) not null,
-				user_password TEXT not null,
-                created_at timestamp default NOW()
-            )            
-        `;
-		await sql`
-            create table if not exists menu (
-                id SERIAL PRIMARY KEY,
-                name varchar(50) not null,
-				code varchar(3) not null,
-                description varchar(200) not null,
-                image_path text,
-                status boolean not null,
-                created_at timestamp default NOW(),
-                last_updated_at timestamp
-            )            
-        `;
-		await sql`
-            create table if not exists menu_detail (
-                id SERIAL PRIMARY KEY,
-                menu_id int4 not null references menu(id) ON delete cascade on update cascade,
-                name varchar(50) not null, 
-                type VARCHAR(15) not null check (type IN ('FORM', 'APPOINTMENT')), 
-                link text,
-                status boolean not null,
-                created_at timestamp default now(),
-                last_updated_at timestamp,
-                constraint check_link_not_null_if_appointment 
-                    check (type <> 'appointment' OR link is not null)
-            );      
-        `;
-		await sql`
-            create table if not exists appointment (
-                id SERIAL PRIMARY KEY,
-                menu_id int4 not null references menu(id) on delete cascade on update cascade,
-								from_appointment_id int4,
-                status varchar(10) not null check (status in ('created', 'active', 'pending', 'waiting', 'closed', 'cancelled' )),
-				user_status varchar(10) not null,
-				user_name varchar(100) not null,
-				user_nim varchar(100),
-				served_id int4 references staff_list(id),
-                served_by varchar(200),
-				appointment_no varchar(20) not null,
-                reason varchar(200) not null, 
-                created_at timestamp default NOW(),
-                scanned_at timestamp,
-                appointment_start_at timestamp,
-                appointment_finished_at timestamp,
-                cancel_at timestamp,
-                cancel_reason varchar(200),
-				constraint check_user_nim_active check (
-					not (user_status = 'active' and user_nim is null)
-				)
-            )            
-        `;
-		await sql`
-            create table if not exists staff_list (
-                id SERIAL PRIMARY KEY,
-                name varchar(100) not null,
-				division varchar(100) not null,
-				job_desc varchar(200) not null,
-				status boolean not null default true,
-                created_at timestamp default NOW(),
-				last_updated_at timestamp
-            )            
-        `;
-	} catch (error) {
-		console.error('Error creating table:', error);
-		throw error;
-	}
-};
-
-export const insertStaff = async (staffList: StaffList) => {
-	try {
-		await sql`insert into staff_list (name, division, job_desc) values (${staffList.name}, ${staffList.division}, ${staffList.jobDesc})`;
-	} catch (err) {
-		console.error('Error inserting row:', err);
-		throw err;
-	}
-};
-
-export const updateStaff = async (staffList: StaffList) => {
-	try {
-		await sql`update staff_list set name = ${staffList.name}, division = ${staffList.division}, job_desc = ${staffList.jobDesc}, status = ${staffList.status}, last_updated_at = now() where id = ${staffList.id}`;
-	} catch (err) {
-		console.error('Error inserting row:', err);
-		throw err;
-	}
-};
-
 export const getStaffList = async (): Promise<StaffList[]> => {
 	try {
 		const { rows } = await sql`
@@ -179,7 +83,7 @@ export const getStaffListById = async (id: number) => {
 
 export const insertAdmin = async (useremail: string, username: string, password: string) => {
 	try {
-		await sql`insert into admin (user_email, user_name, user_password) values (${useremail}, ${username}, ${password})`;
+		await sql`insert into admin (user_email, user_name, password) values (${useremail}, ${username}, ${password})`;
 	} catch (err) {
 		console.error('Error inserting row:', err);
 		throw err;
@@ -190,7 +94,7 @@ export const getAdminAccountPw = async (username: string) => {
 	try {
 		const { rows } = await sql`
             select
-                a.user_password as password
+                a.password as password
             from 
                 admin a
             where 

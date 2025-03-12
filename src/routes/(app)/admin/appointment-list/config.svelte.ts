@@ -11,36 +11,33 @@ import {
 	type Table
 } from '$lib/components/page/tanstack-table';
 import type { BadgeVariant } from '$lib/components/ui/badge';
-import type { AppointmentTicketSchema, Status } from '../../queue-ticket/queue-ticket-schema';
+import type { StatusType } from '$lib/server/sql/appointment-query';
 import AppointmentActionTable from './appointment-action-table.svelte';
+import type { AppointmentListSchema } from './appointment-list-schema';
 
 export const appointmentStatus = {
-	active: 'Sedang Diproses',
-	pending: 'Sedang Mengantri',
-	waiting: 'Belum Terlayani',
-	closed: 'Selesai',
-	cancelled: 'Dibatalkan',
-	created: 'Menunggu Nomor Antrian'
+	CREATED: 'Terdaftar',
+	SCANNED: 'Sedang Menunggu',
+	PENDING: 'Belum Terlayani',
+	ONGOING: 'Sedang Dilayani',
+	COMPLETED: 'Selesai Dilayani',
+	CANCELLED: 'Dibatalkan'
 };
 
-const userStatus = {
-	ACTIVE: 'Mahasiswa Aktif',
-	GENERAL: 'Tamu / Alumni',
-	waiting: 'Belum Terlayani',
-	closed: 'Selesai',
-	cancelled: 'Dibatalkan',
-	created: 'Menunggu Nomor Antrian'
+const userType = {
+	STUDENT: 'Mahasiswa Aktif',
+	EXTERNAL: 'Tamu / Alumni'
 };
 
 export const appointmentStatusBadge: {
 	[key in keyof typeof appointmentStatus]: BadgeVariant;
 } = {
-	active: 'green',
-	pending: 'secondary',
-	waiting: 'teal',
-	closed: 'blue',
-	cancelled: 'destructive',
-	created: 'purple'
+	CREATED: 'purple',
+	SCANNED: 'secondary',
+	PENDING: 'teal',
+	ONGOING: 'blue',
+	COMPLETED: 'green',
+	CANCELLED: 'destructive'
 };
 
 export type AppointmentTime = {
@@ -52,17 +49,17 @@ export type AppointmentTime = {
 };
 
 export type AppointmentFilterValue = {
-	filter: string;
+	filter: string | undefined;
 	startDate: string | undefined;
 	endDate: string | undefined;
 };
 
-export function createAppointmentTable(pageUrl: string, data: AppointmentTicketSchema[]) {
+export function createAppointmentTable(pageUrl: string, data: AppointmentListSchema[]) {
 	let results = $state(data);
 	const currentUrl = $state(pageUrl);
 
 	let filterValues: AppointmentFilterValue = $state({
-		filter: '',
+		filter: undefined,
 		startDate: undefined,
 		endDate: undefined
 	});
@@ -114,7 +111,7 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 
 	let isAppointmentTrackingSheetOpen: boolean = $state(false);
 
-	let currentAppointmentStatus: Status = $state('pending');
+	let currentAppointmentStatus: StatusType = $state('PENDING');
 
 	let appointmentTimeTracking: AppointmentTime = $state({
 		createdAt: '',
@@ -124,7 +121,7 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 		appointmentFinishedAt: undefined
 	});
 
-	const columns: ColumnDef<AppointmentTicketSchema>[] = [
+	const columns: ColumnDef<AppointmentListSchema>[] = [
 		{
 			id: 'appointmentNo',
 			accessorFn: (row) => row.appointmentNo,
@@ -140,22 +137,33 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 		{
 			id: 'userStatus',
 			header: () => 'Status Tamu',
-			accessorFn: (row) => userStatus[row.userStatus],
+			accessorFn: (row) => userType[row.userType],
 			size: 160
 		},
 		{
 			id: 'userName',
 			header: () => 'Data identitas',
 			cell: ({ row }) => {
+				const data = [
+					{
+						title: 'Nama',
+						titleClass: 'text-md font-bold text-indigo',
+						value: row.original.userName,
+						class: 'text-sm'
+					}
+				];
+
+				if (row.original.userType === 'STUDENT') {
+					data.push({
+						title: 'NIM',
+						titleClass: 'text-md font-bold text-indigo',
+						value: row.original.userNim || undefined!,
+						class: 'text-sm'
+					});
+				}
+
 				return renderComponent(MulitpleValueCell, {
-					object: [
-						{
-							title: 'Nama',
-							titleClass: 'text-md font-bold text-indigo',
-							value: row.original.userName,
-							class: 'text-sm'
-						}
-					]
+					object: data
 				});
 			},
 			size: 240
@@ -165,15 +173,15 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 			header: () => 'Status',
 			cell: ({ row }) => {
 				return renderComponent(DataTableBadgeCell, {
-					variant: appointmentStatusBadge[row.original.status],
-					value: appointmentStatus[row.original.status]
+					variant: appointmentStatusBadge[row.original.statusType],
+					value: appointmentStatus[row.original.statusType]
 				});
 			},
 			size: 180
 		},
 		{
 			id: 'servedBy',
-			accessorFn: (row) => row.servedBy,
+			accessorFn: (row) => row.servedName,
 			header: () => 'Dilayani Oleh',
 			size: 150
 		},
@@ -187,18 +195,19 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 						scannedAt: row.original.scannedAt,
 						cancelAt: row.original.cancelAt,
 						appointmentStartAt: row.original.appointmentStartAt,
-						appointmentFinishedAt: row.original.appointmentFinishedAt
+						appointmentFinishedAt: row.original.appointmentEndAt
 					},
+
 					onclick: () => {
 						isAppointmentTrackingSheetOpen = true;
-						currentAppointmentStatus = row.original.status;
+						currentAppointmentStatus = row.original.statusType;
 
 						appointmentTimeTracking = {
 							createdAt: row.original.createdAt,
 							scannedAt: row.original.scannedAt,
 							cancelAt: row.original.cancelAt,
 							appointmentStartAt: row.original.appointmentStartAt,
-							appointmentFinishedAt: row.original.appointmentFinishedAt
+							appointmentFinishedAt: row.original.appointmentEndAt
 						};
 					}
 				});
@@ -219,7 +228,7 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 		}
 	];
 
-	const tableConfig: Table<AppointmentTicketSchema> = $derived(
+	const tableConfig: Table<AppointmentListSchema> = $derived(
 		createTable({
 			columns: columns,
 			data: results,
@@ -237,7 +246,7 @@ export function createAppointmentTable(pageUrl: string, data: AppointmentTicketS
 		get table() {
 			return tableConfig;
 		},
-		set updateTable({ data }: { data: AppointmentTicketSchema[] }) {
+		set updateTable({ data }: { data: AppointmentListSchema[] }) {
 			results = data;
 		},
 		get toggleSorting() {

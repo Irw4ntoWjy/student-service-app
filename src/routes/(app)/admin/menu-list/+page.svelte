@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { debounce } from '$lib/utils';
-	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import MenuCard from '$lib/components/page/menu-card.svelte';
-	import MenuDialog from '$lib/components/page/menu-dialog.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Input } from '$lib/components/ui/input';
@@ -11,42 +9,65 @@
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import Switch from '$lib/components/ui/switch/switch.svelte';
 	import { CirclePlus, Upload, X } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
 	import type { PageData } from './$types';
-	import { createMenuTable } from './config.svelte';
 	import DataTable from '$lib/components/page/data-table/data-table.svelte';
-	import type { InsertUpdateMenuSchema } from '../../menu-services/menu-schema';
+	import { menuTable } from './config.svelte';
+	import type { MenuList } from './menu-list-schema';
+	import { invalidateAll } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
+	import MenuAction from '$lib/components/page/menu-action.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	//init table
-	const menuTableState = createMenuTable(page.url.pathname, data.menuList);
+	const tableState = menuTable(page.url.pathname, data.menuList);
 	$effect(() => {
-		menuTableState.updateTable = {
+		tableState.updateTable = {
 			data: data.menuList
 		};
 	});
 
-	let formModel: InsertUpdateMenuSchema = $state({
-		id: 0,
-		name: '',
-		code: '',
-		description: '',
-		image: undefined,
-		imageName: undefined,
+	// Menu table state
+	let openOtherOptionDialog: boolean = $state(false);
+
+	let menuModel: MenuList = $state({
+		name: undefined!,
+		code: undefined!,
+		description: undefined!,
+		imagePath: undefined!,
+		imageBase64: undefined,
 		status: true
 	});
 
-	$effect(() => {
-		if (menuTableState.openEditDialog && !isEditMenuDataEmpty() && !formModel.id) {
-			formModel.id = menuTableState.editMenuData.id ?? 0;
-			formModel.name = menuTableState.editMenuData.menuName ?? '';
-			formModel.description = menuTableState.editMenuData.menuDescription ?? '';
-			formModel.imageBase64 = `uploads/${menuTableState.editMenuData.imageName}`;
-			formModel.imageName = menuTableState.editMenuData.imageName;
-			formModel.status = menuTableState.editMenuData.status;
+	const resetModel = () => {
+		menuModel = {
+			name: undefined!,
+			code: undefined!,
+			description: undefined!,
+			imagePath: undefined!,
+			imageBase64: undefined,
+			status: true
+		};
+	};
+
+	const isFormModelFilled = () => {
+		if (menuModel.name || menuModel.description || menuModel.imagePath || menuModel.imageBase64) {
+			return (
+				menuModel.name.trim() !== '' ||
+				menuModel.description.trim() !== '' ||
+				!!menuModel.imagePath ||
+				!!menuModel.imageBase64
+			);
 		}
-	});
+	};
+
+	const isDisabled: boolean = $derived(
+		!menuModel.name ||
+			!menuModel.code ||
+			!menuModel.description ||
+			!menuModel.imagePath ||
+			!menuModel.imageBase64
+	);
 
 	const convertImageToBase64 = async (file: File): Promise<string> => {
 		return new Promise((resolve, reject) => {
@@ -64,102 +85,62 @@
 			reader.readAsDataURL(file);
 		});
 	};
-
-	// handle when user upload image
 	const onImageSelected = async (event: Event) => {
 		const input = event.target as HTMLInputElement;
 		if (input.files && input.files[0]) {
 			const base64 = await convertImageToBase64(input.files[0]);
 
-			formModel.imageBase64 = base64;
-			formModel.imageName = input.files[0].name;
+			menuModel.imageBase64 = base64;
+			menuModel.imagePath = input.files[0].name;
 		}
 	};
 
-	const handleSubmit = async (event: Event) => {
+	async function handleSubmit(event: Event) {
 		event.preventDefault();
 
 		const formData = new FormData();
-		formData.append('id', String(formModel.id));
-		formData.append('name', formModel.name);
-		formData.append('code', formModel.code);
-		formData.append('description', formModel.description);
-		formData.append('image', formModel.imageBase64 ?? '');
-		formData.append('imageName', formModel.imageName ?? '');
-		formData.append('status', String(formModel.status));
+		formData.append('id', String(menuModel.id));
+		formData.append('name', menuModel.name);
+		formData.append('code', menuModel.code);
+		formData.append('description', menuModel.description);
+		formData.append('imageBase64', menuModel.imageBase64 ?? '');
+		formData.append('imagePath', menuModel.imagePath ?? '');
+		formData.append('status', String(menuModel.status));
 
-		if (!formModel.id) {
-			const response = await fetch('?/submitForm', {
-				method: 'POST',
-				body: formData
-			});
+		const response = await fetch('?/submitMenu', {
+			method: 'POST',
+			body: formData
+		});
 
-			if (response.ok) {
-				await invalidateAll();
-				resetModel();
-				menuTableState.openEditDialog = false;
-				toast.success('Berhasil Menambahkan Menu Baru');
-			} else {
-				toast.error('Gagal untuk Menambahkan Menu Baru');
-			}
+		await invalidateAll();
+		if (response.ok) {
+			tableState.openEditDialog = false;
+			resetModel();
+
+			toast.success('Berhasil Menambahkan/Mengubah Menu Baru');
 		} else {
-			const response = await fetch('?/updateForm', {
-				method: 'POST',
-				body: formData
-			});
-
-			if (response.ok) {
-				await invalidateAll();
-				resetModel();
-				menuTableState.openEditDialog = false;
-				toast.success('Berhasil Mengubah Data Menu');
-			} else {
-				toast.error('Gagal untuk Mengubah Data Menu');
-			}
+			toast.error('Gagal untuk Menambahkan Menu Baru');
 		}
-	};
+	}
 
-	// validation logic
-	const isFormModelFilled = () => {
-		return (
-			formModel.name.trim() !== '' || formModel.description.trim() !== '' || !!formModel.imageBase64
-		);
-	};
-
-	const isEditMenuDataEmpty = () => {
-		return (
-			menuTableState.editMenuData.id === undefined &&
-			menuTableState.editMenuData.menuName === undefined &&
-			menuTableState.editMenuData.menuDescription === undefined &&
-			menuTableState.editMenuData.imageName === undefined
-		);
-	};
-
-	const resetModel = () => {
-		menuTableState.editMenuData = {
-			id: undefined,
-			menuName: undefined,
-			menuDescription: undefined,
-			imageName: undefined,
-			status: true
-		};
-
-		formModel = {
-			id: 0,
-			name: '',
-			code: '',
-			description: '',
-			imageBase64: undefined,
-			imageName: undefined,
-			status: true
-		};
-	};
-
-	let openOtherOptionDialog: boolean = $state(false);
+	// handle edit data
+	$effect(() => {
+		if (tableState.editMenuData.id) {
+			menuModel = {
+				id: tableState.editMenuData.id,
+				name: tableState.editMenuData.name || undefined!,
+				code: tableState.editMenuData.code || undefined!,
+				description: tableState.editMenuData.description || undefined!,
+				imagePath: `${tableState.editMenuData.imageName}`,
+				imageBase64: `/uploads/${tableState.editMenuData.imageName}`,
+				status: tableState.editMenuData.status
+			};
+		}
+	});
 
 	$effect.root(() => {
-		const filter = page.url.searchParams.get('filter') || undefined;
-		menuTableState.filterValues.filter = filter || '';
+		const filter = page.url.searchParams.get('filter');
+		tableState.filterValue.filter = filter || undefined;
 	});
 </script>
 
@@ -169,15 +150,15 @@
 			<Input
 				class="w-fit"
 				placeholder="Cari menu"
-				oninput={() => debounce(() => menuTableState.onPaginate())}
-				bind:value={menuTableState.filterValues.filter}
+				oninput={() => debounce(() => tableState.onPaginate())}
+				bind:value={tableState.filterValue.filter}
 			/>
 
-			{#if menuTableState.showReset}
+			{#if tableState.showReset}
 				<Button
 					onclick={() => {
-						menuTableState.filterValues.filter = '';
-						debounce(() => menuTableState.onPaginate());
+						tableState.filterValue.filter = '';
+						debounce(() => tableState.onPaginate());
 					}}
 					variant="ghost"
 					class="h-8 px-2 lg:px-3"
@@ -191,74 +172,94 @@
 		<Button
 			class="h-10 items-center border md:w-auto"
 			variant="ghost"
-			onclick={() => (menuTableState.openEditDialog = true)}
+			onclick={() => (tableState.openEditDialog = true)}
 		>
 			<CirclePlus class="mr-2 h-4 w-4" /> Tambah
 		</Button>
 	</div>
-	<DataTable table={menuTableState.table} toggleSorting={menuTableState.toggleSorting} />
+	<DataTable table={tableState.table} />
 </div>
 
-<Dialog.Root
-	bind:open={menuTableState.openEditDialog}
-	onOpenChange={() => {
-		resetModel();
-	}}
->
+<Dialog.Root bind:open={tableState.openEditDialog}>
 	<Dialog.Content class={isFormModelFilled() ? 'max-w-4xl' : 'max-w-lg'}>
 		<Dialog.Header>
 			<Dialog.Title
-				>{isEditMenuDataEmpty()
-					? 'Tambah Menu Student Services'
-					: `Edit Menu ${menuTableState.editMenuData.menuName}`}</Dialog.Title
+				>{!tableState.editMenuData.id
+					? 'Tambah Menu'
+					: `Ubah Menu ${tableState.editMenuData.name}`}</Dialog.Title
 			>
 			<Dialog.Description>
-				{isEditMenuDataEmpty()
-					? 'Isi kotak dibawah untuk menambahkan menu student services yang baru'
-					: 'Ubah kotak dibawah untuk mengubah data dari menu ini'}
+				{!tableState.editMenuData.id
+					? 'Isi Data dibawah untuk menambahkan menu student services yang baru'
+					: 'Ubah Data dibawah untuk mengubah data dari menu ini'}
 			</Dialog.Description>
 		</Dialog.Header>
+
 		<Separator orientation="horizontal" />
-		<form onsubmit={handleSubmit}>
+
+		<form onsubmit={handleSubmit} method="POST" enctype="multipart/form-data">
 			<div class="grid {isFormModelFilled() ? 'grid-cols-2' : 'grid-cols-1'}  gap-8">
 				{#if isFormModelFilled()}
-					<!-- NOTE: kalau misalnya deskripsinya panjang untuk bagian menu, pembatasan upload file, batasan format file-->
 					<MenuCard
-						title={formModel.name}
-						description={formModel.description}
-						{...formModel.imageBase64 && { src: formModel.imageBase64 }}
+						title={menuModel.name}
+						description={menuModel.description}
+						{...menuModel.imageBase64 && { src: menuModel.imageBase64 }}
 					/>
 				{/if}
+
+				<!-- NOTES perlu tambah limit character per input -->
 				<div class="flex flex-col gap-4">
-					<Input name="id" type="hidden" bind:value={formModel.id} />
+					<Input name="id" type="hidden" bind:value={menuModel.id} />
 					<div class="flex flex-col gap-4">
-						<Label for="name">Nama Menu</Label>
+						<Label for="name"
+							>Nama Menu
+							<span class="text-red-700"> * </span>
+						</Label>
 						<Input
 							name="name"
 							placeholder="Nama Menu"
 							class="focus:border-gray-300 focus:outline-none focus:ring-0"
-							bind:value={formModel.name}
+							bind:value={menuModel.name}
 						/>
 					</div>
+
 					<div class="flex flex-col gap-4">
-						<Label for="name">Kode Menu</Label>
-						<Input
-							name="name"
-							placeholder="Kode Menu"
-							class="focus:border-gray-300 focus:outline-none focus:ring-0"
-							bind:value={formModel.code}
-						/>
+						<Label for="name">Kode Menu <span class="text-red-700"> * </span></Label>
+						<div class="flex flex-col gap-2">
+							<Input
+								name="name"
+								placeholder="Kode Menu"
+								class="focus:border-gray-300 focus:outline-none focus:ring-0"
+								bind:value={
+									() => {
+										if (menuModel.code) {
+											return menuModel.code.toUpperCase();
+										}
+									},
+									(value) => {
+										menuModel.code = value!;
+									}
+								}
+							/>
+							{#if menuModel.code}
+								<span class="self-end text-sm text-gray-600">
+									{`Contoh kode appointment: ${menuModel.code}XXXXXX001`}
+								</span>
+							{/if}
+						</div>
 					</div>
+
 					<div class="flex flex-col gap-4">
-						<Label for="name">Deskripsi Menu</Label>
+						<Label for="name">Deskripsi Menu <span class="text-red-700"> * </span></Label>
 						<Input
 							name="description"
 							placeholder="Isi deskripsi"
-							bind:value={formModel.description}
+							bind:value={menuModel.description}
 						/>
 					</div>
+
 					<div class="flex flex-col gap-4">
-						<Label for="file">Gambar Menu</Label>
+						<Label for="file">Gambar Menu <span class="text-red-700"> * </span></Label>
 						<div class="relative">
 							<Input
 								id="file"
@@ -276,12 +277,14 @@
 							</div>
 						</div>
 					</div>
+
 					<div class="flex flex-col gap-4">
-						<Label for="status">Status Menu</Label>
-						<Switch name="status" bind:checked={formModel.status} />
+						<Label for="status">Status Menu <span class="text-red-700"> * </span></Label>
+						<Switch name="status" bind:checked={menuModel.status} />
 					</div>
-					<Button type="submit" variant="default"
-						>{isEditMenuDataEmpty() ? 'Tambah' : 'Ubah'}</Button
+
+					<Button type="submit" variant="default" disabled={isDisabled}
+						>{!tableState.editMenuData.id ? 'Tambah' : 'Ubah'}</Button
 					>
 				</div>
 			</div>
@@ -289,9 +292,9 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<MenuDialog
-	bind:openMenuDialog={menuTableState.openMenuDialog}
+<MenuAction
+	data={tableState.menuAction || []}
+	bind:openMenuAction={tableState.openMenuAction}
 	bind:openOtherOptionDialog
-	menuDialog={menuTableState.menuDialog || []}
-	currentMenu={menuTableState.currentMenu}
+	currentMenu={tableState.currentMenu}
 />

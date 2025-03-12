@@ -17,7 +17,7 @@
 
 	let name: string = $state('');
 	let link: string = $state('');
-	let type: 'FORM' | 'APPOINTMENT' = $state('APPOINTMENT');
+	let type: 'LINK' | 'APPOINTMENT' = $state('APPOINTMENT');
 
 	const addActionForm = async () => {
 		const formData = new FormData();
@@ -32,15 +32,15 @@
 			formData.append('link', link);
 		}
 
-		const response = await fetch('?/addMenuAction', {
+		const response = await fetch('?/submitMenuAction', {
 			method: 'POST',
 			body: formData
 		});
 
 		if (response.ok) {
 			openFormDialog = false;
-			await invalidateAll();
 			toast.success('Berhasil menambahkan action menu');
+			await invalidateAll();
 		}
 	};
 
@@ -59,10 +59,12 @@
 			>
 		</Dialog.Header>
 		<div class="flex flex-col gap-4">
-			<div class="flex w-full items-center gap-x-2">
-				<Label class="w-1/5">Nama Action</Label>
-				<Input class="w-4/5" bind:value={name} />
+			<div class="flex flex-col gap-4">
+				<Label>Nama Action</Label>
+				<Input bind:value={name} />
 			</div>
+
+			<Label>Tipe Action</Label>
 			<RadioGroup.Root bind:value={type}>
 				<div class="flex gap-x-4">
 					<div class="flex items-center gap-x-2">
@@ -70,12 +72,12 @@
 						<Label for="r2" class="cursor-pointer">Appointment</Label>
 					</div>
 					<div class="flex items-center gap-x-2">
-						<RadioGroup.Item value="FORM" id="r1" />
+						<RadioGroup.Item value="LINK" id="r1" />
 						<Label for="r1" class="cursor-pointer">Form</Label>
 					</div>
 				</div>
 			</RadioGroup.Root>
-			{#if type === 'FORM'}
+			{#if type === 'LINK'}
 				<div class="flex w-full items-center gap-x-2">
 					<Label class="w-1/5">Link</Label>
 					<Input class="w-4/5" bind:value={link} />

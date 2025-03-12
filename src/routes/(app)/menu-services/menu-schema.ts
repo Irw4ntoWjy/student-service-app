@@ -1,57 +1,26 @@
 import { z } from 'zod';
 
-export const loadMenuSchema = z.object({
-	id: z.number(),
-	name: z.string(),
-	code: z.string(),
-	description: z.string(),
-	imagePath: z.string().optional(),
-	status: z.boolean(),
-	createdAt: z.string(),
-	lastUpdatedAt: z.string().optional()
-});
-export type LoadMenuSchema = z.infer<typeof loadMenuSchema>;
-
-export const insertUpdateMenuSchema = z.object({
-	id: z.number(),
-	name: z.string(),
-	code: z.string().max(2),
-	description: z.string(),
-	imageBase64: z.string().optional(),
-	imageName: z.string().optional(),
-	status: z.boolean().optional()
-});
-export type InsertUpdateMenuSchema = z.infer<typeof insertUpdateMenuSchema>;
-
-export const insertUpdateAppointment = z.object({
+export const menuAction = z.object({
 	id: z.number().optional(),
-	fromAppointmentId: z.number().optional(),
-	status: z.string().optional(),
-	appointmentNo: z.string(),
-	menuId: z.string(),
-	reason: z.string(),
-	cancelAt: z.string().optional(),
-	scannedAt: z.string().optional(),
-	appointmentStartAt: z.string().optional(),
-	appointmentFinishedAt: z.string().optional(),
-	cancelReason: z.string().optional(),
-	userName: z.string(),
-	userNim: z.string().optional(),
-	userStatus: z.enum(['GENERAL', 'ACTIVE'])
-});
-export type InsertUpdateAppointmentSchema = z.infer<typeof insertUpdateAppointment>;
-
-const type = ['FORM', 'APPOINTMENT'] as const;
-
-export const menuDialogSchema = z.object({
-	id: z.number(),
 	menuId: z.string(),
 	name: z.string(),
-	type: z.enum(type),
-	link: z.string(),
+	type: z.enum(['LINK', 'APPOINTMENT']),
 	status: z.boolean(),
-	createdAt: z.string(),
-	lastUpdatedAt: z.string().optional()
+	link: z.string().optional(),
+	createdBy: z.number()
 });
+export type MenuActionSchema = z.infer<typeof menuAction>;
 
-export type MenuDialogSchema = z.infer<typeof menuDialogSchema>;
+export const currentMenu = z.object({
+	id: z.number(),
+	name: z.string(),
+	code: z.string()
+});
+export type CurrentMenu = z.infer<typeof currentMenu>;
+
+export const userData = z.object({
+	name: z.string(),
+	nim: z.string().optional(),
+	type: z.enum(['STUDENT', 'EXTERNAL'])
+});
+export type UserData = z.infer<typeof userData>;

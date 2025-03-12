@@ -69,8 +69,6 @@
 			!menuModel.imageBase64
 	);
 
-	const selectedData = page.url.searchParams.get('selectedData');
-
 	const convertImageToBase64 = async (file: File): Promise<string> => {
 		return new Promise((resolve, reject) => {
 			const reader = new FileReader();
@@ -114,110 +112,36 @@
 			body: formData
 		});
 
+		await invalidateAll();
 		if (response.ok) {
 			tableState.openEditDialog = false;
 			resetModel();
 
-			toast.success('Berhasil Menambahkan Menu Baru');
-			await invalidateAll();
+			toast.success('Berhasil Menambahkan/Mengubah Menu Baru');
 		} else {
 			toast.error('Gagal untuk Menambahkan Menu Baru');
 		}
 	}
 
-	// $effect(() => {
-	// 	if (tableState.openEditDialog && !isEditMenuDataEmpty() && !formModel.id) {
-	// 		formModel.id = tableState.editMenuData.id ?? 0;
-	// 		formModel.name = tableState.editMenuData.menuName ?? '';
-	// 		formModel.description = tableState.editMenuData.menuDescription ?? '';
-	// 		formModel.imageBase64 = `uploads/${tableState.editMenuData.imageName}`;
-	// 		formModel.imageName = tableState.editMenuData.imageName;
-	// 		formModel.status = tableState.editMenuData.status;
-	// 	}
-	// });
+	// handle edit data
+	$effect(() => {
+		if (tableState.editMenuData.id) {
+			menuModel = {
+				id: tableState.editMenuData.id,
+				name: tableState.editMenuData.name || undefined!,
+				code: tableState.editMenuData.code || undefined!,
+				description: tableState.editMenuData.description || undefined!,
+				imagePath: `${tableState.editMenuData.imageName}`,
+				imageBase64: `/uploads/${tableState.editMenuData.imageName}`,
+				status: tableState.editMenuData.status
+			};
+		}
+	});
 
-	// // handle when user upload image
-
-	// const handleSubmit = async (event: Event) => {
-	// 	event.preventDefault();
-
-	// 	const formData = new FormData();
-	// 	formData.append('id', String(formModel.id));
-	// 	formData.append('name', formModel.name);
-	// 	formData.append('code', formModel.code);
-	// 	formData.append('description', formModel.description);
-	// 	formData.append('image', formModel.imageBase64 ?? '');
-	// 	formData.append('imageName', formModel.imageName ?? '');
-	// 	formData.append('status', String(formModel.status));
-
-	// 	if (!formModel.id) {
-	// 		const response = await fetch('?/submitForm', {
-	// 			method: 'POST',
-	// 			body: formData
-	// 		});
-
-	// 		if (response.ok) {
-	// 			await invalidateAll();
-	// 			resetModel();
-	// 			tableState.openEditDialog = false;
-	// 			toast.success('Berhasil Menambahkan Menu Baru');
-	// 		} else {
-	// 			toast.error('Gagal untuk Menambahkan Menu Baru');
-	// 		}
-	// 	} else {
-	// 		const response = await fetch('?/updateForm', {
-	// 			method: 'POST',
-	// 			body: formData
-	// 		});
-
-	// 		if (response.ok) {
-	// 			await invalidateAll();
-	// 			resetModel();
-	// 			tableState.openEditDialog = false;
-	// 			toast.success('Berhasil Mengubah Data Menu');
-	// 		} else {
-	// 			toast.error('Gagal untuk Mengubah Data Menu');
-	// 		}
-	// 	}
-	// };
-
-	// // validation logic
-
-	// const isEditMenuDataEmpty = () => {
-	// 	return (
-	// 		tableState.editMenuData.id === undefined &&
-	// 		tableState.editMenuData.menuName === undefined &&
-	// 		tableState.editMenuData.menuDescription === undefined &&
-	// 		tableState.editMenuData.imageName === undefined
-	// 	);
-	// };
-
-	// const resetModel = () => {
-	// 	tableState.editMenuData = {
-	// 		id: undefined,
-	// 		menuName: undefined,
-	// 		menuDescription: undefined,
-	// 		imageName: undefined,
-	// 		status: true
-	// 	};
-
-	// 	formModel = {
-	// 		id: 0,
-	// 		name: '',
-	// 		code: '',
-	// 		description: '',
-	// 		imageBase64: undefined,
-	// 		imageName: undefined,
-	// 		status: true
-	// 	};
-	// };
-
-	// let openOtherOptionDialog: boolean = $state(false);
-
-	// $effect.root(() => {
-	// 	const filter = page.url.searchParams.get('filter') || undefined;
-	// 	tableState.filterValue.filter = filter || '';
-	// });
+	$effect.root(() => {
+		const filter = page.url.searchParams.get('filter');
+		tableState.filterValue.filter = filter || undefined;
+	});
 </script>
 
 <div class="flex flex-col gap-4">
@@ -260,12 +184,12 @@
 	<Dialog.Content class={isFormModelFilled() ? 'max-w-4xl' : 'max-w-lg'}>
 		<Dialog.Header>
 			<Dialog.Title
-				>{!selectedData
+				>{!tableState.editMenuData.id
 					? 'Tambah Menu'
-					: `Edit Menu ${tableState.editMenuData.menuName}`}</Dialog.Title
+					: `Ubah Menu ${tableState.editMenuData.name}`}</Dialog.Title
 			>
 			<Dialog.Description>
-				{!selectedData
+				{!tableState.editMenuData.id
 					? 'Isi Data dibawah untuk menambahkan menu student services yang baru'
 					: 'Ubah Data dibawah untuk mengubah data dari menu ini'}
 			</Dialog.Description>
@@ -360,7 +284,7 @@
 					</div>
 
 					<Button type="submit" variant="default" disabled={isDisabled}
-						>{!selectedData ? 'Tambah' : 'Ubah'}</Button
+						>{!tableState.editMenuData.id ? 'Tambah' : 'Ubah'}</Button
 					>
 				</div>
 			</div>

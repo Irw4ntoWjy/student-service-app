@@ -182,6 +182,8 @@ export const getComboboxStaff = async () => {
 				sl.id as "value"
 			from 
 				staff_list sl
+			where 
+				sl.status = true
 		`;
 		return rows as ComboboxType[];
 	} catch (err) {

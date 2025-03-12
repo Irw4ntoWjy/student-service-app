@@ -10,8 +10,14 @@
 	let {
 		open = $bindable(),
 		currentMenu,
-		userData
-	}: { open: boolean; currentMenu: CurrentMenu; userData: UserData } = $props();
+		userData,
+		menuAction
+	}: {
+		open: boolean;
+		currentMenu: CurrentMenu;
+		userData: UserData;
+		menuAction: string | undefined;
+	} = $props();
 
 	// handle other option dialog state
 	let appointmentReason: string | undefined = $state(undefined);
@@ -63,7 +69,9 @@
 <Dialog.Root bind:open>
 	<Dialog.Content>
 		<Dialog.Header>
-			<Dialog.Title class="text-lg font-bold">Opsi lainnya</Dialog.Title>
+			<Dialog.Title class="text-lg font-bold"
+				>{menuAction ? menuAction : 'Opsi lainnya'}
+			</Dialog.Title>
 			<Dialog.Description class="text-sm text-gray-500">
 				Deskripsikan permasalahan yang anda alami
 			</Dialog.Description>

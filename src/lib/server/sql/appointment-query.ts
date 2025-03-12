@@ -5,6 +5,7 @@ import type {
 	AppointmentDetail,
 	AppointmentWithDetail
 } from '../../../routes/(app)/queue-ticket/queue-ticket-schema';
+import type { AppointmentListSchema } from '../../../routes/(app)/admin/appointment-list/appointment-list-schema';
 
 export const statusType = [
 	'CREATED',
@@ -68,8 +69,13 @@ export const createAppointment = async (
 		if (!appointmentId) {
 			throw new Error('Failed to retrieve appointment Id');
 		}
-
-		await sql`insert into appointment_detail (appointment_id, user_type, user_name, user_nim) values (${appointmentId}, ${appointmentDetail.userType}, ${appointmentDetail.userName}, ${appointmentDetail.userNim})`;
+		if (appointment.statusType === 'SCANNED') {
+			await sql`insert into appointment_detail (appointment_id, user_type, user_name, user_nim, scanned_at) 
+							 values (${appointmentId}, ${appointmentDetail.userType}, ${appointmentDetail.userName}, ${appointmentDetail.userNim}, NOW())`;
+		} else {
+			await sql`insert into appointment_detail (appointment_id, user_type, user_name, user_nim) 
+							 values (${appointmentId}, ${appointmentDetail.userType}, ${appointmentDetail.userName}, ${appointmentDetail.userNim})`;
+		}
 	} catch (err) {
 		console.error('Error inserting row', err);
 		throw err;
@@ -176,6 +182,31 @@ export const findCurrentAppointmentNo = async () => {
 	}
 };
 
+export const findAppointmentDetailById = async (appointmentId: number) => {
+	try {
+		const result = await sql`
+			select
+				apd.id,
+				apd.appointment_id as "appointmentId",
+				apd.served_by as "servedBy",
+				apd.user_type as "userType",
+				apd.user_name as "userName",
+				apd.user_nim as "userNim",
+				apd.scanned_at as "scannedAt",
+				apd.appointment_start_at as "appointmentStartAt",
+				apd.appointment_end_at as "appointmentEndAt",
+				apd.cancel_at as "cancelAt",
+				apd.cancel_reason as "cancelReason"
+			from 
+				appointment_detail apd
+			where 
+				apd.appointment_id = ${appointmentId}`;
+		return result.rows[0] as AppointmentDetailSchema;
+	} catch (err) {
+		console.error('Error Fetching appointment detail id: ', err);
+		throw err;
+	}
+};
 export const findAppointmentById = async (appointmentId: number) => {
 	try {
 		const result = await sql`
@@ -270,6 +301,52 @@ export const findOngoingAppointment = async () => {
 					) as "exists"
 			`;
 		return rows[0].exists as boolean;
+	} catch (err) {
+		console.error('Error fetching appointment:', err);
+		throw err;
+	}
+};
+
+export const findAllAppointment = async (
+	filter: string | undefined,
+	startDate: string | undefined,
+	endDate: string | undefined
+) => {
+	try {
+		const { rows } = await sql`
+			select 
+				ap.id,
+				ap.appointment_no as "appointmentNo",
+				ap.menu_id as "menuId",
+				m.name as menuName,				
+				ap.from_appointment_id as "fromAppointmentId",
+				(select appointment_no from appointment a where a.id = ap.from_appointment_id) as "fromAppointmentNo",
+				ap.status_type as "statusType",
+				ap.reason,
+				apd.user_type as "userType",
+				apd.user_name as "userName",
+				apd.user_nim as "userNim",
+				ap.created_at as "createdAt",
+				apd.scanned_at as "scannedAt",
+				apd.appointment_start_at as "appointmentStartAt",
+				apd.appointment_end_at as "appointmentEndAt",
+				apd.cancel_at as "cancelAt",
+				apd.cancel_reason as "cancelReason",
+				apd.served_by as "servedBy",
+				(select name from staff_list sf where sf.id = apd.served_by) as servedName
+			from 
+				appointment ap
+			inner join 
+				appointment_detail apd on apd.appointment_id = ap.id
+			inner join 
+				menu m on m.id = ap.menu_id
+			where 
+				(${filter}::text is null or upper(ap.appointment_no) like ${'%' + filter?.toUpperCase() + '%'})
+				and (${startDate}::date is null or ${endDate}::date is null or date(ap.created_at) between ${startDate}::date and ${endDate}::date)
+			order by 
+				ap.created_at desc
+		`;
+		return rows as AppointmentListSchema[];
 	} catch (err) {
 		console.error('Error fetching appointment:', err);
 		throw err;

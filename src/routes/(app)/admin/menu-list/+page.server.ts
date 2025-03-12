@@ -2,6 +2,7 @@ import {
 	findpaginatedMenu,
 	insertMenu,
 	insertMenuAction,
+	updateMenu,
 	type MenuSchema
 } from '$lib/server/sql/menu-query';
 import type { Actions } from '@sveltejs/kit';
@@ -24,6 +25,7 @@ export const actions = {
 		}
 
 		const menuData: MenuList = {
+			id: Number(formData.get('id')),
 			name: String(formData.get('name')),
 			code: String(formData.get('code')).toUpperCase(),
 			description: String(formData.get('description')),
@@ -32,7 +34,11 @@ export const actions = {
 			status: true
 		};
 
-		insertMenu(menuData);
+		if (menuData.id) {
+			updateMenu(menuData);
+		} else {
+			insertMenu(menuData);
+		}
 	},
 
 	submitMenuAction: async ({ request }) => {

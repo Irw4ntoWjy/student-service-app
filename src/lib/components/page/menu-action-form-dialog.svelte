@@ -17,7 +17,7 @@
 
 	let name: string = $state('');
 	let link: string = $state('');
-	let type: 'FORM' | 'APPOINTMENT' = $state('APPOINTMENT');
+	let type: 'LINK' | 'APPOINTMENT' = $state('APPOINTMENT');
 
 	const addActionForm = async () => {
 		const formData = new FormData();
@@ -72,12 +72,12 @@
 						<Label for="r2" class="cursor-pointer">Appointment</Label>
 					</div>
 					<div class="flex items-center gap-x-2">
-						<RadioGroup.Item value="FORM" id="r1" />
+						<RadioGroup.Item value="LINK" id="r1" />
 						<Label for="r1" class="cursor-pointer">Form</Label>
 					</div>
 				</div>
 			</RadioGroup.Root>
-			{#if type === 'FORM'}
+			{#if type === 'LINK'}
 				<div class="flex w-full items-center gap-x-2">
 					<Label class="w-1/5">Link</Label>
 					<Input class="w-4/5" bind:value={link} />

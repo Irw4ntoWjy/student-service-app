@@ -21,7 +21,6 @@
 		name: undefined!,
 		code: undefined!
 	});
-	$inspect(currentMenu);
 </script>
 
 <div class="mt-4 grid grid-cols-4 items-center justify-items-center gap-12 p-6">

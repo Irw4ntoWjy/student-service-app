@@ -42,6 +42,8 @@
 		}
 		return false;
 	});
+
+	let menuAction: string | undefined = $state(undefined);
 </script>
 
 <Dialog.Root
@@ -111,6 +113,8 @@
 							if (menu.type === 'LINK') {
 								window.open(menu.link, '_blank');
 							} else {
+								menuAction = menu.name;
+
 								openMenuAction = false;
 								openOtherOptionDialog = true;
 							}
@@ -146,13 +150,6 @@
 				{/if}
 			</div>
 		{:else}
-			<!-- <div class="flex flex-col items-center space-y-2 p-2">
-				<div class="mt-2 flex gap-2">
-					<Skeleton class="h-12 w-[260px]" />
-					<Skeleton class="h-12 w-[175px]" />
-				</div>
-				<Skeleton class="h-12 w-full" />
-			</div> -->
 			<div class="flex h-24 items-center justify-center">
 				<p class="text-lg font-bold text-gray-700">Maaf, menu ini belum terisi !</p>
 			</div>
@@ -161,6 +158,6 @@
 </Dialog.Root>
 
 {#if currentMenu}
-	<OtherOptionDialog bind:open={openOtherOptionDialog} {currentMenu} {userData} />
+	<OtherOptionDialog bind:open={openOtherOptionDialog} {currentMenu} {userData} {menuAction} />
 	<MenuActionFormDialog bind:openFormDialog menuId={currentMenu.id} />
 {/if}

@@ -42,7 +42,28 @@ export const insertMenu = async (menu: MenuList) => {
 	}
 };
 
+export const updateMenu = async (menu: MenuList) => {
+	try {
+		await sql`
+			update 
+				menu 
+			set
+				name = ${menu.name},
+				code = ${menu.code},
+				description = ${menu.description},
+				image_path = ${menu.imagePath},
+				created_by = ${menu.createdBy}
+			where
+				id = ${menu.id}
+			`;
+	} catch (err) {
+		console.error('Error inserting row', err);
+		throw err;
+	}
+};
+
 export const insertMenuAction = async (menuAction: MenuActionSchema) => {
+	console.log('menuAction', menuAction);
 	try {
 		await sql`insert into menu_detail (menu_id, name, type, status, link, created_by) values (${menuAction.menuId}, ${menuAction.name}, ${menuAction.type}, ${menuAction.status}, ${menuAction.link}, ${menuAction.createdBy})`;
 	} catch (err) {
@@ -104,6 +125,7 @@ export const findpaginatedMenu = async (filter?: string | undefined) => {
 					m.last_updated_by as "lastupdatedBy"
 				from 
 					menu m
+				order by m.created_at asc
 			`;
 		}
 
@@ -124,6 +146,8 @@ export const getComboboxMenu = async () => {
 				m.code as "data"
 			from 
 				menu m
+			where 
+				m.status = true
 		`;
 		return rows as ComboboxType[];
 	} catch (err) {

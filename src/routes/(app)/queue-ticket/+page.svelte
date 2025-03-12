@@ -131,15 +131,14 @@
 			>
 				<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
 				{#each ongoingAppointment as ticket}
-					<QueueTicket2 data={ticket} staffList={data.staffList} />
+					<QueueTicket2 data={ticket} staffList={data.staffList} menuList={data.menuList} />
 				{/each}
 			</div>
-
 			<div
 				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-2 overflow-y-auto rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
 				<span
-					class="sticky top-0 z-10 mt-2 flex w-full -translate-y-5 items-center bg-blue-900 py-2 text-2xl font-medium text-white"
+					class="flex h-20 w-full -translate-y-5 items-center bg-blue-900 py-2 text-2xl font-medium text-white"
 					>Nomor Antrian yang Telah Selesai</span
 				>
 				{#each finishedAppoinment as ticket}

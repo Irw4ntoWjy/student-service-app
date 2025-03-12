@@ -2,7 +2,7 @@ import type { Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { findpaginatedMenu } from '$lib/server/sql/menu-query';
 import { createAppointment } from '$lib/server/sql/appointment-query';
-import type { Appointment, AppointmentDetail } from './menu-schema';
+import type { Appointment, AppointmentDetail } from '../queue-ticket/queue-ticket-schema';
 
 export const load: PageServerLoad = async () => {
 	const menuList = await findpaginatedMenu();

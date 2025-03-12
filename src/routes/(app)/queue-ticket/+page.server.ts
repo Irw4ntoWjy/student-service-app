@@ -18,16 +18,20 @@
 
 import type { ComboboxType } from '$lib/components/ui/combobox';
 import {
+	createAppointment,
+	findAppointmentDetailById,
 	findOngoingAppointment,
 	findTodayAppointment,
 	updateAppointmentStatus,
+	type AppointmentDetailSchema,
 	type StatusType
 } from '$lib/server/sql/appointment-query';
 import { getComboboxMenu } from '$lib/server/sql/menu-query';
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import type { AppointmentWithDetail } from './queue-ticket-schema';
+import type { Appointment, AppointmentWithDetail } from './queue-ticket-schema';
 import { getComboboxStaff } from '$lib/server/sql/staff-list-query';
+import type { AppointmentDetail } from './queue-ticket-schema';
 
 // export const load: PageServerLoad = async () => {
 // 	const appointmentTicket = await getAppointmentTicket();
@@ -110,6 +114,33 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions = {
+	insertAppointment: async ({ request }) => {
+		const formData = await request.formData();
+
+		const pastAppointmentDetail: AppointmentDetailSchema = await findAppointmentDetailById(
+			Number(formData.get('id'))
+		);
+
+		const appointment: Appointment = {
+			menuId: Number(formData.get('menuId')),
+			appointmentNo: String(formData.get('appointmentNo')),
+			fromAppointmentId: pastAppointmentDetail.appointmentId,
+			statusType: 'SCANNED',
+			reason: String(formData.get('reason')),
+			createdBy: Number(1)
+		};
+
+		const appointmentDetail: AppointmentDetail = {
+			userName: pastAppointmentDetail.userName,
+			userType: pastAppointmentDetail.userType,
+			...(pastAppointmentDetail.userNim !== 'undefined' && {
+				userNim: pastAppointmentDetail.userNim
+			})
+		};
+
+		createAppointment(appointment, appointmentDetail);
+	},
+
 	updateAppointmentStatus: async ({ request }) => {
 		const formData = await request.formData();
 

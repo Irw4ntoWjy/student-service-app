@@ -5,13 +5,15 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import type { StatusType } from '$lib/server/sql/appointment-query';
-	import { Calendar, Check, Sheet, User, X } from 'lucide-svelte';
+	import { Calendar, Check, RotateCw, Sheet, User, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
 	import Combobox from '$lib/components/ui/combobox/combobox.svelte';
 	import type { ComboboxType } from '$lib/components/ui/combobox';
+	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
+	import { page } from '$app/state';
 
 	let {
 		data,
@@ -71,6 +73,7 @@
 		openDetailDialog = false;
 		openCancelDialog = false;
 		cancelReason = undefined;
+		cancelReason = undefined;
 
 		await invalidateAll();
 	};
@@ -88,8 +91,9 @@
 				updateAppointmentStatus(data.id, 'PENDING');
 			}
 
-			if (data.statusType === 'PENDING' && timeElapsed >= 300) {
+			if (data.statusType === 'PENDING' && timeElapsed >= 30) {
 				clearInterval(interval);
+				cancelReason = 'Dibatalkan oleh sistem';
 				updateAppointmentStatus(data.id, 'CANCELLED');
 			}
 		}, 1000);
@@ -132,9 +136,53 @@
 	let openDetailDialog: boolean = $state(false);
 	let openCancelDialog: boolean = $state(false);
 	let openServedFormDialog: boolean = $state(false);
+	let openRecreateTicketDialog: boolean = $state(false);
 
 	let cancelReason: string | undefined = $state(undefined);
 	let staffCbxData: ComboboxType | undefined = $state(undefined);
+	let menuCbxData: ComboboxType | undefined = $state(undefined);
+
+	const recreateNewAppointment = async () => {
+		let currentAppointmentNo: string = '';
+		let nextAppointmentNo: string = '';
+		const response = await fetch(
+			`${page.url.origin}/menu-services/get-current-appointment-no`
+		).then((res) => res.json());
+		currentAppointmentNo = response;
+
+		const now = new Date();
+		const year = String(now.getFullYear()).slice(-2);
+		const month = String(now.getMonth() + 1).padStart(2, '0');
+		const day = String(now.getDate()).padStart(2, '0');
+
+		const match = currentAppointmentNo?.match(/(\d{3})$/);
+
+		let sequence = 1;
+
+		if (match) {
+			sequence = Number(match[1]) + 1;
+		}
+		currentAppointmentNo = sequence.toString().padStart(3, '0');
+		nextAppointmentNo = `${menuCbxData?.data}${year}${month}${day}${currentAppointmentNo}`;
+
+		const formData = new FormData();
+		formData.append('id', String(data.id));
+		formData.append('appointmentNo', nextAppointmentNo);
+		formData.append('menuId', String(menuCbxData?.value));
+		formData.append('reason', String(cancelReason));
+
+		const res = await fetch(`?/insertAppointment`, {
+			method: 'POST',
+			body: formData
+		});
+
+		if (res.ok) {
+			await updateAppointmentStatus(data.id, 'CANCELLED');
+
+			toast.success('Berhasil membuat kembali appointment');
+			await invalidateAll();
+		}
+	};
 </script>
 
 <Dialog.Root bind:open={openDetailDialog}>
@@ -226,6 +274,17 @@
 						<X class="font-bold text-white" />
 						<span class="text-lg text-white">Dibatalkan</span>
 					</Button>
+				{:else}
+					<Button
+						variant="outline"
+						onclick={() => {
+							openRecreateTicketDialog = true;
+							openDetailDialog = false;
+						}}
+					>
+						<RotateCw class="font-bold text-black" />
+						<span class="text-lg text-black">Dibuka Kembali</span>
+					</Button>
 				{/if}
 
 				<Button
@@ -313,6 +372,61 @@
 					updateAppointmentStatus(data.id, 'COMPLETED');
 				}}>Selesai</Button
 			>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={openRecreateTicketDialog}>
+	<Dialog.Content class="h-auto max-w-[36rem]">
+		<Dialog.Header>
+			<Dialog.Title class="text-2xl font-medium">Membuka kembali Ticket</Dialog.Title>
+			<Dialog.Description>Mohon untuk menambahkan data dibawah</Dialog.Description>
+			<Separator />
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col gap-[12px]">
+					<div class="flex gap-1">
+						<Label class="text-xl font-medium">Pilih Divisi yang melayani</Label>
+						<div class="text-destructive">*</div>
+					</div>
+					<Combobox
+						items={menuList || []}
+						placeholder="Pilih Divisi..."
+						bind:selectedData={menuCbxData}
+					/>
+				</div>
+
+				<div class="flex flex-col gap-[12px]">
+					<div class="flex gap-1">
+						<Label class="text-xl font-medium">Isi Alasan pembukaan ticket dibawah ini</Label>
+						<div class="text-destructive">*</div>
+					</div>
+					<Textarea
+						oninput={(e) => {
+							cancelReason = e.currentTarget.value;
+						}}
+					/>
+				</div>
+			</div>
+		</Dialog.Header>
+
+		<Dialog.Footer>
+			<Button
+				class="w-[88px] text-base"
+				variant="outline"
+				onclick={() => {
+					openDetailDialog = true;
+					openRecreateTicketDialog = false;
+				}}>Kembali</Button
+			>
+			<Button
+				class="w-[88px] text-base"
+				type="submit"
+				disabled={!menuCbxData?.value || !cancelReason}
+				onclick={async () => {
+					await recreateNewAppointment();
+				}}
+				>Tambah
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

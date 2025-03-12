@@ -58,16 +58,18 @@ export function menuTable(pageUrl: string, menuData: MenuSchema[]) {
 
 	type EditMenuType = {
 		id: number | undefined;
-		menuName: string | undefined;
-		menuDescription: string | undefined;
+		name: string | undefined;
+		code: string | undefined;
+		description: string | undefined;
 		imageName: string | undefined;
 		status: boolean;
 	};
 
 	let editMenuData: EditMenuType = $state({
 		id: undefined,
-		menuName: undefined,
-		menuDescription: undefined,
+		name: undefined,
+		code: undefined,
+		description: undefined,
 		imageName: undefined,
 		status: true
 	});
@@ -154,8 +156,9 @@ export function menuTable(pageUrl: string, menuData: MenuSchema[]) {
 							onClick: () => {
 								editMenuData = {
 									id: row.original.id,
-									menuName: row.original.name,
-									menuDescription: row.original.description,
+									name: row.original.name,
+									code: row.original.code,
+									description: row.original.description,
 									imageName: row.original.imagePath,
 									status: row.original.status
 								};

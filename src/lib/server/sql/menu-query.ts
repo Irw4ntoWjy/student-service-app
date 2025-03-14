@@ -57,17 +57,32 @@ export const updateMenu = async (menu: MenuList) => {
 				id = ${menu.id}
 			`;
 	} catch (err) {
-		console.error('Error inserting row', err);
+		console.error('Error updating row', err);
 		throw err;
 	}
 };
 
 export const insertMenuAction = async (menuAction: MenuActionSchema) => {
-	console.log('menuAction', menuAction);
 	try {
-		await sql`insert into menu_detail (menu_id, name, type, status, link, created_by) values (${menuAction.menuId}, ${menuAction.name}, ${menuAction.type}, ${menuAction.status}, ${menuAction.link}, ${menuAction.createdBy})`;
+		await sql`insert into menu_detail (menu_id, name, type, status, link, created_by) values (${menuAction.menuId}, ${menuAction.name}, ${menuAction.type}, true, ${menuAction.link}, ${menuAction.createdBy})`;
 	} catch (err) {
 		console.error('Error inserting row', err);
+		throw err;
+	}
+};
+
+export const updateMenuActionToFalse = async (id: number) => {
+	try {
+		await sql`
+			update 
+				menu_action
+			set
+				status = false
+			where
+				id = ${id}
+		`;
+	} catch (err) {
+		console.error('Error updating row', err);
 		throw err;
 	}
 };
@@ -125,6 +140,8 @@ export const findpaginatedMenu = async (filter?: string | undefined) => {
 					m.last_updated_by as "lastupdatedBy"
 				from 
 					menu m
+				where 
+					m.status = true
 				order by m.created_at asc
 			`;
 		}

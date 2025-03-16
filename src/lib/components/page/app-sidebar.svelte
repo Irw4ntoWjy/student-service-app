@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import { Briefcase, ChevronRight, PersonStanding, SquareMenu } from 'lucide-svelte';
 	import src from '$lib/assets/UPH-Blue.svg';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import { Briefcase, ChevronRight, PersonStanding, SquareMenu, UserRoundPen } from 'lucide-svelte';
 
 	// Menu items.
 	const items = [
@@ -22,6 +22,13 @@
 			icon: Briefcase
 		}
 	];
+
+	// if login role is lead
+	items.push({
+		title: 'Edit Data Request',
+		url: '/admin/edit-request',
+		icon: UserRoundPen
+	});
 </script>
 
 <Sidebar.Root>

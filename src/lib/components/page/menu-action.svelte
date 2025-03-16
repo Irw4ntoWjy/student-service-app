@@ -1,19 +1,21 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { CirclePlus } from 'lucide-svelte';
-	import OtherOptionDialog from '../../../routes/(app)/menu-services/other-option-dialog.svelte';
-	import MenuActionFormDialog from './menu-action-form-dialog.svelte';
-	import Input from '../ui/input/input.svelte';
-	import Label from '../ui/label/label.svelte';
-	import Separator from '../ui/separator/separator.svelte';
-	import * as RadioGroup from '../ui/radio-group/index.js';
+	import { CirclePlus, X } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 	import type {
 		CurrentMenu,
 		MenuActionSchema,
 		UserData
 	} from '../../../routes/(app)/menu-services/menu-schema';
+	import OtherOptionDialog from '../../../routes/(app)/menu-services/other-option-dialog.svelte';
+	import Input from '../ui/input/input.svelte';
+	import Label from '../ui/label/label.svelte';
+	import * as RadioGroup from '../ui/radio-group/index.js';
+	import Separator from '../ui/separator/separator.svelte';
+	import MenuActionFormDialog from './menu-action-form-dialog.svelte';
 
 	let {
 		data,
@@ -44,6 +46,23 @@
 	});
 
 	let menuAction: string | undefined = $state(undefined);
+
+	const removeMenuAction = async (id: number) => {
+		const formData = new FormData();
+
+		formData.append('id', String(id));
+
+		const response = await fetch('?/updateMenuActionStatus', {
+			method: 'POST',
+			body: formData
+		});
+
+		if (response.ok) {
+			openFormDialog = false;
+			toast.success('Berhasil menghapus action menu');
+			await invalidateAll();
+		}
+	};
 </script>
 
 <Dialog.Root
@@ -106,9 +125,10 @@
 			<div class="flex flex-wrap justify-center gap-4">
 				{#each data as menu}
 					<Button
-						disabled={(userData.type === 'STUDENT' && !isUserDataFilled) ||
-							(userData.type === 'EXTERNAL' && !userData.name)}
-						class="max-w-full flex-grow bg-primary px-4 py-2"
+						disabled={!isAdminPage &&
+							((userData.type === 'STUDENT' && !isUserDataFilled) ||
+								(userData.type === 'EXTERNAL' && !userData.name))}
+						class="relative max-w-full flex-grow bg-primary px-4 py-2"
 						onclick={() => {
 							if (menu.type === 'LINK') {
 								window.open(menu.link, '_blank');
@@ -121,6 +141,16 @@
 						}}
 					>
 						{menu.name}
+						<Button
+							class="absolute right-0 top-0 flex size-4 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-destructive p-0"
+							onclick={(e) => {
+								e.stopPropagation();
+
+								if (menu.id) removeMenuAction(menu.id);
+							}}
+						>
+							<X class="size-1" />
+						</Button>
 					</Button>
 				{/each}
 				<Button

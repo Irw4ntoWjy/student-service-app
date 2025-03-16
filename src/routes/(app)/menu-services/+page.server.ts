@@ -1,8 +1,8 @@
-import type { Actions } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
-import { findpaginatedMenu } from '$lib/server/sql/menu-query';
 import { createAppointment } from '$lib/server/sql/appointment-query';
+import { findpaginatedMenu, updateMenuActionToFalse } from '$lib/server/sql/menu-query';
+import type { Actions } from '@sveltejs/kit';
 import type { Appointment, AppointmentDetail } from '../queue-ticket/queue-ticket-schema';
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
 	const menuList = await findpaginatedMenu();
@@ -10,6 +10,12 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions = {
+	updateMenuActionStatus: async ({ request }) => {
+		const formData = await request.formData();
+
+		updateMenuActionToFalse(Number(formData.get('id')));
+	},
+
 	createAppointment: async ({ request }) => {
 		const formData = await request.formData();
 
@@ -28,21 +34,5 @@ export const actions = {
 		};
 
 		createAppointment(appointment, appointmentDetail);
-
-		// const formData: InsertUpdateAppointmentSchema = {
-		// 	menuId: String(rawData.get('menuId')),
-		// 	appointmentNo: String(rawData.get('appointmentNo')),
-		// 	reason: String(rawData.get('reason')),
-		// 	status: 'created',
-		// 	userStatus: String(rawData.get('userStatus')) as 'GENERAL' | 'ACTIVE',
-		// 	userName: String(rawData.get('userName'))
-		// };
-
-		// const userNim = rawData.get('userNim');
-		// if (userNim !== undefined && formData.userStatus !== 'GENERAL') {
-		// 	formData.userNim = String(userNim);
-		// }
-
-		// insertAppointment(formData);
 	}
 } satisfies Actions;

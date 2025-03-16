@@ -9,6 +9,7 @@ export const inittable = async () => {
 					user_email varchar(50) not null,
 					user_name varchar(50) not null,
 					password text not null,
+          role varchar(10) not null, 
 					created_at timestamp default now(),
 					last_updated_at timestamp,
 					last_updated_by int4
@@ -130,6 +131,25 @@ export const inittable = async () => {
             check (cancel_at is null or cancel_reason is not null),
           constraint check_user_nim_not_null
             check (user_type = 'STUDENT' and user_nim is not null or user_type = 'EXTERNAL')
+        )
+      `,
+			sql`
+        create table if not exists change_request (
+          id serial primary key,
+          from_id int4 not null,
+          type varchar(20) not null,
+          changes_json JSON not null, 
+          status boolean not null default true,
+          created_at timestamp default now(),
+          created_by int4 not null,
+          last_updated_at timestamp,
+					last_updated_by int4,
+          constraint fk_created_by 
+            foreign key (created_by) 
+              references admin(id) on delete cascade on update cascade,
+          constraint fk_last_updated_by
+            foreign key (last_updated_by)
+              references admin(id) on delete cascade on update cascade
         )
       `
 		]);

@@ -1,137 +1,148 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import * as Card from '$lib/components/ui/card';
-	import * as Dialog from '$lib/components/ui/dialog';
-
-	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import type { ComboboxType } from '$lib/components/ui/combobox';
-	import Combobox from '$lib/components/ui/combobox/combobox.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import type { StatusType } from '$lib/server/sql/appointment-query';
+	import { Calendar, Check, RotateCw, Sheet, User, X } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import type { AppointmentWithDetail } from './queue-ticket-schema';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
+	import Combobox from '$lib/components/ui/combobox/combobox.svelte';
+	import type { ComboboxType } from '$lib/components/ui/combobox';
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
-	import { Check, Undo2, X } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
-	import type { QueueTicketSchema, Status } from './queue-ticket-schema';
+	import { page } from '$app/state';
 
-	type QueueTicketProps = {
-		queueTicket: QueueTicketSchema;
-		staffList: ComboboxType[];
-		menuList: ComboboxType[];
-	};
+	let {
+		data,
+		staffList,
+		menuList
+	}: { data: AppointmentWithDetail; staffList?: ComboboxType[]; menuList?: ComboboxType[] } =
+		$props();
 
 	const cardColor = {
-		active: 'bg-sky-400 text-gray-50',
-		pending: '',
-		waiting: '',
-		closed: 'bg-green-600 text-gray-50',
-		cancelled: 'bg-destructive text-gray-50'
+		CREATED: '',
+		SCANNED: 'bg-slate-50',
+		PENDING: 'bg-slate-50',
+		ONGOING: 'bg-sky-400 text-gray-50',
+		COMPLETED: 'bg-green-600 text-gray-50',
+		CANCELLED: 'bg-destructive text-gray-50 border-none'
 	};
 
-	let { queueTicket, staffList, menuList }: QueueTicketProps = $props();
+	const statusTranslation = {
+		CREATED: 'Terdaftar',
+		SCANNED: 'Sedang Menunggu',
+		PENDING: 'Belum Terlayani',
+		ONGOING: 'Sedang Dilayani',
+		COMPLETED: 'Selesai Dilayani',
+		CANCELLED: 'Dibatalkan'
+	};
 
-	const finishedTicket = queueTicket.status === 'closed' || queueTicket.status === 'cancelled';
+	const userType = {
+		STUDENT: 'Mahasiswa',
+		EXTERNAL: 'Umum'
+	};
 
-	let openCancelDialog: boolean = $state(false);
-	let isHovered: boolean = $state(false);
-	let cancelReason: string | undefined = $state(undefined);
-
-	const updateTicketStatus = async (id: string, newStatus: Status) => {
+	const updateAppointmentStatus = async (id: number, status: StatusType) => {
 		const formData = new FormData();
-		formData.append('id', id);
-		formData.append('status', newStatus);
+		formData.append('id', String(id));
+		formData.append('status', status);
+		if (status === 'CANCELLED') formData.append('cancelReason', String(cancelReason));
+		if (status === 'COMPLETED') formData.append('servedBy', String(staffCbxData?.value));
 
-		if (newStatus === 'cancelled') {
-			formData.append('reason', String(cancelReason));
-		}
-
-		if (queueTicket.status === 'pending' && newStatus === 'active') {
-			const fetchData = await fetch(`${page.url}/count-current-active-ticket`);
-			const countActiveTicket = await fetchData.json();
-
-			if (countActiveTicket > 0) {
-				toast.error('Gagal untuk mengubah status ticket', {
-					description: 'Terdapat appointment yang sedang berjalan !',
-					class: 'text-lg '
-				});
-				return;
-			}
-		}
-
-		const response = await fetch('?/updateStatusActive', {
+		const response = await fetch('?/updateAppointmentStatus', {
 			method: 'POST',
 			body: formData
 		});
 
-		if (response.status === 200) {
-			await invalidateAll();
-			openCancelDialog = false;
+		const result = await response.json();
+
+		if (result.status === 400) {
+			toast.error(result.data.message || 'Gagal Mengubah Status Tiket', {
+				class: 'text-lg',
+				description: 'Mohon pastikan tidak ada appointment yang sedang berjalan'
+			});
+		} else {
 			toast.success('Berhasil Mengubah Status Tiket', {
 				class: 'text-lg '
 			});
 		}
+
+		openDetailDialog = false;
+		openCancelDialog = false;
+		cancelReason = undefined;
+		cancelReason = undefined;
+
+		await invalidateAll();
 	};
 
-	let timeGap: string = $state('00 : 00');
-	let isTimeLimitReached: boolean = $state(false);
-	let totalSeconds: number = $state(0);
-
+	let timeElapsed = $state(0);
+	let currentTime = $state(new Date());
 	$effect(() => {
-		if (queueTicket.status === 'pending' || queueTicket.status === 'waiting') {
-			const interval = setInterval(() => {
-				let createdTime = new Date();
-				if (queueTicket.scannedAt) createdTime = new Date(queueTicket.scannedAt);
+		const interval = setInterval(() => {
+			currentTime = new Date();
+			timeElapsed += 1;
 
-				createdTime.setHours(createdTime.getHours() + 7);
+			//NOTES perlu adjust interval lagi
+			if (data.statusType === 'SCANNED' && timeElapsed >= 300) {
+				clearInterval(interval);
+				updateAppointmentStatus(data.id, 'PENDING');
+			}
 
-				const currentTime = new Date(
-					new Date().toLocaleString('en-US', {
-						timeZone: 'Asia/Jakarta'
-					})
-				);
+			if (data.statusType === 'PENDING' && timeElapsed >= 400) {
+				clearInterval(interval);
+				cancelReason = 'Dibatalkan oleh sistem';
+				updateAppointmentStatus(data.id, 'CANCELLED');
+			}
+		}, 1000);
 
-				const timeDiff: number = currentTime.getTime() - createdTime.getTime();
-
-				const seconds = Math.floor(timeDiff / 1000);
-				const minutes = Math.floor(seconds / 60);
-
-				timeGap = `${(minutes % 60).toString().padStart(2, '0')} : ${(seconds % 60).toString().padStart(2, '0')}`;
-				totalSeconds = Math.floor(timeDiff / 1000);
-
-				if (totalSeconds > 300 && queueTicket.status === 'pending') {
-					isTimeLimitReached = true;
-				}
-			}, 1000);
-
-			return () => clearInterval(interval);
-		}
+		return () => clearInterval(interval);
 	});
 
-	$effect(() => {
-		if (isTimeLimitReached) {
-			updateTicketStatus(queueTicket.id.toString(), 'waiting');
+	const currentWaitingTime = $derived.by(() => {
+		const scannedAt = new Date(data.scannedAt);
+		const timezoneOffsetHours = currentTime.getTimezoneOffset() / -60;
+		scannedAt.setHours(scannedAt.getHours() + timezoneOffsetHours);
 
-			isTimeLimitReached = false;
-			invalidateAll();
-		}
+		const diffMs = currentTime.getTime() - scannedAt.getTime();
+
+		const totalSeconds = Math.floor(diffMs / 1000);
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = totalSeconds % 60;
+
+		return {
+			get waitingTime() {
+				return `${minutes.toString().padStart(2, '0')} : ${seconds.toString().padStart(2, '0')}`;
+			},
+			get totalWaitingTime() {
+				return totalSeconds;
+			}
+		};
 	});
 
-	$effect(() => {
-		//auto cancel appointment if out of time limit
-		if (totalSeconds > 5400) {
-			updateTicketStatus(queueTicket.id.toString(), 'cancelled');
-
-			totalSeconds = 0;
-			invalidateAll();
+	const handleUpdateAppointment = async () => {
+		//update to ongoing appointment
+		if (data.statusType === 'SCANNED' || data.statusType === 'PENDING') {
+			updateAppointmentStatus(data.id, 'ONGOING');
 		}
-	});
+		if (data.statusType === 'ONGOING') {
+			openServedFormDialog = true;
+			openDetailDialog = false;
+		}
+	};
 
-	// re-create ticket logic
-	let recrateTicket: boolean = $state(false);
-	let menuCbxValue: string = $state('');
+	let openDetailDialog: boolean = $state(false);
+	let openCancelDialog: boolean = $state(false);
+	let openServedFormDialog: boolean = $state(false);
+	let openRecreateTicketDialog: boolean = $state(false);
+
+	let cancelReason: string | undefined = $state(undefined);
+	let staffCbxData: ComboboxType | undefined = $state(undefined);
 	let menuCbxData: ComboboxType | undefined = $state(undefined);
 
-	const recreateTicket = async () => {
+	const recreateNewAppointment = async () => {
 		let currentAppointmentNo: string = '';
 		let nextAppointmentNo: string = '';
 		const response = await fetch(
@@ -155,127 +166,145 @@
 		nextAppointmentNo = `${menuCbxData?.data}${year}${month}${day}${currentAppointmentNo}`;
 
 		const formData = new FormData();
+		formData.append('id', String(data.id));
 		formData.append('appointmentNo', nextAppointmentNo);
-		formData.append('menuId', String(menuCbxValue));
+		formData.append('menuId', String(menuCbxData?.value));
 		formData.append('reason', String(cancelReason));
-		formData.append('id', String(queueTicket.id));
 
 		const res = await fetch(`?/insertAppointment`, {
 			method: 'POST',
 			body: formData
 		});
+
 		if (res.ok) {
-			recrateTicket = false;
-			await invalidateAll();
+			await updateAppointmentStatus(data.id, 'CANCELLED');
+
 			toast.success('Berhasil membuat kembali appointment');
+			await invalidateAll();
 		}
-	};
-
-	// update appointment served staff
-	let openAppointmentDetailDialog: boolean = $state(false);
-	let staffCbxValue: string = $state('');
-	let staffCbxData: ComboboxType | undefined = $state(undefined);
-
-	const updateAppointmentDetail = async () => {
-		if (staffCbxData) {
-			const formData = new FormData();
-			formData.append('id', queueTicket.id.toString());
-			formData.append('servedBy', staffCbxData.label);
-			formData.append('servedId', staffCbxData.value);
-
-			await fetch(`?/updateAppointmentDetail`, {
-				method: 'POST',
-				body: formData
-			});
-		}
-
-		await updateTicketStatus(queueTicket.id.toString(), 'closed');
-		await invalidateAll();
-		openAppointmentDetailDialog = false;
 	};
 </script>
 
-<Card.Root
-	class="{queueTicket.status === 'closed' || queueTicket.status === 'cancelled'
-		? 'h-auto'
-		: 'h-[16.75rem]'}  w-[22.25rem]  {cardColor[
-		queueTicket.status
-	]} relative flex cursor-pointer items-center justify-center rounded-lg border-none shadow-xl transition-shadow duration-300 hover:shadow-2xl"
-	onmouseenter={() => (isHovered = true)}
-	onmouseleave={() => {
-		setTimeout(() => {
-			isHovered = false;
-		}, 200);
-	}}
->
-	<div class={finishedTicket ? 'flex items-center justify-evenly p-1' : ''}>
-		<Card.Content
-			class="flex flex-col {finishedTicket ? 'text-right' : 'items-center justify-center'} p-2"
+<Dialog.Root bind:open={openDetailDialog}>
+	<Dialog.Trigger>
+		<Card.Root
+			class="{data.statusType === 'CANCELLED' || data.statusType === 'COMPLETED'
+				? 'h-[4rem]'
+				: 'h-[16rem]'} w-[22rem] cursor-pointer rounded-lg border-none"
 		>
-			{#if isHovered && (queueTicket.status === 'pending' || queueTicket.status === 'waiting' || queueTicket.status === 'active')}
-				<div
-					class="relative flex h-[16rem] w-[20.25rem] flex-col justify-between rounded-lg {cardColor[
-						queueTicket.status
-					]} p-6"
-					onmouseleave={() => (isHovered = false)}
-					role="dialog"
-					aria-modal="true"
-				>
-					<div class="mb-2 flex h-[12rem] flex-col items-center justify-center text-center">
-						<p
-							class="w-full overflow-hidden text-ellipsis text-wrap break-words text-2xl font-medium leading-relaxed"
-						>
-							{queueTicket.reason || 'No description available'}
-						</p>
-					</div>
+			<Card.Content
+				class="relative flex h-full items-center justify-center rounded-lg p-4 {cardColor[
+					data.statusType
+				]}"
+			>
+				<span class="text-4xl font-bold">{data.appointmentNo}</span>
+				{#if data.statusType === 'PENDING' || data.statusType === 'SCANNED'}
+					<span
+						class="absolute bottom-4 right-4 text-[28px] font-semibold {data.statusType ===
+							'SCANNED' && currentWaitingTime.totalWaitingTime > 300
+							? 'text-destructive'
+							: data.statusType === 'PENDING'
+								? 'text-black'
+								: 'text-green-500'}">{currentWaitingTime.waitingTime}</span
+					>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+	</Dialog.Trigger>
+	<Dialog.Content>
+		<div class="inline-flex flex-col items-center justify-center">
+			<div class="flex items-center gap-2 rounded-lg border border-slate-300 p-2">
+				<User class="size-4" />
+				<span class="font-semibold">{statusTranslation[data.statusType]}</span>
+			</div>
+		</div>
 
-					<div class="flex justify-end gap-3">
-						{#if queueTicket.status === 'pending' || queueTicket.status === 'waiting'}
-							<Button variant="destructive" onclick={() => (openCancelDialog = true)}>
-								<X />
-							</Button>
-						{/if}
-						{#if queueTicket.status === 'active'}
-							<Button
-								variant="outline"
-								class="border transition-colors duration-200 hover:bg-gray-300"
-								onclick={() => (recrateTicket = true)}
-							>
-								<Undo2 class="size-8 text-black" />
-							</Button>
-						{/if}
-						<Button
-							class="bg-green-500 text-gray-50 hover:bg-green-600"
-							onclick={async () => {
-								if (queueTicket.status === 'pending' || queueTicket.status === 'waiting') {
-									await updateTicketStatus(queueTicket.id.toString(), 'active');
-								} else {
-									openAppointmentDetailDialog = true;
-								}
-							}}
-						>
-							<Check />
-						</Button>
+		<div class="flex flex-col items-center gap-1">
+			<span class="text-4xl font-bold">{data.appointmentNo}</span>
+			<span class="text-slate-400">Nomor Antrian</span>
+			<Separator class="mt-3 h-0.5" />
+		</div>
+
+		<div class="">
+			<div class="flex items-center gap-2 text-slate-500">
+				<User class="size-4" />
+				<span class="text-lg font-medium text-slate-500">Tipe Tamu</span>
+			</div>
+			<span class="text-xl font-semibold">{userType[data.userType]}</span>
+		</div>
+
+		<div class="">
+			<div class="flex w-full items-center">
+				<div class="flex w-[50%] flex-col gap-2">
+					<div class="flex items-center gap-2">
+						<Calendar class="size-4" />
+						<span class="text-lg font-medium text-slate-500">Nama Tamu</span>
 					</div>
+					<span class="text-xl font-semibold">{data.userName}</span>
 				</div>
-			{:else}
-				<span
-					class=" {queueTicket.status === 'waiting' ? 'text-destructive' : ''} {finishedTicket
-						? 'text-4xl font-semibold'
-						: 'text-5xl font-bold'} tracking-wide">{queueTicket.appointmentNo}</span
-				>
-			{/if}
-		</Card.Content>
-	</div>
 
-	{#if queueTicket.status === 'pending' || queueTicket.status === 'waiting'}
-		<span
-			class="absolute bottom-2 left-2 ml-2 text-2xl font-bold {totalSeconds > 300
-				? 'text-destructive'
-				: 'text-green-500'}">{timeGap}</span
-		>
-	{/if}
-</Card.Root>
+				{#if data.userNim}
+					<div class="flex w-[50%] flex-col gap-2">
+						<div class="flex items-center gap-2">
+							<Sheet class="size-4" />
+							<span class="text-lg font-medium text-slate-500">NIM Tamu</span>
+						</div>
+						<span class="text-xl font-semibold">{data.userNim}</span>
+					</div>
+				{/if}
+			</div>
+		</div>
+
+		<div class="">
+			<div class="flex items-center gap-2 text-slate-500">
+				<Sheet class="size-4" />
+				<span class="text-lg font-medium text-slate-500">Alasan Appointment</span>
+			</div>
+			<span class="text-xl font-semibold">{data.reason}</span>
+		</div>
+
+		<div class="flex justify-end gap-4">
+			{#if data.statusType !== 'CANCELLED' && data.statusType !== 'COMPLETED'}
+				{#if data.statusType !== 'ONGOING'}
+					<Button
+						variant="ghost"
+						class="flex items-center gap-2 bg-destructive p-4 hover:bg-destructive"
+						onclick={() => (openCancelDialog = true)}
+					>
+						<X class="font-bold text-white" />
+						<span class="text-lg text-white">Dibatalkan</span>
+					</Button>
+				{:else}
+					<Button
+						variant="outline"
+						onclick={() => {
+							openRecreateTicketDialog = true;
+							openDetailDialog = false;
+						}}
+					>
+						<RotateCw class="font-bold text-black" />
+						<span class="text-lg text-black">Dibuka Kembali</span>
+					</Button>
+				{/if}
+
+				<Button
+					variant="ghost"
+					class=" bg-green p-4 hover:bg-green"
+					onclick={async () => {
+						await handleUpdateAppointment();
+					}}
+				>
+					<Check class="size-8 text-white" />
+					<span class="text-lg text-white"
+						>{data.statusType === 'SCANNED' || data.statusType === 'PENDING'
+							? 'Dilayani'
+							: 'Selesai'}</span
+					>
+				</Button>
+			{/if}
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
 
 <Dialog.Root bind:open={openCancelDialog}>
 	<Dialog.Content class="h-[14rem] max-w-[31rem]">
@@ -291,7 +320,6 @@
 			<Button
 				class="w-[88px]"
 				onclick={() => {
-					isHovered = false;
 					openCancelDialog = false;
 				}}>Kembali</Button
 			>
@@ -299,36 +327,79 @@
 				class="w-[88px]"
 				type="submit"
 				variant="destructive"
+				disabled={!cancelReason}
 				onclick={async () => {
-					await updateTicketStatus(queueTicket.id.toString(), 'cancelled');
-					isHovered = false;
-					await invalidateAll();
+					updateAppointmentStatus(data.id, 'CANCELLED');
 				}}>Batalkan</Button
 			>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
 
-<Dialog.Root bind:open={recrateTicket}>
-	<Dialog.Content class="h-auto max-w-[36rem]">
+<Dialog.Root bind:open={openServedFormDialog}>
+	<Dialog.Content class="h-[14rem] max-w-[36rem]">
 		<Dialog.Header>
 			<Dialog.Title class="text-2xl font-medium">
-				Membuka kembali Ticket {queueTicket.appointmentNo}
+				Selesai melayani Ticket
+				<span class="font-semibold">{data.appointmentNo}</span>
 			</Dialog.Title>
 
 			<div class="flex flex-col gap-4">
 				<div class="flex flex-col gap-[12px]">
-					<Label class="text-xl font-medium">Pilih Divisi yang melayani</Label>
+					<Label class="text-lg font-normal">Pilih Staff yang melayani</Label>
 					<Combobox
-						items={menuList}
+						items={staffList || []}
+						placeholder="Pilih Staff..."
+						bind:selectedData={staffCbxData}
+					/>
+				</div>
+			</div>
+		</Dialog.Header>
+
+		<Dialog.Footer>
+			<Button
+				class="w-[88px] text-base"
+				variant="outline"
+				onclick={() => {
+					openServedFormDialog = false;
+					openDetailDialog = true;
+				}}>Kembali</Button
+			>
+			<Button
+				class="w-[88px] text-base"
+				type="submit"
+				onclick={() => {
+					updateAppointmentStatus(data.id, 'COMPLETED');
+				}}>Selesai</Button
+			>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={openRecreateTicketDialog}>
+	<Dialog.Content class="h-auto max-w-[36rem]">
+		<Dialog.Header>
+			<Dialog.Title class="text-2xl font-medium">Membuka kembali Ticket</Dialog.Title>
+			<Dialog.Description>Mohon untuk menambahkan data dibawah</Dialog.Description>
+			<Separator />
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col gap-[12px]">
+					<div class="flex gap-1">
+						<Label class="text-xl font-medium">Pilih Divisi yang melayani</Label>
+						<div class="text-destructive">*</div>
+					</div>
+					<Combobox
+						items={menuList || []}
 						placeholder="Pilih Divisi..."
-						bind:value={menuCbxValue}
 						bind:selectedData={menuCbxData}
 					/>
 				</div>
 
 				<div class="flex flex-col gap-[12px]">
-					<Label class="text-xl font-medium">Isi Alasan pembukaan ticket dibawah ini</Label>
+					<div class="flex gap-1">
+						<Label class="text-xl font-medium">Isi Alasan pembukaan ticket dibawah ini</Label>
+						<div class="text-destructive">*</div>
+					</div>
 					<Textarea
 						oninput={(e) => {
 							cancelReason = e.currentTarget.value;
@@ -343,59 +414,18 @@
 				class="w-[88px] text-base"
 				variant="outline"
 				onclick={() => {
-					recrateTicket = false;
-				}}
-				>Kembali
-			</Button>
+					openDetailDialog = true;
+					openRecreateTicketDialog = false;
+				}}>Kembali</Button
+			>
 			<Button
 				class="w-[88px] text-base"
 				type="submit"
+				disabled={!menuCbxData?.value || !cancelReason}
 				onclick={async () => {
-					await updateTicketStatus(queueTicket.id.toString(), 'cancelled');
-					await recreateTicket();
+					await recreateNewAppointment();
 				}}
 				>Tambah
-			</Button>
-		</Dialog.Footer>
-	</Dialog.Content>
-</Dialog.Root>
-
-<Dialog.Root bind:open={openAppointmentDetailDialog}>
-	<Dialog.Content class="h-auto max-w-[36rem]">
-		<Dialog.Header>
-			<Dialog.Title class="text-2xl font-medium">
-				Selesai melayani Ticket {queueTicket.appointmentNo}
-			</Dialog.Title>
-
-			<div class="flex flex-col gap-4">
-				<div class="flex flex-col gap-[12px]">
-					<Label class="text-xl font-medium">Pilih Staff yang melayani</Label>
-					<Combobox
-						items={staffList}
-						placeholder="Pilih Staff..."
-						bind:value={staffCbxValue}
-						bind:selectedData={staffCbxData}
-					/>
-				</div>
-			</div>
-		</Dialog.Header>
-
-		<Dialog.Footer>
-			<Button
-				class="w-[88px] text-base"
-				variant="outline"
-				onclick={() => {
-					openAppointmentDetailDialog = false;
-				}}
-				>Kembali
-			</Button>
-			<Button
-				class="w-[88px] text-base"
-				type="submit"
-				onclick={async () => {
-					await updateAppointmentDetail();
-				}}
-				>Selesai
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

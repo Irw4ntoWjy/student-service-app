@@ -8,7 +8,7 @@
 	import { Realtime } from 'ably';
 	import type { PageProps } from './$types';
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
-	import QueueTicket2 from './queue-ticket2.svelte';
+	import QueueTicket2 from './queue-ticket.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -49,7 +49,6 @@
 		utterance1.onend = () => {
 			window.speechSynthesis.speak(utterance2);
 		};
-
 		window.speechSynthesis.speak(utterance1);
 	};
 

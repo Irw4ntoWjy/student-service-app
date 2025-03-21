@@ -12,9 +12,9 @@ export const menuAction = z.object({
 export type MenuActionSchema = z.infer<typeof menuAction>;
 
 export const currentMenu = z.object({
-	id: z.number(),
-	name: z.string(),
-	code: z.string()
+	id: z.number().optional(),
+	name: z.string().optional(),
+	code: z.string().optional()
 });
 export type CurrentMenu = z.infer<typeof currentMenu>;
 

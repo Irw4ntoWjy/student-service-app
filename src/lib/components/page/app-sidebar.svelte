@@ -4,6 +4,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { Briefcase, ChevronRight, PersonStanding, SquareMenu, UserRoundPen } from 'lucide-svelte';
 
+	let { changeRequest }: { changeRequest: number } = $props();
 	// Menu items.
 	const items = [
 		{
@@ -50,11 +51,17 @@
 											class="flex items-center justify-between rounded-md p-2 transition-all
 											{page.url.pathname === item.url ? 'bg-indigo-50 text-blue-700' : 'hover:bg-gray-100'}"
 										>
-											<div class="flex items-center gap-4">
+											<div class="flex flex-1 items-center gap-2">
 												<item.icon />
 												<span class="font-semibold">{item.title}</span>
+												{#if item.title === 'Edit Data Request'}
+													<span
+														class="items-cent ml-auto rounded-full bg-destructive px-2 py-0.5 text-sm text-slate-50"
+														>{changeRequest}</span
+													>
+												{/if}
 											</div>
-											{#if page.url.pathname === item.url}
+											{#if page.url.pathname === item.url && item.title !== 'Edit Data Request'}
 												<ChevronRight class="size-4" />
 											{/if}
 										</a>

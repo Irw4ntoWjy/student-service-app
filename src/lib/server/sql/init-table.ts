@@ -136,10 +136,10 @@ export const inittable = async () => {
 			sql`
         create table if not exists change_request (
           id serial primary key,
-          from_id int4 not null,
-          type varchar(20) not null,
+          from_id int4,
+          type varchar(20) not null check (type in ('MENU', 'MENU_DETAIL', 'STAFF_LIST')),
           changes_json JSON not null, 
-          status boolean not null default true,
+          status varchar(20) not null check (status in ('DRAFT', 'ACCEPTED', 'REJECTED')),
           created_at timestamp default now(),
           created_by int4 not null,
           last_updated_at timestamp,

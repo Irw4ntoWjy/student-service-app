@@ -11,9 +11,13 @@ import path from 'path';
 import type { PageServerLoad } from '../$types';
 import type { MenuActionSchema } from '../../menu-services/menu-schema';
 import type { MenuList } from './menu-list-schema';
+import {
+	insertChangeRequest,
+	type ChangeRequestSchema
+} from '$lib/server/sql/change-request-query';
 
 export const actions = {
-	submitMenu: async ({ request }) => {
+	submitMenu: async ({ request, cookies }) => {
 		const formData = await request.formData();
 
 		// handle upload images to project
@@ -24,20 +28,40 @@ export const actions = {
 			imagePath = uploadImage(imageBase64, imagePath);
 		}
 
+		const id = formData.get('id') || undefined;
 		const menuData: MenuList = {
-			id: Number(formData.get('id')),
+			...(id !== null && id !== undefined && { id: Number(id) }),
 			name: String(formData.get('name')),
 			code: String(formData.get('code')).toUpperCase(),
 			description: String(formData.get('description')),
 			imagePath: String(formData.get('imagePath')),
 			createdBy: Number(1),
-			status: true
+			status: formData.get('status') === 'true'
 		};
 
-		if (menuData.id) {
-			updateMenu(menuData);
+		//check user role
+		const userSession = cookies.get('user_session');
+		if (!userSession) {
+			return { success: false, error: 'No user session found' };
+		}
+
+		const sessionData = JSON.parse(userSession);
+
+		if (sessionData.role === 'SADMIN') {
+			const changeRequest: ChangeRequestSchema = {
+				type: 'MENU',
+				changeJson: JSON.stringify(menuData),
+				status: 'DRAFT',
+				...(id !== null && id !== undefined && !isNaN(Number(id)) && { fromId: Number(id) })
+			};
+
+			await insertChangeRequest(changeRequest);
 		} else {
-			insertMenu(menuData);
+			if (menuData.id) {
+				await updateMenu(menuData);
+			} else {
+				await insertMenu(menuData);
+			}
 		}
 	},
 
@@ -56,62 +80,6 @@ export const actions = {
 
 		insertMenuAction(formatFormData);
 	}
-
-	// submitForm: async ({ request }) => {
-	// 	const rawData = await request.formData();
-
-	// 	const image = rawData.get('image');
-	// 	let imageName = rawData.get('imageName');
-
-	// 	if (image && imageName) {
-	// 		imageName = uploadImage(image, imageName);
-	// 	}
-
-	// 	const formatFormData: InsertUpdateMenuSchema = {
-	// 		id: Number(rawData.get('id')),
-	// 		name: String(rawData.get('name')),
-	// 		code: String(rawData.get('code')),
-	// 		description: String(rawData.get('description')),
-	// 		imageName: rawData.get('imageName') ? String(rawData.get('imageName')) : undefined
-	// 	};
-
-	// 	insertMenu(formatFormData);
-	// },
-	// updateForm: async ({ request }) => {
-	// 	const rawData = await request.formData();
-	// 	const image = rawData.get('image');
-	// 	let imageName = rawData.get('imageName');
-
-	// 	if (image && imageName) {
-	// 		imageName = uploadImage(image, imageName);
-	// 	}
-
-	// 	const formatFormData: InsertUpdateMenuSchema = {
-	// 		id: Number(rawData.get('id')),
-	// 		name: String(rawData.get('name')),
-	// 		code: String(rawData.get('code')),
-	// 		description: String(rawData.get('description')),
-	// 		imageName: rawData.get('imageName') ? String(rawData.get('imageName')) : undefined,
-	// 		status: rawData.get('status') === 'true'
-	// 	};
-
-	// 	updateMenu(formatFormData);
-	// },
-	// addMenuAction: async ({ request }) => {
-	// 	const rawData = await request.formData();
-
-	// 	const formatFormData: MenuDialogSchema = {
-	// 		id: Number(rawData.get('id')),
-	// 		menuId: String(rawData.get('menuId')),
-	// 		name: String(rawData.get('name')),
-	// 		type: rawData.get('type') as 'FORM' | 'APPOINTMENT',
-	// 		link: String(rawData.get('link')),
-	// 		status: rawData.get('status') === 'true',
-	// 		createdAt: String(rawData.get('createdAt'))
-	// 	};
-
-	// 	insertMenuAction(formatFormData);
-	// }
 } satisfies Actions;
 
 const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) => {

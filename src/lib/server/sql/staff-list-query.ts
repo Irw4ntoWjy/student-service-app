@@ -84,84 +84,84 @@ export const findPaginatedStaff = async (
 		if (filter) {
 			if (selectedDivision) {
 				query = sql`
-			SELECT 
-			  staff.id AS "id",
-			  staff.division_id AS "divisionId",
-			  m.name AS "divisionName",
-			  staff.name AS "name",
-			  staff.job_desc AS "jobdesc",
-			  staff.status AS "status",
-			  staff.created_at AS "createdAt",
-			  staff.created_by AS "createdBy",
-			  staff.last_updated_at AS "lastUpdatedAt",
-			  staff.last_updated_by AS "lastUpdatedBy"
-			FROM 
-			  staff_list staff
-			INNER JOIN 
-			  menu m ON m.id = staff.division_id
-			WHERE 
-			  UPPER(staff.name) LIKE ${'%' + filter.toUpperCase() + '%'}
-			  AND staff.division_id = ${selectedDivision}
+				select 
+					staff.id AS "id",
+					staff.division_id AS "divisionId",
+					m.name AS "divisionName",
+					staff.name AS "name",
+					staff.job_desc AS "jobdesc",
+					staff.status AS "status",
+					staff.created_at AS "createdAt",
+					staff.created_by AS "createdBy",
+					staff.last_updated_at AS "lastUpdatedAt",
+					staff.last_updated_by AS "lastUpdatedBy"
+				from 
+					staff_list staff
+				inner join 
+					menu m on m.id = staff.division_id
+				where 
+					upper(staff.name) like ${'%' + filter.toUpperCase() + '%'}
+					and staff.division_id = ${selectedDivision}
 		  `;
 			} else {
 				query = sql` 
-			SELECT 
-			  staff.id AS "id",
-			  staff.division_id AS "divisionId",
-			  m.name AS "divisionName",
-			  staff.name AS "name",
-			  staff.job_desc AS "jobdesc",
-			  staff.status AS "status",
-			  staff.created_at AS "createdAt",
-			  staff.created_by AS "createdBy",
-			  staff.last_updated_at AS "lastUpdatedAt",
-			  staff.last_updated_by AS "lastUpdatedBy"
-			FROM 
-			  staff_list staff
-			INNER JOIN 
-			  menu m ON m.id = staff.division_id
-			WHERE 
-			  UPPER(staff.name) LIKE ${'%' + filter.toUpperCase() + '%'}
+				select 
+					staff.id AS "id",
+					staff.division_id AS "divisionId",
+					m.name AS "divisionName",
+					staff.name AS "name",
+					staff.job_desc AS "jobdesc",
+					staff.status AS "status",
+					staff.created_at AS "createdAt",
+					staff.created_by AS "createdBy",
+					staff.last_updated_at AS "lastUpdatedAt",
+					staff.last_updated_by AS "lastUpdatedBy"
+				from 
+					staff_list staff
+				inner join 
+					menu m ON m.id = staff.division_id
+				where 
+					upper(staff.name) like ${'%' + filter.toUpperCase() + '%'}
 		  `;
 			}
 		} else {
 			if (selectedDivision) {
 				query = sql`
-			SELECT 
-			  staff.id AS "id",
-			  staff.division_id AS "divisionId",
-			  m.name AS "divisionName",
-			  staff.name AS "name",
-			  staff.job_desc AS "jobdesc",
-			  staff.status AS "status",
-			  staff.created_at AS "createdAt",
-			  staff.created_by AS "createdBy",
-			  staff.last_updated_at AS "lastUpdatedAt",
-			  staff.last_updated_by AS "lastUpdatedBy"
-			FROM 
-			  staff_list staff
-			INNER JOIN 
-			  menu m ON m.id = staff.division_id
-			WHERE 
-			  staff.division_id = ${selectedDivision}
+				select 
+					staff.id AS "id",
+					staff.division_id AS "divisionId",
+					m.name AS "divisionName",
+					staff.name AS "name",
+					staff.job_desc AS "jobdesc",
+					staff.status AS "status",
+					staff.created_at AS "createdAt",
+					staff.created_by AS "createdBy",
+					staff.last_updated_at AS "lastUpdatedAt",
+					staff.last_updated_by AS "lastUpdatedBy"
+				from 
+					staff_list staff
+				inner join 
+					menu m ON m.id = staff.division_id
+				where 
+					staff.division_id = ${selectedDivision}
 		  `;
 			} else {
 				query = sql`
-			SELECT 
-			  staff.id AS "id",
-			  staff.division_id AS "divisionId",
-			  m.name AS "divisionName",
-			  staff.name AS "name",
-			  staff.job_desc AS "jobdesc",
-			  staff.status AS "status",
-			  staff.created_at AS "createdAt",
-			  staff.created_by AS "createdBy",
-			  staff.last_updated_at AS "lastupdatedAt",
-			  staff.last_updated_by AS "lastUpdatedBy"
-			FROM 
-			  staff_list staff
-			INNER JOIN 
-			  menu m ON m.id = staff.division_id
+				select 
+					staff.id AS "id",
+					staff.division_id AS "divisionId",
+					m.name AS "divisionName",
+					staff.name AS "name",
+					staff.job_desc AS "jobdesc",
+					staff.status AS "status",
+					staff.created_at AS "createdAt",
+					staff.created_by AS "createdBy",
+					staff.last_updated_at AS "lastupdatedAt",
+					staff.last_updated_by AS "lastUpdatedBy"
+				from 
+					staff_list staff
+				inner join 
+					menu m ON m.id = staff.division_id
 		  `;
 			}
 		}

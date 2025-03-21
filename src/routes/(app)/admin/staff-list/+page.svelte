@@ -74,7 +74,6 @@
 		const selectedDivision = page.url.searchParams.get('selectedDivision');
 		tableState.filterValue.selectedDivision = Number(selectedDivision) || undefined;
 
-		console.log(data.menuList);
 		if (selectedDivision) {
 			const selectedItem = data.menuList.find((val) => {
 				return val.value.toString() === selectedDivision;

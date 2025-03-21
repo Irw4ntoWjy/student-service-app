@@ -17,14 +17,14 @@
 	);
 
 	let isLoading: boolean = $state(false);
-	$inspect(data.user);
+	$inspect(data.loadChangeRequest);
 </script>
 
 <Toaster richColors />
 
 {#if page.url.pathname.includes('/admin')}
 	<Sidebar.Provider>
-		<AppSidebar />
+		<AppSidebar changeRequest={data.loadChangeRequest || 0} />
 
 		<!-- Site header -->
 		<div class="flex w-full flex-col">

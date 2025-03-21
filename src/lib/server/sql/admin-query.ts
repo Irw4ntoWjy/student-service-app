@@ -5,9 +5,9 @@ export const adminSchema = z.object({
 	id: z.number().optional(),
 	userEmail: z.string(),
 	userName: z.string(),
+	role: z.string(),
 	password: z.string(),
 	createdAt: z.string(),
-	createdBy: z.number(),
 	lastUpdatedAt: z.string().optional(),
 	lastUpdatedBy: z.number().optional()
 });
@@ -15,7 +15,7 @@ export type AdminSchema = z.infer<typeof adminSchema>;
 
 export const insertAdmin = async (adminSchema: AdminSchema) => {
 	try {
-		await sql`insert into admin (user_email, user_name, password, created_by) values (${adminSchema.userEmail}, ${adminSchema.userName}, ${adminSchema.password}, ${adminSchema.createdBy})`;
+		await sql`insert into admin (user_email, user_name, password) values (${adminSchema.userEmail}, ${adminSchema.userName}, ${adminSchema.password})`;
 	} catch (err) {
 		console.error('Error inserting row:', err);
 		throw err;
@@ -46,13 +46,35 @@ export const getPasswordByUserName = async (username: string) => {
 	try {
 		const { rows } = await sql`
       select
-          adm.password as password
+				adm.password as password
       from 
-          admin adm
+				admin adm
       where 
-          adm.user_name = ${username}`;
+				adm.user_name = ${username}`;
 		if (rows.length === 0) return undefined;
 		return rows[0].password as string;
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const findAccountByUserName = async (username: string) => {
+	try {
+		const { rows } = await sql`
+      select
+				adm.id,
+				adm.user_email as "userEmail",
+				adm.user_name as "userName",
+				adm.role,
+				adm.password,
+				adm.created_at as "createdAt"
+      from 
+				admin adm
+      where 
+				adm.user_name = ${username}`;
+		if (rows.length === 0) return undefined;
+		return rows[0] as AdminSchema;
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;

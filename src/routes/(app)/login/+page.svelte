@@ -58,17 +58,26 @@
 
 	const handleLogin = async () => {
 		if (userCreds.username && userCreds.password) {
-			const response = await fetch(`${page.url.pathname}/get-user-password`, {
+			// const response = await fetch(`${page.url.pathname}/get-user-password`, {
+			// 	method: 'POST',
+			// 	headers: { 'Content-Type': 'application/json' },
+			// 	body: JSON.stringify({
+			// 		username: userCreds.username,
+			// 		password: userCreds.password
+			// 	}),
+			// 	credentials: 'include'
+			// }).then((res) => res.json());
+
+			const formData = new FormData();
+			formData.append('userName', String(userCreds.username));
+			formData.append('password', String(userCreds.password));
+
+			const response = await fetch(`?/validateAccount`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					username: userCreds.username,
-					password: userCreds.password
-				}),
-				credentials: 'include'
+				body: formData
 			}).then((res) => res.json());
 
-			if (response.success) {
+			if (response.status === 200) {
 				goto('/admin/menu-list');
 				toast.success(`Selamat Datang ! ${userCreds.username}`);
 			} else {

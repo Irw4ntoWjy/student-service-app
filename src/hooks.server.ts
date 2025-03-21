@@ -15,14 +15,18 @@ export const init: ServerInit = async () => {
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// const excludedRoutes = ['/queue-ticket', '/admin'];
-	// const userSession = event.cookies.get('user_session');
+	const excludedRoutes = ['/queue-ticket', '/admin'];
+	const userSession = event.cookies.get('user_session');
+	const pathname = event.url.pathname;
 
-	// if (excludedRoutes.includes(event.url.pathname) && !userSession) {
-	// 	throw redirect(302, '/login');
-	// }
+	const isExcludedRoute = excludedRoutes.some((route) => pathname.startsWith(route));
 
-	if (event.url.pathname === '/admin') {
+	if (isExcludedRoute && !userSession) {
+		throw redirect(302, '/login');
+	}
+
+	// Specific redirect for exact /admin match
+	if (pathname === '/admin') {
 		throw redirect(302, '/admin/menu-list');
 	}
 

@@ -172,3 +172,26 @@ export const getComboboxMenu = async () => {
 		throw err;
 	}
 };
+
+export const findMenuDetailById = async (id: number) => {
+	try {
+		const { rows } = await sql`
+			select
+					md.id,
+					md.menu_id as "menuId",
+					md.name,
+					md.type,
+					md.link,
+					md.status,
+					md.created_at as "createdAt",
+					md.created_by as "createdBy"
+			from 
+					menu_detail md
+			where 
+					md.menu_id = ${id}`;
+		return rows as MenuDetailSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};

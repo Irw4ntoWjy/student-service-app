@@ -6,8 +6,9 @@
 	import AppSidebar from '$lib/components/page/app-sidebar.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import src from '$lib/assets/UPH-White.png';
+	import type { LayoutData } from './$types';
 
-	let { children }: { children: Snippet } = $props();
+	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 	const hasAdditionalPath = $derived(
 		() => page.url.pathname !== '/' && !(page.url.pathname === '/admin')
 	);
@@ -16,6 +17,7 @@
 	);
 
 	let isLoading: boolean = $state(false);
+	$inspect(data.user);
 </script>
 
 <Toaster richColors />
@@ -31,6 +33,9 @@
 				<a href="/" class="ml-6 transition-opacity hover:opacity-75">
 					<img alt="uph-logo" {src} class="h-[2.625rem] w-[8.375rem]" />
 				</a>
+				<div class=" flex flex-1 justify-end">
+					<span class="mr-12 font-semibold text-slate-100">Welcome, {data.user?.userName}</span>
+				</div>
 			</header>
 
 			<main

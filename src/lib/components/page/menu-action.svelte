@@ -141,7 +141,7 @@
 						}}
 					>
 						{menu.name}
-						<Button
+						<!-- <Button
 							class="absolute right-0 top-0 flex size-4 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-destructive p-0"
 							onclick={(e) => {
 								e.stopPropagation();
@@ -150,7 +150,7 @@
 							}}
 						>
 							<X class="size-1" />
-						</Button>
+						</Button> -->
 					</Button>
 				{/each}
 				<Button

@@ -120,9 +120,9 @@
 				<span class="p-2 text-center text-xl font-bold"
 					>Welcome to Student Service Admin UPH Medan !</span
 				>
-				<span class="text-md text-center font-normal"
-					>If you dont have account before, please click on 'Sign Up' button below to make account</span
-				>
+				<span class="text-md text-center font-normal">
+					Please input valid credentials to login into this website!
+				</span>
 			</div>
 
 			{#if currentStatus === 'signup'}
@@ -212,7 +212,7 @@
 			</form>
 
 			{#if currentStatus === 'login'}
-				<span
+				<!-- <span
 					class="ml-auto cursor-pointer self-end text-sm font-medium text-primary"
 					tabindex="0"
 					role="button"
@@ -224,7 +224,7 @@
 					}}
 				>
 					Sign Up
-				</span>
+				</span> -->
 			{/if}
 			<Button
 				onclick={() => {

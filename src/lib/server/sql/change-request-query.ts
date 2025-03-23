@@ -36,3 +36,29 @@ export const findTotalChangedRequest = async () => {
 		throw error;
 	}
 };
+
+export const findAllChangeRequest = async () => {
+	try {
+		const { rows } = await sql`
+      select 
+        cr.id as "id",
+        cr.from_id as "fromId",
+        cr.type,
+        cr.changes_json as "changeJson",      
+        cr.status,
+        cr.created_at as "createdAt",
+        cr.created_by as "createdBy",
+        cr.last_updated_at as "lastUpdatedAt",
+        cr.last_updated_by as "lastUpdatedBy"
+      from 
+        change_request cr
+			where 
+				cr.status = 'DRAFT'
+		`;
+
+		return rows as ChangeRequestSchema[];
+	} catch (err) {
+		console.error('Error fetching change requests:', err);
+		throw err;
+	}
+};

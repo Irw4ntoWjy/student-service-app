@@ -35,26 +35,26 @@
 		return hashHex;
 	};
 
-	const createAccount = async () => {
-		if (userCreds.password) {
-			const pw = hashLoginPassword(userCreds.password);
+	// const createAccount = async () => {
+	// 	if (userCreds.password) {
+	// 		const pw = hashLoginPassword(userCreds.password);
 
-			const formData = new FormData();
-			formData.append('userEmail', String(userCreds.useremail));
-			formData.append('userName', String(userCreds.username));
-			formData.append('password', String(await pw));
+	// 		const formData = new FormData();
+	// 		formData.append('userEmail', String(userCreds.useremail));
+	// 		formData.append('userName', String(userCreds.username));
+	// 		formData.append('password', String(await pw));
 
-			const response = await fetch(`?/insertAccount`, {
-				method: 'POST',
-				body: formData
-			});
+	// 		const response = await fetch(`?/insertAccount`, {
+	// 			method: 'POST',
+	// 			body: formData
+	// 		});
 
-			if (response.ok) {
-				toast.success('Berhasil Membuat Akun');
-				goto('/login');
-			}
-		}
-	};
+	// 		if (response.ok) {
+	// 			toast.success('Berhasil Membuat Akun');
+	// 			goto('/login');
+	// 		}
+	// 	}
+	// };
 
 	const handleLogin = async () => {
 		if (userCreds.username && userCreds.password) {
@@ -125,39 +125,37 @@
 				</span>
 			</div>
 
-			{#if currentStatus === 'signup'}
-				<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
-					<label class="flex h-10 w-full items-center">
-						<Input
-							disabled={emailValid}
-							bind:value={userCreds.useremail}
-							required
-							placeholder="Email"
-							type="text"
-							class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none"
-						/>
-						<div
-							class="absolute left-3 text-gray-500 transition-transform duration-300 ease-in-out"
-						>
-							<Mail class="size-4" />
-						</div>
-						{#if emailValid}
-							<CircleCheck class="mr-2 size-5 text-green-700" />
-						{/if}
-					</label>
-				</form>
-				{#if isEmailValid && !emailValid}
-					<button
-						class="ml-auto cursor-pointer self-end text-sm font-medium text-primary"
-						onclick={() => {
-							verifyEmail();
-							openInputOtp = true;
-						}}
-					>
-						Verifikasi Email
-					</button>
-				{/if}
+			<!-- {#if currentStatus === 'signup'} -->
+			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
+				<label class="flex h-10 w-full items-center">
+					<Input
+						disabled={emailValid}
+						bind:value={userCreds.useremail}
+						required
+						placeholder="Email"
+						type="text"
+						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none"
+					/>
+					<div class="absolute left-3 text-gray-500 transition-transform duration-300 ease-in-out">
+						<Mail class="size-4" />
+					</div>
+					{#if emailValid}
+						<CircleCheck class="mr-2 size-5 text-green-700" />
+					{/if}
+				</label>
+			</form>
+			{#if isEmailValid && !emailValid}
+				<button
+					class="ml-auto cursor-pointer self-end text-sm font-medium text-primary"
+					onclick={() => {
+						verifyEmail();
+						openInputOtp = true;
+					}}
+				>
+					Verifikasi Email
+				</button>
 			{/if}
+			<!-- {/if} -->
 
 			<form class="relative w-full rounded-md border bg-white shadow-md">
 				<label class="flex h-10 w-full items-center">
@@ -167,11 +165,13 @@
 						required
 						placeholder="Username"
 						type="text"
-						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none {!emailValid &&
+						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none 
+							"
+					/>
+					<!-- {!emailValid &&
 						currentStatus === 'signup'
 							? 'py-0 disabled:bg-blue-100 disabled:text-gray-500'
-							: ''}"
-					/>
+							: ''} -->
 					<div class="absolute left-3 text-gray-500 transition-transform duration-300 ease-in-out">
 						<User class="size-4" />
 					</div>
@@ -186,11 +186,13 @@
 						required
 						placeholder="Password"
 						type={showPassword ? 'text' : 'password'}
-						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none disabled:bg-blue-100 disabled:py-0 disabled:text-gray-500 {!isEmailValid &&
+						class="w-full border-none bg-transparent py-2 pl-10 pr-8 text-gray-700 outline-none disabled:bg-blue-100 disabled:py-0 disabled:text-gray-500 
+							"
+					/>
+					<!-- {!isEmailValid &&
 						currentStatus === 'signup'
 							? 'py-0 disabled:bg-blue-100 disabled:text-gray-500 '
-							: ''}"
-					/>
+							: ''} -->
 					<div class="absolute left-3 text-gray-500">
 						<KeyRound class="size-4" />
 					</div>
@@ -228,16 +230,11 @@
 			{/if}
 			<Button
 				onclick={() => {
-					if (currentStatus == 'signup') {
-						createAccount();
-					} else {
-						handleLogin();
-					}
+					handleLogin();
 				}}
 				type="button"
 				class="mt-8 w-full"
-				disabled={!isEmailValid && currentStatus === 'signup'}
-				>{currentStatus === 'signup' ? 'Sign up' : 'Login'}
+				>Login
 			</Button>
 		</div>
 	</div>

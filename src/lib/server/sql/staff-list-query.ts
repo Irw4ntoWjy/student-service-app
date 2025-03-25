@@ -191,3 +191,29 @@ export const getComboboxStaff = async () => {
 		throw err;
 	}
 };
+
+export const getAllStaff = async () => {
+	try {
+		const { rows } = await sql`
+			select 
+				staff.id as "id",
+				staff.division_id as "divisionId",
+				m.name as "divisionName",
+				staff.name as "name",
+				staff.job_desc as "jobdesc",
+				staff.status as "status",
+				staff.created_at as "createdAt",
+				staff.created_by as "createdBy",
+				staff.last_updated_at as "lastUpdatedAt",
+				staff.last_updated_by as "lastUpdatedBy"	
+			from 
+				staff_list staff
+			inner join 
+				menu m ON m.id = staff.division_id
+		`;
+		return rows as StaffSchema[];
+	} catch (err) {
+		console.error('error fetching data:', err);
+		throw err;
+	}
+};

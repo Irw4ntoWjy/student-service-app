@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
 	import src from '$lib/assets/UPH-Blue.svg';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import { CircleCheck, Eye, EyeOff, KeyRound, Mail, User } from 'lucide-svelte';
+	import { Eye, EyeOff, KeyRound, User } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import InputOtpDialog from './input-otp-dialog.svelte';
 
@@ -22,7 +21,7 @@
 	});
 
 	//NOTES diganti ketika validasi email uph
-	const isEmailValid = $derived(userCreds.useremail?.includes('@gmail.com'));
+	// const isEmailValid = $derived(userCreds.useremail?.includes('@gmail.com'));
 
 	// hash using sha256
 	export const hashLoginPassword = async (password: string): Promise<string> => {
@@ -86,24 +85,24 @@
 		}
 	};
 
-	const generateVerificationCode = (): string => {
-		return Math.floor(100000 + Math.random() * 900000).toString();
-	};
+	// const generateVerificationCode = (): string => {
+	// 	return Math.floor(100000 + Math.random() * 900000).toString();
+	// };
 
 	let verifCode: string = $state('');
-	const verifyEmail = async () => {
-		verifCode = generateVerificationCode();
+	// const verifyEmail = async () => {
+	// 	verifCode = generateVerificationCode();
 
-		const response = await fetch(`${page.url.pathname}/verify-email`, {
-			method: 'POST',
-			body: JSON.stringify({
-				email: userCreds.useremail,
-				code: verifCode
-			})
-		});
+	// 	const response = await fetch(`${page.url.pathname}/verify-email`, {
+	// 		method: 'POST',
+	// 		body: JSON.stringify({
+	// 			email: userCreds.useremail,
+	// 			code: verifCode
+	// 		})
+	// 	});
 
-		await response.json();
-	};
+	// 	await response.json();
+	// };
 
 	let emailValid: boolean = $state(false);
 
@@ -126,7 +125,7 @@
 			</div>
 
 			<!-- {#if currentStatus === 'signup'} -->
-			<form class="relative w-full rounded-md border bg-white p-1 shadow-md">
+			<!-- <form class="relative w-full rounded-md border bg-white p-1 shadow-md">
 				<label class="flex h-10 w-full items-center">
 					<Input
 						disabled={emailValid}
@@ -154,7 +153,7 @@
 				>
 					Verifikasi Email
 				</button>
-			{/if}
+			{/if} -->
 			<!-- {/if} -->
 
 			<form class="relative w-full rounded-md border bg-white shadow-md">

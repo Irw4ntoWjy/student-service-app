@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { PageProps } from './$types';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import type { PageProps } from './$types';
 	import StaffApprovalCard from './staff-approval-card.svelte';
 
 	// import type { MenuSchema } from '$lib/server/sql/menu-query';
@@ -22,9 +22,6 @@
 	const staffRequest = $derived.by(() => {
 		return data.changeRequest.filter((items) => items.type === 'STAFF_LIST');
 	});
-
-	// $inspect(menuRequest);
-	// $inspect(data.changeRequest);
 </script>
 
 <Tabs.Root value="menu" class="max-w-[300px]">
@@ -52,7 +49,7 @@
 		<div class="flex w-full gap-4 py-4">
 			{#each staffRequest as staff}
 				<div class="flex flex-col gap-2">
-					<StaffApprovalCard item={staff} />
+					<StaffApprovalCard item={staff} staffList={data.staffList} />
 				</div>
 			{/each}
 		</div>

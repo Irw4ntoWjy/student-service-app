@@ -3,8 +3,6 @@
 	import type { PageProps } from './$types';
 	import StaffApprovalCard from './staff-approval-card.svelte';
 
-	// import type { MenuSchema } from '$lib/server/sql/menu-query';
-
 	let { data }: PageProps = $props();
 
 	const menuRequest = $derived.by(() => {

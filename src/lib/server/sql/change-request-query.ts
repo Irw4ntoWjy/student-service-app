@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import {
 	changeRequestStatus,
-	changeRequestType
+	changeRequestType,
+	type ChangeRequestStatus
 } from '../../../routes/(app)/admin/edit-request/change-request-schema';
 
 export const changeRequest = z.object({
@@ -67,6 +68,21 @@ export const findAllChangeRequest = async () => {
 		return rows as ChangeRequestSchema[];
 	} catch (err) {
 		console.error('Error fetching change requests:', err);
+		throw err;
+	}
+};
+
+export const updateChangeRequestStatus = async (id: number, status: ChangeRequestStatus) => {
+	try {
+		await sql`
+			update 
+				change_request 
+			set 
+				status = ${status}
+			where 
+				id = ${id}`;
+	} catch (err) {
+		console.error('Error updating row:', err);
 		throw err;
 	}
 };

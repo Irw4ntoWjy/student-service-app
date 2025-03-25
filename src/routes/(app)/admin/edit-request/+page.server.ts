@@ -1,9 +1,11 @@
 import {
 	findAllChangeRequest,
+	updateChangeRequestStatus,
 	type ChangeRequestSchema
 } from '$lib/server/sql/change-request-query';
 import { getAllStaff, type StaffSchema } from '$lib/server/sql/staff-list-query';
 import type { PageServerLoad } from './$types';
+import type { ChangeRequestStatus } from './change-request-schema';
 
 export const load: PageServerLoad = async () => {
 	const changeRequest: ChangeRequestSchema[] = await findAllChangeRequest();
@@ -22,6 +24,11 @@ export const actions = {
 		const sessionData = JSON.parse(userSession);
 		if (sessionData.role === 'HEAD') {
 			const formData = await request.formData();
+
+			await updateChangeRequestStatus(
+				Number(formData.get('id')),
+				String(formData.get('status')) as ChangeRequestStatus
+			);
 		}
 	}
 };

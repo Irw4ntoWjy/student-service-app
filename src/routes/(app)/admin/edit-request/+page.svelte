@@ -24,7 +24,7 @@
 	});
 </script>
 
-<Tabs.Root value="menu" class="max-w-[300px]">
+<Tabs.Root value="menu">
 	<Tabs.List>
 		<Tabs.Trigger value="menu" class="w-[150px]">List Menu</Tabs.Trigger>
 		<Tabs.Trigger value="staff" class="w-[150px]">List Staff</Tabs.Trigger>
@@ -45,8 +45,8 @@
 		{/each}
 	</Tabs.Content>
 
-	<Tabs.Content value="staff">
-		<div class="flex w-full gap-4 py-4">
+	<Tabs.Content value="staff" class="w-full">
+		<div class="flex justify-between py-4">
 			{#each staffRequest as staff}
 				<div class="flex flex-col gap-2">
 					<StaffApprovalCard item={staff} staffList={data.staffList} />

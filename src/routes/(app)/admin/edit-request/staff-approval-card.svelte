@@ -25,7 +25,7 @@
 
 <Card.Root
 	class={cn(
-		'w-[400px] animate-fade-in-up overflow-hidden p-6 transition-all duration-500 hover:shadow-md',
+		'w-[425px] animate-fade-in-up overflow-hidden p-6 transition-all duration-500 hover:shadow-md',
 		isExpanded ? '' : 'h-[200px]'
 	)}
 >
@@ -103,7 +103,7 @@
 									<Separator />
 								{/if}
 
-								{#if currentStaffData?.status !== (item.changeJson.status === 'Aktif')}
+								{#if currentStaffData?.status !== item.changeJson.status}
 									<div class="flex items-center justify-between py-2">
 										<span class="text-sm">Status</span>
 										<div class="flex items-center gap-2 text-right">
@@ -112,15 +112,13 @@
 												value={currentStaffData?.status ? 'Aktif' : 'Tidak Aktif'}
 											/>
 											<ArrowRight class="size-4" />
+
 											<DataTableBadgeCell
 												variant={item.changeJson.status === 'Aktif' ? 'green' : 'destructive'}
 												value={item.changeJson.status ? 'Aktif' : 'Tidak Aktif'}
 											/>
 										</div>
 									</div>
-									{#if [currentStaffData?.name, currentStaffData?.divisionName, currentStaffData?.jobdesc].some((field) => field !== [item.changeJson.name, item.menuName, item.changeJson.jobdesc][[currentStaffData?.name, currentStaffData?.divisionName, currentStaffData?.jobdesc].indexOf(field)])}
-										<Separator />
-									{/if}
 								{/if}
 							</div>
 						</div>
@@ -159,7 +157,7 @@
 		<Button
 			variant="outline"
 			size="sm"
-			class="flex items-center border-reject-red bg-reject-red/10 text-destructive hover:bg-reject-red/10 hover:text-destructive"
+			class="flex items-center border-reject-red bg-reject-red/10 text-destructive hover:bg-reject-red/20 hover:text-destructive"
 		>
 			<X class="mr-1 h-4 w-4" />
 			Reject

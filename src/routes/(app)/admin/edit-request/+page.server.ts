@@ -11,3 +11,17 @@ export const load: PageServerLoad = async () => {
 
 	return { changeRequest, staffList };
 };
+
+export const actions = {
+	submitChangeRequest: async ({ request, cookies }) => {
+		const userSession = cookies.get('user_session');
+		if (!userSession) {
+			return { success: false, error: 'No user session found' };
+		}
+
+		const sessionData = JSON.parse(userSession);
+		if (sessionData.role === 'HEAD') {
+			const formData = await request.formData();
+		}
+	}
+};

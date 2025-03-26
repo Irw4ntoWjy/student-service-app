@@ -10,6 +10,7 @@
 	import { cn, dateTimeFormatString } from '$lib/utils';
 	import { ArrowRight, Check, Eye, EyeClosed, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
+	import type { ChangeRequestStatus } from './change-request-schema';
 
 	let {
 		item,
@@ -29,11 +30,16 @@
 		});
 	});
 
-	const rejectRequest = async () => {
+	let requestType: 'EDIT' | 'NEW' = $state('NEW');
+	const updateChangeRequest = async (status: ChangeRequestStatus) => {
 		const formData = new FormData();
 
+		requestType = item.changeJson.id ? 'EDIT' : 'NEW';
 		formData.append('id', item.id.toString());
-		formData.append('status', 'REJECTED');
+		formData.append('type', item.type);
+		formData.append('status', status);
+		formData.append('requestType', requestType);
+		formData.append('changeJson', JSON.stringify(item.changeJson));
 
 		const response = await fetch('?/submitChangeRequest', {
 			method: 'POST',
@@ -41,7 +47,7 @@
 		});
 
 		if (response.ok) {
-			toast.success('Berhasil membatalkan request ini !');
+			toast.success('Berhasil update request ini !');
 			await invalidateAll();
 		}
 	};
@@ -68,9 +74,11 @@
 		</div>
 		<div class="flex items-center justify-between">
 			<div>
-				<Card.Title class="mt-2 text-xl font-medium">{item.changeJson.name}</Card.Title>
+				<Card.Title class="mt-2 text-xl font-medium"
+					>{currentStaffData?.name || item.changeJson.name}</Card.Title
+				>
 				<Card.Description class="line-clamp-2">
-					{item.menuName || '-'}
+					{currentStaffData?.divisionName || item.menuName}
 				</Card.Description>
 			</div>
 			<Button
@@ -184,7 +192,7 @@
 			variant="outline"
 			size="sm"
 			class="flex items-center border-reject-red bg-reject-red/10 text-destructive hover:bg-reject-red/20 hover:text-destructive"
-			onclick={rejectRequest}
+			onclick={() => updateChangeRequest('REJECTED')}
 		>
 			<X class="mr-1 h-4 w-4" />
 			Reject
@@ -194,6 +202,7 @@
 			size="sm"
 			class="flex items-center bg-approval-green hover:bg-approval-green/90"
 			disabled={role !== 'HEAD'}
+			onclick={() => updateChangeRequest('ACCEPTED')}
 		>
 			<Check class="mr-1 h-4 w-4" />
 			Approve

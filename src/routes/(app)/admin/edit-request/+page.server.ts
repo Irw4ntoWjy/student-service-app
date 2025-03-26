@@ -3,9 +3,14 @@ import {
 	updateChangeRequestStatus,
 	type ChangeRequestSchema
 } from '$lib/server/sql/change-request-query';
-import { getAllStaff, type StaffSchema } from '$lib/server/sql/staff-list-query';
+import {
+	getAllStaff,
+	insertStaff,
+	updateStaff,
+	type StaffSchema
+} from '$lib/server/sql/staff-list-query';
 import type { PageServerLoad } from './$types';
-import type { ChangeRequestStatus } from './change-request-schema';
+import type { ChangeRequestStatus, ChangeRequestType } from './change-request-schema';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	const userSession = cookies.get('user_session');
@@ -41,11 +46,22 @@ export const actions = {
 		const sessionData = JSON.parse(userSession);
 		if (sessionData.role === 'HEAD') {
 			const formData = await request.formData();
+			const status = String(formData.get('status')) as ChangeRequestStatus;
+			const type = String(formData.get('type')) as ChangeRequestType;
+			const requestType = String(formData.get('requestType')) as 'EDIT' | 'NEW';
+			const changeJson = String(formData.get('changeJson'));
 
-			await updateChangeRequestStatus(
-				Number(formData.get('id')),
-				String(formData.get('status')) as ChangeRequestStatus
-			);
+			await updateChangeRequestStatus(Number(formData.get('id')), status);
+
+			if (status === 'ACCEPTED' && type === 'STAFF_LIST') {
+				const data: StaffSchema = JSON.parse(changeJson);
+
+				if (requestType === 'EDIT') {
+					await updateStaff(data);
+				} else {
+					await insertStaff(data);
+				}
+			}
 		}
 	}
 };

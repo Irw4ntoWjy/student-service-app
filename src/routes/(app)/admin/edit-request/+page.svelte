@@ -44,10 +44,10 @@
 	</Tabs.Content>
 
 	<Tabs.Content value="staff" class="w-full">
-		<div class="flex justify-between py-4">
+		<div class="flex gap-4 py-4">
 			{#each staffRequest as staff}
 				<div class="flex flex-col gap-2">
-					<StaffApprovalCard item={staff} staffList={data.staffList} />
+					<StaffApprovalCard item={staff} staffList={data.staffList} role={data.user?.role} />
 				</div>
 			{/each}
 		</div>

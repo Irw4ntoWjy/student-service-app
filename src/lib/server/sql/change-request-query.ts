@@ -8,7 +8,7 @@ import {
 } from '../../../routes/(app)/admin/edit-request/change-request-schema';
 
 export const changeRequest = z.object({
-	id: z.number().optional(),
+	id: z.number(),
 	fromId: z.number().optional(),
 	type: z.enum(changeRequestType),
 	changeJson: z.any(),

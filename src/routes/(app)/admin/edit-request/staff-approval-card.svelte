@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import DataTableBadgeCell from '$lib/components/page/data-table/data-table-badge-cell.svelte';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
@@ -6,10 +7,16 @@
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import type { ChangeRequestSchema } from '$lib/server/sql/change-request-query';
 	import type { StaffSchema } from '$lib/server/sql/staff-list-query';
-	import { cn } from '$lib/utils';
+	import { cn, dateTimeFormatString } from '$lib/utils';
 	import { ArrowRight, Check, Eye, EyeClosed, X } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
-	let { item, staffList }: { item: ChangeRequestSchema; staffList: StaffSchema[] } = $props();
+	let {
+		item,
+		staffList,
+		role
+	}: { item: ChangeRequestSchema; staffList: StaffSchema[]; role: 'HEAD' | 'SADMIN' | 'ADMIN' } =
+		$props();
 
 	let isEdit: boolean = $derived(!!item.changeJson.id);
 	let isExpanded: boolean = $state(false);
@@ -21,11 +28,28 @@
 			}
 		});
 	});
+
+	const rejectRequest = async () => {
+		const formData = new FormData();
+
+		formData.append('id', item.id.toString());
+		formData.append('status', 'REJECTED');
+
+		const response = await fetch('?/submitChangeRequest', {
+			method: 'POST',
+			body: formData
+		});
+
+		if (response.ok) {
+			toast.success('Berhasil membatalkan request ini !');
+			await invalidateAll();
+		}
+	};
 </script>
 
 <Card.Root
 	class={cn(
-		'w-[425px] animate-fade-in-up overflow-hidden p-6 transition-all duration-500 hover:shadow-md',
+		'w-[400px] animate-fade-in-up overflow-hidden p-6 transition-all duration-500 hover:shadow-md',
 		isExpanded ? '' : 'h-[200px]'
 	)}
 >
@@ -40,6 +64,7 @@
 			>
 				{isEdit ? 'Edit Data' : 'New Data'}
 			</Badge>
+			<span>{dateTimeFormatString(item.createdAt)}</span>
 		</div>
 		<div class="flex items-center justify-between">
 			<div>
@@ -155,15 +180,21 @@
 	<Separator />
 	<Card.Footer class="flex w-full justify-between p-0 pt-4">
 		<Button
+			disabled={role !== 'HEAD'}
 			variant="outline"
 			size="sm"
 			class="flex items-center border-reject-red bg-reject-red/10 text-destructive hover:bg-reject-red/20 hover:text-destructive"
+			onclick={rejectRequest}
 		>
 			<X class="mr-1 h-4 w-4" />
 			Reject
 		</Button>
 
-		<Button size="sm" class="flex items-center bg-approval-green hover:bg-approval-green/90">
+		<Button
+			size="sm"
+			class="flex items-center bg-approval-green hover:bg-approval-green/90"
+			disabled={role !== 'HEAD'}
+		>
 			<Check class="mr-1 h-4 w-4" />
 			Approve
 		</Button>

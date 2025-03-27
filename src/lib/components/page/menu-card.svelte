@@ -1,15 +1,22 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
 	import * as Card from '$lib/components/ui/card/index.js';
+	import { cn } from '$lib/utils';
 	import { ArrowRight } from 'lucide-svelte';
+	import Badge, { type BadgeVariant } from '../ui/badge/badge.svelte';
 
 	let {
 		title,
 		description,
 		src,
-		onClick
-	}: { title: string; description: string; src?: string | undefined; onClick?: () => void } =
-		$props();
+		onClick,
+		badge
+	}: {
+		title: string;
+		description: string;
+		src?: string | undefined;
+		onClick?: () => void;
+		badge?: { title: string; variant: BadgeVariant };
+	} = $props();
 
 	function handleKeyDown(event: KeyboardEvent) {
 		if (onClick && (event.key === 'Enter' || event.key === ' ')) {
@@ -37,6 +44,11 @@
 			class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
 			loading="lazy"
 		/>
+		{#if badge}
+			<div class="absolute left-2 top-2">
+				<Badge variant={badge.variant} class="px-2 py-1">{badge.title}</Badge>
+			</div>
+		{/if}
 		<Card.Content class="flex h-[135px] flex-col p-6">
 			<Card.Title
 				class=" text-base font-medium text-gray-900 transition-all duration-300 group-hover:text-black dark:text-gray-100 dark:group-hover:text-white"

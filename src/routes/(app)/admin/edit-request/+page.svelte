@@ -46,7 +46,7 @@
 		<div class="flex gap-4 py-4">
 			{#each menuRequest as menu}
 				<div class="flex flex-col gap-2">
-					<MenuApprovalCard item={menu} role={data.user?.role} />
+					<MenuApprovalCard item={menu} menuList={data.menuList} role={data.user?.role} />
 				</div>
 			{/each}
 		</div>

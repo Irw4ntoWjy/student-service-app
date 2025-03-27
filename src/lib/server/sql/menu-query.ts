@@ -91,7 +91,16 @@ export const findMenuById = async (id: number) => {
 	try {
 		const rows = await sql`
 			select
-				*
+				m.id as id,
+				m.name as name,
+				m.code as code,
+				m.description as description,
+				m.image_path as imagePath,
+				m.status as status,
+				m.created_at as createdat,
+				m.created_by as createdby,
+				m.last_updated_at as lastupdatedat,
+				m.last_updated_by as lastupdatedby
 			from 
 				menu m
 			where m.id = ${id}
@@ -177,19 +186,45 @@ export const findMenuDetailById = async (id: number) => {
 	try {
 		const { rows } = await sql`
 			select
-					md.id,
-					md.menu_id as "menuId",
-					md.name,
-					md.type,
-					md.link,
-					md.status,
-					md.created_at as "createdAt",
-					md.created_by as "createdBy"
+				md.id,
+				md.menu_id as "menuId",
+				md.name,
+				md.type,
+				md.link,
+				md.status,
+				md.created_at as "createdAt",
+				md.created_by as "createdBy"
 			from 
 					menu_detail md
 			where 
 					md.menu_id = ${id}`;
 		return rows as MenuDetailSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const getAllMenu = async () => {
+	try {
+		const { rows } = await sql`
+			select
+				m.id as id,
+				m.name as name,
+				m.code as code,
+				m.description as description,
+				m.image_path as "imagePath",
+				m.status as status,
+				m.created_at as "createdAt",
+				m.created_by as "createdBy",
+				m.last_updated_at as "lastupdatedat",
+				m.last_updated_by as "lastUpdatedBy"
+			from 
+				menu m
+			where 
+				m.status = true
+		`;
+		return rows as MenuSchema[];
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;

@@ -3,6 +3,7 @@ import {
 	updateChangeRequestStatus,
 	type ChangeRequestSchema
 } from '$lib/server/sql/change-request-query';
+import { getAllMenu, type MenuSchema } from '$lib/server/sql/menu-query';
 import {
 	getAllStaff,
 	insertStaff,
@@ -16,6 +17,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	const userSession = cookies.get('user_session');
 	const changeRequest: ChangeRequestSchema[] = await findAllChangeRequest();
 	const staffList: StaffSchema[] = await getAllStaff();
+	const menuList: MenuSchema[] = await getAllMenu();
 
 	if (userSession) {
 		try {
@@ -26,14 +28,15 @@ export const load: PageServerLoad = async ({ cookies }) => {
 					role: sessionData.role
 				},
 				changeRequest,
-				staffList
+				staffList,
+				menuList
 			};
 		} catch (e) {
 			console.error('Failed to parse user_session cookie:', e);
 		}
 	}
 
-	return { changeRequest, staffList };
+	return { changeRequest, staffList, menuList };
 };
 
 export const actions = {

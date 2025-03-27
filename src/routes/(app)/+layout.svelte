@@ -17,7 +17,6 @@
 	);
 
 	let isLoading: boolean = $state(false);
-	$inspect(data.loadChangeRequest);
 </script>
 
 <Toaster richColors />

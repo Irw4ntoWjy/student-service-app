@@ -6,6 +6,9 @@
 	import type { ChangeRequestSchema } from '$lib/server/sql/change-request-query';
 	import type { MenuSchema } from '$lib/server/sql/menu-query';
 	import { ArrowRight, Check, X } from 'lucide-svelte';
+	import type { ChangeRequestStatus } from './change-request-schema';
+	import { toast } from 'svelte-sonner';
+	import { invalidateAll } from '$app/navigation';
 
 	let {
 		item,
@@ -26,38 +29,56 @@
 	});
 
 	const changes = $derived.by(() => {
-		if (!currentMenuData || !item.changeJson.id) return [];
-
 		const allChanges = [
 			{
 				fieldName: 'Nama Menu',
-				currentValue: currentMenuData.name,
+				currentValue: currentMenuData?.name || '',
 				updatedValue: item.changeJson.name
 			},
 			{
 				fieldName: 'Kode Menu',
-				currentValue: currentMenuData.code,
+				currentValue: currentMenuData?.code || '',
 				updatedValue: item.changeJson.code
 			},
 			{
 				fieldName: 'Image Path',
-				currentValue: currentMenuData.imagePath,
+				currentValue: currentMenuData?.imagePath || '',
 				updatedValue: item.changeJson.imagePath
 			},
 			{
 				fieldName: 'Description',
-				currentValue: currentMenuData.description,
+				currentValue: currentMenuData?.description || '',
 				updatedValue: item.changeJson.description
 			},
 			{
 				fieldName: 'Status',
-				currentValue: currentMenuData.status,
+				currentValue: currentMenuData?.status,
 				updatedValue: item.changeJson.status
 			}
 		];
 
 		return allChanges.filter((change) => change.currentValue !== change.updatedValue);
 	});
+
+	const updateChangeRequest = async (status: ChangeRequestStatus) => {
+		const formData = new FormData();
+
+		formData.append('id', item.id.toString());
+		formData.append('type', item.type);
+		formData.append('status', status);
+		formData.append('requestType', requestType);
+		formData.append('changeJson', JSON.stringify(item.changeJson));
+
+		const response = await fetch('?/submitChangeRequest', {
+			method: 'POST',
+			body: formData
+		});
+
+		if (response.ok) {
+			toast.success('Berhasil update request ini !');
+			await invalidateAll();
+		}
+	};
 </script>
 
 {#if currentMenuData && currentMenuData.id}
@@ -71,7 +92,7 @@
 	<MenuCard
 		title={item.changeJson.name}
 		description={item.changeJson.description}
-		src={`../uploads/${item.changeJson.imagepath}`}
+		src={`../uploads/${item.changeJson.imagePath}`}
 		onClick={() => (isDialogOpen = true)}
 	/>
 {/if}
@@ -84,21 +105,29 @@
 			</Dialog.Title>
 		</Dialog.Header>
 
-		<div class="flex items-center gap-4">
-			<div class="flex flex-col gap-2">
-				<MenuCard
-					badge={{ title: 'Current Data', variant: 'secondary' }}
-					title={currentMenuData?.name || ''}
-					description={currentMenuData?.description || ''}
-					src={`../uploads/${currentMenuData?.imagePath || ''}`}
-				/>
-			</div>
+		<div class="flex items-center justify-center gap-4">
+			{#if currentMenuData && currentMenuData.id}
+				<div class="flex flex-col gap-2">
+					<MenuCard
+						badge={{ title: 'Current Data', variant: 'secondary' }}
+						title={currentMenuData?.name || ''}
+						description={currentMenuData?.description || ''}
+						src={`../uploads/${currentMenuData?.imagePath || ''}`}
+					/>
+				</div>
+			{/if}
 
 			{#if item.changeJson.id}
 				<ArrowRight />
+			{/if}
+
+			{#if item.changeJson}
 				<div class="flex flex-col gap-2">
 					<MenuCard
-						badge={{ title: 'Updated Data', variant: 'amber' }}
+						badge={{
+							title: `${item.changeJson.id ? 'Updated Data' : 'New Data'}`,
+							variant: `${item.changeJson.id ? 'amber' : 'emerald'}`
+						}}
 						title={item.changeJson.name}
 						description={item.changeJson.description}
 						src={`../uploads/${item.changeJson.imagePath}`}
@@ -151,12 +180,17 @@
 					variant="outline"
 					size="sm"
 					class="flex items-center border-reject-red bg-reject-red/10 text-destructive hover:bg-reject-red/20 hover:text-destructive"
+					onclick={() => updateChangeRequest('REJECTED')}
 				>
 					<X class="mr-1 h-4 w-4" />
 					Reject
 				</Button>
 
-				<Button size="sm" class="flex items-center bg-approval-green hover:bg-approval-green/90">
+				<Button
+					size="sm"
+					class="flex items-center bg-approval-green hover:bg-approval-green/90"
+					onclick={() => updateChangeRequest('ACCEPTED')}
+				>
 					<Check class="mr-1 h-4 w-4" />
 					Approve
 				</Button>

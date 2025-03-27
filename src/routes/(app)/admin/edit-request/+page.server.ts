@@ -3,7 +3,7 @@ import {
 	updateChangeRequestStatus,
 	type ChangeRequestSchema
 } from '$lib/server/sql/change-request-query';
-import { getAllMenu, type MenuSchema } from '$lib/server/sql/menu-query';
+import { getAllMenu, insertMenu, updateMenu, type MenuSchema } from '$lib/server/sql/menu-query';
 import {
 	getAllStaff,
 	insertStaff,
@@ -63,6 +63,17 @@ export const actions = {
 					await updateStaff(data);
 				} else {
 					await insertStaff(data);
+				}
+			}
+
+			if (status === 'ACCEPTED' && type === 'MENU') {
+				const data: MenuSchema = JSON.parse(changeJson);
+				console.log(data);
+
+				if (requestType === 'EDIT') {
+					await updateMenu(data);
+				} else {
+					await insertMenu(data);
 				}
 			}
 		}

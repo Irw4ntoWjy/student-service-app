@@ -2,6 +2,7 @@
 	import MenuCard from '$lib/components/page/menu-card.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import type { ChangeRequestSchema } from '$lib/server/sql/change-request-query';
 	import type { MenuSchema } from '$lib/server/sql/menu-query';
 	import { ArrowRight, Check, X } from 'lucide-svelte';
@@ -24,7 +25,39 @@
 		});
 	});
 
-	$inspect(currentMenuData);
+	const changes = $derived.by(() => {
+		if (!currentMenuData || !item.changeJson.id) return [];
+
+		const allChanges = [
+			{
+				fieldName: 'Nama Menu',
+				currentValue: currentMenuData.name,
+				updatedValue: item.changeJson.name
+			},
+			{
+				fieldName: 'Kode Menu',
+				currentValue: currentMenuData.code,
+				updatedValue: item.changeJson.code
+			},
+			{
+				fieldName: 'Image Path',
+				currentValue: currentMenuData.imagePath,
+				updatedValue: item.changeJson.imagePath
+			},
+			{
+				fieldName: 'Description',
+				currentValue: currentMenuData.description,
+				updatedValue: item.changeJson.description
+			},
+			{
+				fieldName: 'Status',
+				currentValue: currentMenuData.status,
+				updatedValue: item.changeJson.status
+			}
+		];
+
+		return allChanges.filter((change) => change.currentValue !== change.updatedValue);
+	});
 </script>
 
 {#if currentMenuData && currentMenuData.id}
@@ -44,7 +77,7 @@
 {/if}
 
 <Dialog.Root bind:open={isDialogOpen}>
-	<Dialog.Content class="w-auto max-w-[60vw]">
+	<Dialog.Content class="max-h-[80vh] max-w-fit overflow-y-auto p-6">
 		<Dialog.Header>
 			<Dialog.Title class="text-lg font-medium">
 				{requestType === 'EDIT' ? 'Edit' : 'Add'} Menu Request
@@ -73,6 +106,45 @@
 				</div>
 			{/if}
 		</div>
+
+		<div class="flex w-full flex-col gap-1 rounded-md border p-4">
+			<span class=" font-medium">Changes Summary</span>
+			<Separator class="my-2" />
+			<div class="w-full overflow-hidden rounded-md border">
+				<div class="max-h-[300px] overflow-auto">
+					<table class="w-full table-fixed">
+						<thead class="bg-muted/50">
+							<tr class="text-left">
+								<th class="w-1/4 p-3 text-sm font-medium text-muted-foreground">Field</th>
+								<th class="w-[37.5%] p-3 text-sm font-medium text-muted-foreground">Current Data</th
+								>
+								<th class="w-[37.5%] p-3 text-sm font-medium text-muted-foreground">Updated Data</th
+								>
+							</tr>
+						</thead>
+						<tbody class="divide-y">
+							{#each changes as change}
+								{@const hasChanged = change.currentValue !== change.updatedValue}
+								<tr class={hasChanged ? 'bg-amber-50' : ''}>
+									<td class="p-3 text-sm font-medium">{change.fieldName}</td>
+									<td class="break-words p-3 text-sm">
+										<div class="max-h-[80px] overflow-auto">{change.currentValue || '-'}</div>
+									</td>
+									<td
+										class={hasChanged
+											? 'break-words p-3 text-sm font-medium text-amber-900'
+											: 'break-words p-3 text-sm'}
+									>
+										<div class="max-h-[80px] overflow-auto">{change.updatedValue || '-'}</div>
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
 		{#if role === 'HEAD'}
 			<Dialog.Footer>
 				<Button
@@ -92,14 +164,3 @@
 		{/if}
 	</Dialog.Content>
 </Dialog.Root>
-
-<!-- <Card.Root>
-	<Card.Header> 
-		<Card.Title></Card.Title>
-		<Card.Description></Card.Description>
-	</Card.Header>
-
-	<Card.Content></Card.Content>
-
-	<Card.Footer></Card.Footer>
-</Card.Root> -->

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import MenuAction from '$lib/components/page/menu-action.svelte';
 	import MenuCard from '$lib/components/page/menu-card.svelte';
 	import type { PageProps } from './$types';
@@ -11,7 +12,8 @@
 	// handle menu action state
 	let menuAction: MenuActionSchema[] = $state([]);
 	const getMenuAction = async (id: number) => {
-		const response = await fetch(`./admin/menu-list/get-menu-action?id=${id}`);
+		const response = await fetch(`${page.url.pathname}/get-menu-action?id=${id}`);
+		console.log('trigger');
 		const data = await response.json();
 		menuAction = data;
 	};
@@ -23,7 +25,7 @@
 	});
 </script>
 
-<div class="mt-4 grid items-center justify-items-center gap-12 p-6 xl:grid-cols-3 2xl:grid-cols-4">
+<div class="mt-4 grid items-center justify-items-center gap-12 p-6 lg:grid-cols-2 xl:grid-cols-3">
 	{#each data.menuList as menu}
 		<MenuCard
 			title={menu.name}

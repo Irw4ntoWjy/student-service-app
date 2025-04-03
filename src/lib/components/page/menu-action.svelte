@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	// import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { CirclePlus, X } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
+	import { CirclePlus } from 'lucide-svelte';
+	// import { toast } from 'svelte-sonner';
 	import type {
 		CurrentMenu,
 		MenuActionSchema,
@@ -47,22 +47,22 @@
 
 	let menuAction: string | undefined = $state(undefined);
 
-	const removeMenuAction = async (id: number) => {
-		const formData = new FormData();
+	// const removeMenuAction = async (id: number) => {
+	// 	const formData = new FormData();
 
-		formData.append('id', String(id));
+	// 	formData.append('id', String(id));
 
-		const response = await fetch('?/updateMenuActionStatus', {
-			method: 'POST',
-			body: formData
-		});
+	// 	const response = await fetch('?/updateMenuActionStatus', {
+	// 		method: 'POST',
+	// 		body: formData
+	// 	});
 
-		if (response.ok) {
-			openFormDialog = false;
-			toast.success('Berhasil menghapus action menu');
-			await invalidateAll();
-		}
-	};
+	// 	if (response.ok) {
+	// 		openFormDialog = false;
+	// 		toast.success('Berhasil menghapus action menu');
+	// 		await invalidateAll();
+	// 	}
+	// };
 </script>
 
 <Dialog.Root
@@ -77,7 +77,7 @@
 		}
 	}}
 >
-	<Dialog.Content>
+	<Dialog.Content class="max-w-md">
 		{#if data.length > 0 || isAdminPage}
 			{#if !isAdminPage}
 				<Dialog.Title class="text-base font-semibold">

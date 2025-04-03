@@ -1,56 +1,87 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { ChevronRight } from 'lucide-svelte';
 	import Button from '../ui/button/button.svelte';
+	import { goto } from '$app/navigation';
 </script>
 
-<div class="background flex h-screen w-full flex-col items-center justify-center p-8">
-	<div class="flex h-full flex-col items-center justify-center gap-2">
-		<div class="flex flex-col text-center font-medium text-white drop-shadow-2xl">
-			<span class="text-4xl">Welcome to </span>
-			<span class="text-[54px] font-bold">Student Service Center UPH Medan</span>
+<div class="background-container">
+	<div class="z-20 flex h-full flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
+		<div class="flex flex-col items-center text-center font-medium text-white drop-shadow-2xl">
+			<span class="text-2xl sm:text-3xl md:text-4xl">Welcome to </span>
+			<span class="text-3xl font-bold sm:text-4xl md:text-5xl lg:text-[54px]">
+				Student Service Center UPH Medan
+			</span>
 		</div>
-		<span class="w-[800px] text-center text-lg text-white">
+		<p
+			class="w-full max-w-[800px] text-center text-sm leading-relaxed text-white sm:text-base md:text-lg"
+		>
 			Student Service Center (SSC) UPH Medan adalah pusat layanan bagi mahasiswa yang menyediakan
 			layanan akademik, administrasi, dan keuangan. Kami berkomitmen untuk memberikan layanan
 			terbaik bagi mahasiswa UPH Medan.
-		</span>
+		</p>
 		<Button
-			class="mt-12 flex items-center gap-2 rounded bg-white p-4 text-primary hover:bg-primary hover:text-white"
+			class="mt-6 flex items-center gap-2 rounded bg-white px-3 py-2 text-primary hover:bg-primary hover:text-white sm:mt-8 sm:px-4 sm:py-3 md:mt-12"
 			onclick={() => goto('/menu-services')}
 		>
-			<span class="text-lg font-medium">Telusuri</span>
-			<ChevronRight class="size-4" />
+			<span class="text-base font-medium sm:text-lg">Telusuri</span>
+			<ChevronRight class="h-4 w-4 sm:h-5 sm:w-5" />
 		</Button>
 	</div>
-	<p class="w-full text-right text-white">
-		Copyright © 2025 Yayasan Universitas Pelita Harapan. All rights reserved. Terms of use. privacy
+	<p class="z-20 w-full text-right text-xs text-white sm:text-sm">
+		Copyright © 2025 Yayasan Universitas Pelita Harapan. All rights reserved. Terms of use. Privacy
 		statement.
 	</p>
 </div>
 
 <style>
-	.background {
+	.background-container {
 		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-between;
+		height: 100vh;
+		min-height: 100vh;
+		width: 100%;
+		padding: 1rem;
 		background-image: url('$lib/assets/campus-medan.jpg');
-		background-size: cover;
-		background-position: center;
+		background-size: auto 100%;
+		background-position: center center;
 		background-repeat: no-repeat;
 	}
 
-	.background::before {
+	.background-container::before {
 		content: '';
 		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: rgba(0, 0, 0, 0.75);
-		z-index: 1;
+		inset: 0;
+		z-index: 10;
+		background-color: rgba(0, 0, 0, 0.75);
 	}
 
-	.background > * {
-		position: relative;
-		z-index: 2;
+	.background-container > * {
+		flex-shrink: 0;
+	}
+
+	@media (min-width: 640px) {
+		.background-container {
+			padding: 1.5rem;
+			background-size: auto 100%;
+			background-position: center center;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.background-container {
+			padding: 2rem;
+			background-size: cover;
+			background-position: center center;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.background-container {
+			background-size: cover;
+			background-position: center 30%;
+		}
 	}
 </style>

@@ -1,5 +1,5 @@
 import { createAppointment } from '$lib/server/sql/appointment-query';
-import { findpaginatedMenu, updateMenuActionToFalse } from '$lib/server/sql/menu-query';
+import { findpaginatedMenu } from '$lib/server/sql/menu-query';
 import type { Actions } from '@sveltejs/kit';
 import type { Appointment, AppointmentDetail } from '../queue-ticket/queue-ticket-schema';
 import type { PageServerLoad } from './$types';
@@ -10,12 +10,6 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions = {
-	updateMenuActionStatus: async ({ request }) => {
-		const formData = await request.formData();
-
-		updateMenuActionToFalse(Number(formData.get('id')));
-	},
-
 	createAppointment: async ({ request }) => {
 		const formData = await request.formData();
 

@@ -71,18 +71,17 @@ export const insertMenuAction = async (menuAction: MenuActionSchema) => {
 	}
 };
 
-export const updateMenuActionToFalse = async (id: number) => {
+export const deleteMenuAction = async (id: number) => {
 	try {
-		await sql`
-			update 
-				menu_action
-			set
-				status = false
-			where
-				id = ${id}
+		const result = await sql`
+			delete from menu_detail
+			where id = ${id}
 		`;
+		if (result.rowCount === 0) {
+			throw new Error(`No row found with id ${id}`);
+		}
 	} catch (err) {
-		console.error('Error updating row', err);
+		console.error('Error deleting row:', err);
 		throw err;
 	}
 };

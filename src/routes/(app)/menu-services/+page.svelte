@@ -25,7 +25,9 @@
 	});
 </script>
 
-<div class="mt-4 grid items-center justify-items-center gap-12 p-6 lg:grid-cols-2 xl:grid-cols-3">
+<div
+	class="mt-4 grid items-center justify-items-center gap-12 p-6 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+>
 	{#each data.menuList as menu}
 		<MenuCard
 			title={menu.name}

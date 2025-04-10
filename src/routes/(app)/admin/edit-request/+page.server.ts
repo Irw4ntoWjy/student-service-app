@@ -3,7 +3,13 @@ import {
 	updateChangeRequestStatus,
 	type ChangeRequestSchema
 } from '$lib/server/sql/change-request-query';
-import { getAllMenu, insertMenu, updateMenu, type MenuSchema } from '$lib/server/sql/menu-query';
+import {
+	getAllMenu,
+	getAllMenuDetail,
+	insertMenu,
+	updateMenu,
+	type MenuSchema
+} from '$lib/server/sql/menu-query';
 import {
 	getAllStaff,
 	insertStaff,
@@ -13,6 +19,7 @@ import {
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { ChangeRequestStatus, ChangeRequestType } from './change-request-schema';
+import type { MenuAndMenuDetailSchema } from '../../menu-services/menu-schema';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	const userSession = cookies.get('user_session');
@@ -33,6 +40,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	const changeRequest: ChangeRequestSchema[] = await findAllChangeRequest();
 	const staffList: StaffSchema[] = await getAllStaff();
 	const menuList: MenuSchema[] = await getAllMenu();
+	const menuDetailList: MenuAndMenuDetailSchema[] = await getAllMenuDetail();
 
 	if (userSession) {
 		try {
@@ -44,14 +52,15 @@ export const load: PageServerLoad = async ({ cookies }) => {
 				},
 				changeRequest,
 				staffList,
-				menuList
+				menuList,
+				menuDetailList
 			};
 		} catch (e) {
 			console.error('Failed to parse user_session cookie:', e);
 		}
 	}
 
-	return { changeRequest, staffList, menuList };
+	return { changeRequest, staffList, menuList, menuDetailList };
 };
 
 export const actions = {

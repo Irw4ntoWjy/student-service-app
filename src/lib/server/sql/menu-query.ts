@@ -2,7 +2,10 @@ import type { ComboboxType } from '$lib/components/ui/combobox';
 import { sql } from '@vercel/postgres';
 import { z } from 'zod';
 import type { MenuList } from '../../../routes/(app)/admin/menu-list/menu-list-schema';
-import type { MenuActionSchema } from '../../../routes/(app)/menu-services/menu-schema';
+import type {
+	MenuActionSchema,
+	MenuAndMenuDetailSchema
+} from '../../../routes/(app)/menu-services/menu-schema';
 
 export const menu = z.object({
 	id: z.number().optional(),
@@ -224,6 +227,33 @@ export const getAllMenu = async () => {
 				m.status = true
 		`;
 		return rows as MenuSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const getAllMenuDetail = async () => {
+	try {
+		const { rows } = await sql`
+			select 
+				m.id, 
+				m.name, 
+				m.code, 
+				m.description, 
+				m.image_path as "imagePath",
+				md.id as "menuDetailId",
+				md.name as "menuDetailName",
+				md.type as "menuDetailType",
+				md.link as "menuDetailLink"
+			from 
+				menu_detail md 
+			inner join 
+				menu m on m.id = md.menu_id 
+			where 
+				m.status = true and md.status = true
+		`;
+		return rows as MenuAndMenuDetailSchema[];
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;

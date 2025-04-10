@@ -63,7 +63,9 @@
 	const updateChangeRequest = async (status: ChangeRequestStatus) => {
 		const formData = new FormData();
 
-		formData.append('id', item.id.toString());
+		if (item.id) {
+			formData.append('id', item.id.toString());
+		}
 		formData.append('type', item.type);
 		formData.append('status', status);
 		formData.append('requestType', requestType);

@@ -4,9 +4,11 @@ import {
 	type ChangeRequestSchema
 } from '$lib/server/sql/change-request-query';
 import {
+	deleteMenuAction,
 	getAllMenu,
 	getAllMenuDetail,
 	insertMenu,
+	insertMenuAction,
 	updateMenu,
 	type MenuSchema
 } from '$lib/server/sql/menu-query';
@@ -19,7 +21,7 @@ import {
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { ChangeRequestStatus, ChangeRequestType } from './change-request-schema';
-import type { MenuAndMenuDetailSchema } from '../../menu-services/menu-schema';
+import type { MenuActionSchema, MenuAndMenuDetailSchema } from '../../menu-services/menu-schema';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	const userSession = cookies.get('user_session');
@@ -92,12 +94,21 @@ export const actions = {
 
 			if (status === 'ACCEPTED' && type === 'MENU') {
 				const data: MenuSchema = JSON.parse(changeJson);
-				console.log(data);
 
 				if (requestType === 'EDIT') {
 					await updateMenu(data);
 				} else {
 					await insertMenu(data);
+				}
+			}
+
+			if (status === 'ACCEPTED' && type === 'MENU_DETAIL') {
+				const data: MenuActionSchema = JSON.parse(changeJson);
+
+				if (data.id && requestType === 'EDIT') {
+					await deleteMenuAction(data.id);
+				} else {
+					await insertMenuAction(data);
 				}
 			}
 		}

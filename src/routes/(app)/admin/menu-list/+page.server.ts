@@ -65,11 +65,17 @@ export const actions = {
 		}
 	},
 
-	submitMenuAction: async ({ request }) => {
+	submitMenuAction: async ({ request, cookies }) => {
+		const userSession = cookies.get('user_session');
+		if (!userSession) {
+			return { success: false, error: 'No user session found' };
+		}
+
 		const rawData = await request.formData();
 
+		const id = rawData.get('id') || undefined;
 		const formatFormData: MenuActionSchema = {
-			id: Number(rawData.get('id')),
+			id: Number(id),
 			menuId: Number(rawData.get('menuId')),
 			name: String(rawData.get('name')),
 			type: rawData.get('type') as 'LINK' | 'APPOINTMENT',
@@ -78,7 +84,19 @@ export const actions = {
 			createdBy: Number(1)
 		};
 
-		insertMenuAction(formatFormData);
+		const sessionData = JSON.parse(userSession);
+		if (sessionData.role === 'SADMIN') {
+			const changeRequest: ChangeRequestSchema = {
+				type: 'MENU_DETAIL',
+				changeJson: JSON.stringify(formatFormData),
+				status: 'DRAFT',
+				...(id !== null && id !== undefined && !isNaN(Number(id)) && { fromId: Number(id) })
+			};
+
+			await insertChangeRequest(changeRequest);
+		} else {
+			await insertMenuAction(formatFormData);
+		}
 	}
 } satisfies Actions;
 

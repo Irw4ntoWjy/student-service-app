@@ -74,7 +74,7 @@ export const actions = {
 			name: String(rawData.get('name')),
 			type: rawData.get('type') as 'LINK' | 'APPOINTMENT',
 			link: String(rawData.get('link')),
-			status: rawData.get('status') === 'true',
+			status: true,
 			createdBy: Number(1)
 		};
 

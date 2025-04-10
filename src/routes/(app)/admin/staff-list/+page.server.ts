@@ -10,10 +10,26 @@ import {
 	updateStaff,
 	type StaffSchema
 } from '$lib/server/sql/staff-list-query';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { StaffList } from './staff-list-schema';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, cookies }) => {
+	const userSession = cookies.get('user_session');
+	if (userSession) {
+		try {
+			const sessionData = JSON.parse(userSession);
+			if (sessionData.role === 'ADMIN') {
+				throw error(404, 'No access to this page');
+			}
+		} catch (e) {
+			if (e instanceof Error && e.message === 'No access to this page') {
+				throw e;
+			}
+			throw error(500, 'Sorry No Access To This Page');
+		}
+	}
+
 	const filter = url.searchParams.get('filter') || undefined;
 	const selectedDivision = Number(url.searchParams.get('selectedDivision')) || undefined;
 

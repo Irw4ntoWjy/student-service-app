@@ -16,12 +16,27 @@ import {
 	updateStaff,
 	type StaffSchema
 } from '$lib/server/sql/staff-list-query';
-import type { MenuAndMenuDetailSchema } from '../../menu-services/menu-schema';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { ChangeRequestStatus, ChangeRequestType } from './change-request-schema';
+import type { MenuAndMenuDetailSchema } from '../../menu-services/menu-schema';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	const userSession = cookies.get('user_session');
+	if (userSession) {
+		try {
+			const sessionData = JSON.parse(userSession);
+			if (sessionData.role === 'ADMIN') {
+				throw error(404, 'No access to this page');
+			}
+		} catch (e) {
+			if (e instanceof Error && e.message === 'No access to this page') {
+				throw e;
+			}
+			throw error(500, 'Sorry No Access To This Page');
+		}
+	}
+
 	const changeRequest: ChangeRequestSchema[] = await findAllChangeRequest();
 	const staffList: StaffSchema[] = await getAllStaff();
 	const menuList: MenuSchema[] = await getAllMenu();

@@ -1,8 +1,21 @@
 import { z } from 'zod';
 
+export const menuAndMenuDetail = z.object({
+	id: z.number(),
+	name: z.string(),
+	code: z.string(),
+	description: z.string(),
+	imagePath: z.string(),
+	menuDetailId: z.number(),
+	menuDetailName: z.string(),
+	menuDetailType: z.enum(['LINK', 'APPOINTMENT']),
+	menuDetailLink: z.string().optional()
+});
+export type MenuAndMenuDetailSchema = z.infer<typeof menuAndMenuDetail>;
+
 export const menuAction = z.object({
 	id: z.number().optional(),
-	menuId: z.string(),
+	menuId: z.number(),
 	name: z.string(),
 	type: z.enum(['LINK', 'APPOINTMENT']),
 	status: z.boolean(),

@@ -1,4 +1,8 @@
 import {
+	insertChangeRequest,
+	type ChangeRequestSchema
+} from '$lib/server/sql/change-request-query';
+import {
 	findpaginatedMenu,
 	insertMenu,
 	insertMenuAction,
@@ -11,10 +15,6 @@ import path from 'path';
 import type { PageServerLoad } from '../$types';
 import type { MenuActionSchema } from '../../menu-services/menu-schema';
 import type { MenuList } from './menu-list-schema';
-import {
-	insertChangeRequest,
-	type ChangeRequestSchema
-} from '$lib/server/sql/change-request-query';
 
 export const actions = {
 	submitMenu: async ({ request, cookies }) => {
@@ -70,11 +70,11 @@ export const actions = {
 
 		const formatFormData: MenuActionSchema = {
 			id: Number(rawData.get('id')),
-			menuId: String(rawData.get('menuId')),
+			menuId: Number(rawData.get('menuId')),
 			name: String(rawData.get('name')),
 			type: rawData.get('type') as 'LINK' | 'APPOINTMENT',
 			link: String(rawData.get('link')),
-			status: rawData.get('status') === 'true',
+			status: true,
 			createdBy: Number(1)
 		};
 
@@ -105,7 +105,24 @@ const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) =
 	return filePath;
 };
 
-export const load: PageServerLoad = async ({ url }) => {
+import { error } from '@sveltejs/kit';
+
+export const load: PageServerLoad = async ({ url, cookies }) => {
+	const userSession = cookies.get('user_session');
+	if (userSession) {
+		try {
+			const sessionData = JSON.parse(userSession);
+			if (sessionData.role === 'ADMIN') {
+				throw error(404, 'No access to this page');
+			}
+		} catch (e) {
+			if (e instanceof Error && e.message === 'No access to this page') {
+				throw e;
+			}
+			throw error(500, 'Sorry No Access To This Page');
+		}
+	}
+
 	const filter = url.searchParams.get('filter') || undefined;
 	const menuList: MenuSchema[] = await findpaginatedMenu(filter);
 

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	// import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { CirclePlus, X } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
+	// import { toast } from 'svelte-sonner';
 	import type {
 		CurrentMenu,
 		MenuActionSchema,
@@ -16,6 +16,8 @@
 	import * as RadioGroup from '../ui/radio-group/index.js';
 	import Separator from '../ui/separator/separator.svelte';
 	import MenuActionFormDialog from './menu-action-form-dialog.svelte';
+	import { invalidateAll } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
 
 	let {
 		data,
@@ -31,6 +33,7 @@
 
 	const isAdminPage = page.url.pathname.includes('/admin');
 	let openFormDialog: boolean = $state(false);
+	let openDeleteConfirmationDialog: boolean = $state(false);
 
 	let userData: UserData = $state({
 		name: undefined!,
@@ -46,16 +49,20 @@
 	});
 
 	let menuAction: string | undefined = $state(undefined);
+	let selectedActionId: number | undefined = $state(undefined);
 
 	const removeMenuAction = async (id: number) => {
 		const formData = new FormData();
 
 		formData.append('id', String(id));
 
-		const response = await fetch('?/updateMenuActionStatus', {
-			method: 'POST',
-			body: formData
-		});
+		const response = await fetch(
+			`${page.url.origin}/menu-services/update-menu-action-status?id=${selectedActionId}&menuId=${data[0].menuId}`,
+			{
+				method: 'POST',
+				body: formData
+			}
+		);
 
 		if (response.ok) {
 			openFormDialog = false;
@@ -77,7 +84,7 @@
 		}
 	}}
 >
-	<Dialog.Content>
+	<Dialog.Content class="max-w-md">
 		{#if data.length > 0 || isAdminPage}
 			{#if !isAdminPage}
 				<Dialog.Title class="text-base font-semibold">
@@ -141,16 +148,21 @@
 						}}
 					>
 						{menu.name}
-						<!-- <Button
-							class="absolute right-0 top-0 flex size-4 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-destructive p-0"
-							onclick={(e) => {
-								e.stopPropagation();
 
-								if (menu.id) removeMenuAction(menu.id);
-							}}
-						>
-							<X class="size-1" />
-						</Button> -->
+						{#if isAdminPage}
+							<Button
+								class="absolute right-0 top-0 flex size-4 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-destructive p-0.5"
+								onclick={(e) => {
+									e.stopPropagation();
+
+									selectedActionId = menu.id;
+									openDeleteConfirmationDialog = true;
+									openMenuAction = false;
+								}}
+							>
+								<X class="size-1 p-0.5" />
+							</Button>
+						{/if}
 					</Button>
 				{/each}
 				<Button
@@ -191,3 +203,33 @@
 	<OtherOptionDialog bind:open={openOtherOptionDialog} {currentMenu} {userData} {menuAction} />
 	<MenuActionFormDialog bind:openFormDialog menuId={currentMenu.id} />
 {/if}
+
+<!-- delete menu action dialog confirmation -->
+<Dialog.Root bind:open={openDeleteConfirmationDialog}>
+	<Dialog.Content class="max-w-md">
+		<Dialog.Title class="text-base font-semibold">
+			Apakah anda yakin ingin menghapus action menu ini ?
+		</Dialog.Title>
+
+		<div class=" flex justify-end gap-2">
+			<Button
+				variant="destructive"
+				onclick={() => {
+					openDeleteConfirmationDialog = false;
+					openMenuAction = true;
+				}}
+			>
+				Tidak
+			</Button>
+			<Button
+				variant="outline"
+				onclick={() => {
+					openDeleteConfirmationDialog = false;
+					if (selectedActionId) removeMenuAction(selectedActionId);
+				}}
+			>
+				Iya
+			</Button>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>

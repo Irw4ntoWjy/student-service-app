@@ -2,7 +2,10 @@ import type { ComboboxType } from '$lib/components/ui/combobox';
 import { sql } from '@vercel/postgres';
 import { z } from 'zod';
 import type { MenuList } from '../../../routes/(app)/admin/menu-list/menu-list-schema';
-import type { MenuActionSchema } from '../../../routes/(app)/menu-services/menu-schema';
+import type {
+	MenuActionSchema,
+	MenuAndMenuDetailSchema
+} from '../../../routes/(app)/menu-services/menu-schema';
 
 export const menu = z.object({
 	id: z.number().optional(),
@@ -71,18 +74,17 @@ export const insertMenuAction = async (menuAction: MenuActionSchema) => {
 	}
 };
 
-export const updateMenuActionToFalse = async (id: number) => {
+export const deleteMenuAction = async (id: number) => {
 	try {
-		await sql`
-			update 
-				menu_action
-			set
-				status = false
-			where
-				id = ${id}
+		const result = await sql`
+			delete from menu_detail
+			where id = ${id}
 		`;
+		if (result.rowCount === 0) {
+			throw new Error(`No row found with id ${id}`);
+		}
 	} catch (err) {
-		console.error('Error updating row', err);
+		console.error('Error deleting row:', err);
 		throw err;
 	}
 };
@@ -91,7 +93,16 @@ export const findMenuById = async (id: number) => {
 	try {
 		const rows = await sql`
 			select
-				*
+				m.id as id,
+				m.name as name,
+				m.code as code,
+				m.description as description,
+				m.image_path as imagePath,
+				m.status as status,
+				m.created_at as createdat,
+				m.created_by as createdby,
+				m.last_updated_at as lastupdatedat,
+				m.last_updated_by as lastupdatedby
 			from 
 				menu m
 			where m.id = ${id}
@@ -177,19 +188,72 @@ export const findMenuDetailById = async (id: number) => {
 	try {
 		const { rows } = await sql`
 			select
-					md.id,
-					md.menu_id as "menuId",
-					md.name,
-					md.type,
-					md.link,
-					md.status,
-					md.created_at as "createdAt",
-					md.created_by as "createdBy"
+				md.id,
+				md.menu_id as "menuId",
+				md.name,
+				md.type,
+				md.link,
+				md.status,
+				md.created_at as "createdAt",
+				md.created_by as "createdBy"
 			from 
 					menu_detail md
 			where 
 					md.menu_id = ${id}`;
 		return rows as MenuDetailSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const getAllMenu = async () => {
+	try {
+		const { rows } = await sql`
+			select
+				m.id as id,
+				m.name as name,
+				m.code as code,
+				m.description as description,
+				m.image_path as "imagePath",
+				m.status as status,
+				m.created_at as "createdAt",
+				m.created_by as "createdBy",
+				m.last_updated_at as "lastupdatedat",
+				m.last_updated_by as "lastUpdatedBy"
+			from 
+				menu m
+			where 
+				m.status = true
+		`;
+		return rows as MenuSchema[];
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
+};
+
+export const getAllMenuDetail = async () => {
+	try {
+		const { rows } = await sql`
+			select 
+				m.id, 
+				m.name, 
+				m.code, 
+				m.description, 
+				m.image_path as "imagePath",
+				md.id as "menuDetailId",
+				md.name as "menuDetailName",
+				md.type as "menuDetailType",
+				md.link as "menuDetailLink"
+			from 
+				menu_detail md 
+			inner join 
+				menu m on m.id = md.menu_id 
+			where 
+				m.status = true and md.status = true
+		`;
+		return rows as MenuAndMenuDetailSchema[];
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		throw error;

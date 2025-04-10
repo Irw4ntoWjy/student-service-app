@@ -8,14 +8,14 @@
 	// Menu items.
 	const items = [
 		{
-			title: 'List Menu',
-			url: '/admin/menu-list',
-			icon: SquareMenu
-		},
-		{
 			title: 'List Appointment',
 			url: '/admin/appointment-list',
 			icon: PersonStanding
+		},
+		{
+			title: 'List Menu',
+			url: '/admin/menu-list',
+			icon: SquareMenu
 		},
 		{
 			title: 'List Staff',

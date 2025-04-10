@@ -85,6 +85,7 @@
 			reader.readAsDataURL(file);
 		});
 	};
+
 	const onImageSelected = async (event: Event) => {
 		const input = event.target as HTMLInputElement;
 		if (input.files && input.files[0]) {

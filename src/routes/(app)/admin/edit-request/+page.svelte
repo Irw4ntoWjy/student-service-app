@@ -2,6 +2,7 @@
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import type { PageProps } from './$types';
 	import MenuApprovalCard from './menu-approval-card.svelte';
+	import MenuDetailApprovalCard from './menu-detail-approval-card.svelte';
 	import StaffApprovalCard from './staff-approval-card.svelte';
 
 	let { data }: PageProps = $props();
@@ -72,13 +73,17 @@
 		</div>
 	</Tabs.Content>
 
-	<!-- <Tabs.Content value="staff" class="w-full">
+	<Tabs.Content value="menu_detail" class="w-full">
 		<div class="flex gap-4 py-4">
-			{#each staffRequest as staff}
+			{#each menuDetailRequest as menuDetail}
 				<div class="flex flex-col gap-2">
-					<StaffApprovalCard item={staff} staffList={data.staffList} role={data.user?.role} />
+					<MenuDetailApprovalCard
+						item={menuDetail}
+						menuDetail={data.menuDetailList}
+						role={data.user?.role}
+					/>
 				</div>
 			{/each}
 		</div>
-	</Tabs.Content> -->
+	</Tabs.Content>
 </Tabs.Root>

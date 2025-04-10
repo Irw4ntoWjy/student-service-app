@@ -70,7 +70,7 @@ export const actions = {
 
 		const formatFormData: MenuActionSchema = {
 			id: Number(rawData.get('id')),
-			menuId: String(rawData.get('menuId')),
+			menuId: Number(rawData.get('menuId')),
 			name: String(rawData.get('name')),
 			type: rawData.get('type') as 'LINK' | 'APPOINTMENT',
 			link: String(rawData.get('link')),

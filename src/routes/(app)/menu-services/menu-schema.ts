@@ -15,7 +15,7 @@ export type MenuAndMenuDetailSchema = z.infer<typeof menuAndMenuDetail>;
 
 export const menuAction = z.object({
 	id: z.number().optional(),
-	menuId: z.string(),
+	menuId: z.number(),
 	name: z.string(),
 	type: z.enum(['LINK', 'APPOINTMENT']),
 	status: z.boolean(),

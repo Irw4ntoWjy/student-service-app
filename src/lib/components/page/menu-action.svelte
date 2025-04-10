@@ -49,7 +49,7 @@
 	});
 
 	let menuAction: string | undefined = $state(undefined);
-	let selectedMenuId: number | undefined = $state(undefined);
+	let selectedActionId: number | undefined = $state(undefined);
 
 	const removeMenuAction = async (id: number) => {
 		const formData = new FormData();
@@ -57,7 +57,7 @@
 		formData.append('id', String(id));
 
 		const response = await fetch(
-			`${page.url.origin}/menu-services/update-menu-action-status?id=${selectedMenuId}`,
+			`${page.url.origin}/menu-services/update-menu-action-status?id=${selectedActionId}&menuId=${data[0].menuId}`,
 			{
 				method: 'POST',
 				body: formData
@@ -155,7 +155,7 @@
 								onclick={(e) => {
 									e.stopPropagation();
 
-									selectedMenuId = menu.id;
+									selectedActionId = menu.id;
 									openDeleteConfirmationDialog = true;
 									openMenuAction = false;
 								}}
@@ -225,7 +225,7 @@
 				variant="outline"
 				onclick={() => {
 					openDeleteConfirmationDialog = false;
-					if (selectedMenuId) removeMenuAction(selectedMenuId);
+					if (selectedActionId) removeMenuAction(selectedActionId);
 				}}
 			>
 				Iya

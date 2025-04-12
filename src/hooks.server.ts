@@ -22,7 +22,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isExcludedRoute = excludedRoutes.some((route) => pathname.startsWith(route));
 
 	if (isExcludedRoute && !userSession) {
-		throw redirect(302, '/login');
+		const returnUrl = encodeURIComponent(event.url.pathname + event.url.search);
+		throw redirect(302, `/login?returnUrl=${returnUrl}`);
 	}
 
 	// Specific redirect for exact /admin match

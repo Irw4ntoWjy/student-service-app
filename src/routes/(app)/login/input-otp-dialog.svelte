@@ -8,14 +8,14 @@
 
 	let {
 		open = $bindable(false),
-		useremail,
 		code,
-		emailValid = $bindable(false)
+		userName,
+		newPassword
 	}: {
 		open: boolean;
-		useremail: string | undefined;
-		code: string;
-		emailValid: boolean;
+		code: string | undefined;
+		userName: string | undefined;
+		newPassword: string | undefined;
 	} = $props();
 
 	let inputOtp: string = $state('');
@@ -29,10 +29,23 @@
 
 	const verifyUser = async () => {
 		if (isOtpValid) {
-			emailValid = true;
-			open = false;
-			toast.success('Berhasil Menverifikasi Email !');
+			const formData = new FormData();
+			formData.append('userName', String(userName));
+			formData.append('newPassword', String(newPassword));
+
+			const response = await fetch(`?/updatePassword`, {
+				method: 'POST',
+				body: formData
+			});
+
+			await response.json();
+			if (response.ok) {
+				toast.success('Berhasil Mengubah Password !');
+			} else {
+				toast.error('Gagal Mengubah Password !');
+			}
 		}
+		open = false;
 	};
 
 	$effect(() => {
@@ -46,8 +59,7 @@
 			<img {src} alt="uph-blue" class="h-[2.75rem] w-[9.25rem]" />
 			<span class="text-xl font-semibold">Enter verification code</span>
 			<div class="flex gap-2">
-				<span class="text-slate-700">We've sent a code to </span>
-				<span class="font-semibold">{useremail}</span>
+				<span class="text-slate-700">We've sent a code to please check your email</span>
 			</div>
 			<InputOTP.Root maxlength={6} class="mt-2" bind:value={inputOtp}>
 				{#snippet children({ cells })}
@@ -61,13 +73,8 @@
 					</InputOTP.Group>
 				{/snippet}
 			</InputOTP.Root>
-			<div class="flex gap-2">
-				<span class="text-slate-700">Didn't get a code? </span>
-				<span class="cursor-pointer font-semibold">Click to resend.</span>
-			</div>
 			<Separator orientation="horizontal" class="my-2" />
-			<div class="grid w-full grid-cols-2 gap-4">
-				<Button variant="ghost" class="border">Cancel</Button>
+			<div class="grid w-full grid-cols-1 gap-4">
 				<Button onclick={verifyUser}>Verify</Button>
 			</div>
 		</div>

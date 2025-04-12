@@ -1,8 +1,33 @@
-import { findAccountByUserName } from '$lib/server/sql/admin-query';
+import { findAccountByUserName, updateAdminPassword } from '$lib/server/sql/admin-query';
 import type { Actions } from '@sveltejs/kit';
 import { fail } from '@sveltejs/kit';
 
 export const actions = {
+	updatePassword: async ({ request }) => {
+		console.log('here');
+
+		const formData = await request.formData();
+		const username = String(formData.get('userName'));
+		const newPassword = String(formData.get('newPassword'));
+
+		const account = await findAccountByUserName(username);
+		console.log(account);
+		if (account && account.id) await updateAdminPassword(newPassword, 1, account.id);
+	},
+	checkAccountValidation: async ({ request }) => {
+		const formData = await request.formData();
+		const inputUserName = String(formData.get('userName'));
+		const inputPassword = String(formData.get('password'));
+
+		const account = await findAccountByUserName(inputUserName);
+
+		if (account && account.password === inputPassword) {
+			return { success: true };
+		}
+
+		return fail(401, { message: 'Invalid username or password' });
+	},
+
 	validateAccount: async ({ request, cookies }) => {
 		const formData = await request.formData();
 		const inputUserName = String(formData.get('userName'));

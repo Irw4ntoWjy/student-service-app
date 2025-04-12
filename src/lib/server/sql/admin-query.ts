@@ -22,17 +22,17 @@ export const insertAdmin = async (adminSchema: AdminSchema) => {
 	}
 };
 
-export const updateAdminPassword = async (adminSchema: AdminSchema) => {
+export const updateAdminPassword = async (password: string, lastUpdatedBy: number, id: number) => {
 	try {
 		const result = await sql`
 			update 
 				admin 
 			set
-				password = ${adminSchema.password},
+				password = ${password},
 				last_updated_at = now(),
-				last_updated_by = ${adminSchema.lastUpdatedBy}
+				last_updated_by = ${lastUpdatedBy}
 			where 
-				id = ${adminSchema.id}
+				id = ${id}
 			returning id
 		`;
 		return result.rows.length > 0;

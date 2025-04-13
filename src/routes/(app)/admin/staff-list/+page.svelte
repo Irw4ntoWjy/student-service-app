@@ -57,6 +57,13 @@
 					description: 'Mohon periksa kembali data yang anda masukkan!'
 				});
 			} else {
+				staffModel = {
+					id: undefined!,
+					name: undefined!,
+					divisionId: undefined!,
+					jobdesc: undefined!,
+					status: true
+				};
 				toast.success('Berhasil Menambahkan data Staff!', {
 					class: 'text-base '
 				});
@@ -192,7 +199,6 @@
 			<div class="flex flex-col space-y-2">
 				<div class="flex items-center gap-1">
 					<Label>Job Desc</Label>
-					<span class="text-destructive">*</span>
 				</div>
 				<Input bind:value={staffModel.jobdesc} placeholder="Isi jobdesc Staff" />
 			</div>
@@ -209,7 +215,7 @@
 			variant="default"
 			class="mt-auto"
 			onclick={submitStaffData}
-			disabled={!selectedDivision || !staffModel.jobdesc || !staffModel.name}
+			disabled={!selectedDivision || !staffModel.name}
 		>
 			{#if tableState.staffDetail}
 				<Pencil class="mr-2 h-4 w-4" /> Ubah data

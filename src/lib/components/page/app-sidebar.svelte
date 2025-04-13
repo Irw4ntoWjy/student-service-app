@@ -54,7 +54,7 @@
 											<div class="flex flex-1 items-center gap-2">
 												<item.icon />
 												<span class="font-semibold">{item.title}</span>
-												{#if item.title === 'Edit Data Request'}
+												{#if item.title === 'Edit Data Request' && changeRequest}
 													<span
 														class="items-cent ml-auto rounded-full bg-destructive px-2 py-0.5 text-sm text-slate-50"
 														>{changeRequest}</span

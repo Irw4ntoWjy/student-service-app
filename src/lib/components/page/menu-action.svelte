@@ -84,7 +84,7 @@
 		}
 	}}
 >
-	<Dialog.Content class="max-w-md">
+	<Dialog.Content class="max-h-[30rem] max-w-md overflow-y-auto">
 		{#if data.length > 0 || isAdminPage}
 			{#if !isAdminPage}
 				<Dialog.Title class="text-base font-semibold">
@@ -175,7 +175,7 @@
 						openOtherOptionDialog = true;
 					}}
 				>
-					Opsi Lainnya
+					Appointment
 				</Button>
 				{#if isAdminPage}
 					<Button

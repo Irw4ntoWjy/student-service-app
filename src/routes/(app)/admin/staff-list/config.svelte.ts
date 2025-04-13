@@ -80,8 +80,12 @@ export function staffTable(pageUrl: string, staffData: StaffSchema[]) {
 		},
 		{
 			id: 'jobDesc',
-			accessorFn: (row) => row.jobdesc,
-			header: () => 'Jobdesc'
+			header: () => 'Jobdesc',
+			cell: ({ row }) => {
+				if (row.original.jobdesc && row.original.jobdesc !== 'undefined') {
+					return row.original.jobdesc;
+				}
+			}
 		},
 		{
 			id: 'status',

@@ -65,7 +65,7 @@ export const inittable = async () => {
 					id serial primary key,
 					division_id int4 not null,
 					name varchar(200) not null,
-					job_desc varchar(200) not null,
+					job_desc varchar(200),
 					status boolean not null default true,
 					created_at timestamp default now(),
 					created_by int4 not null,

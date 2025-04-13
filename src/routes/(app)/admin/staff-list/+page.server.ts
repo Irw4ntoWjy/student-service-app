@@ -44,11 +44,12 @@ export const actions = {
 		const formData = await request.formData();
 
 		const id = formData.get('id') || undefined;
+		const jobdesc = formData.get('jobdesc');
 		const staff: StaffList = {
 			...(id !== null && id !== undefined && { id: Number(id) }),
 			name: String(formData.get('name')),
 			divisionId: Number(formData.get('divisionId')),
-			jobdesc: String(formData.get('jobdesc')),
+			...(jobdesc !== 'undefined' && jobdesc !== null && { jobdesc: String(jobdesc) }),
 			status: formData.get('status') === 'true'
 		};
 

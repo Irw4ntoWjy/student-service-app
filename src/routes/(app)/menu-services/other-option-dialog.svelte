@@ -43,7 +43,7 @@
 			sequence = Number(match[1]) + 1;
 		}
 		currentTodayNo = sequence.toString().padStart(3, '0');
-		nextAppointmentNo = `${currentMenu.code.toUpperCase()}${year}${month}${day}${currentTodayNo}`;
+		nextAppointmentNo = `${currentMenu.code?.toUpperCase()}${year}${month}${day}${currentTodayNo}`;
 	};
 
 	const createAppointment = async () => {
@@ -70,7 +70,7 @@
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title class="text-lg font-bold"
-				>{menuAction ? menuAction : 'Opsi lainnya'}
+				>{menuAction ? menuAction : 'Appointment'}
 			</Dialog.Title>
 			<Dialog.Description class="text-sm text-gray-500">
 				Deskripsikan permasalahan yang anda alami

@@ -106,9 +106,9 @@
 	const currentWaitingTime = $derived.by(() => {
 		const scannedAt = new Date(data.scannedAt);
 		const timezoneOffsetHours = currentTime.getTimezoneOffset() / -60;
-		scannedAt.setHours(scannedAt.getHours() + timezoneOffsetHours);
+		scannedAt.setHours(scannedAt.getHours() + timezoneOffsetHours + 7);
 
-		const diffMs = currentTime.getTime() - scannedAt.getTime() + 7;
+		const diffMs = currentTime.getTime() - scannedAt.getTime();
 
 		const totalSeconds = Math.floor(diffMs / 1000);
 		const minutes = Math.floor(totalSeconds / 60);

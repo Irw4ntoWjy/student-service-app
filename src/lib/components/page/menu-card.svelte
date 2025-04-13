@@ -32,6 +32,7 @@
 	role="button"
 	class={cn(
 		'group h-[340px] w-[400px] overflow-hidden',
+		'h-[360px] w-[320px] lg:h-[340px] lg:w-[400px]',
 		'transition-all duration-500 ease-out hover:shadow-lg',
 		'bg-white backdrop-blur-md dark:bg-black/20',
 		'border border-neutral-200/50 dark:border-white/10'
@@ -49,7 +50,7 @@
 				<Badge variant={badge.variant} class="px-2 py-1">{badge.title}</Badge>
 			</div>
 		{/if}
-		<Card.Content class="flex h-[135px] flex-col p-6">
+		<Card.Content class="flex h-[155px] flex-col p-6">
 			<Card.Title
 				class=" text-base font-medium text-gray-900 transition-all duration-300 group-hover:text-black dark:text-gray-100 dark:group-hover:text-white"
 			>

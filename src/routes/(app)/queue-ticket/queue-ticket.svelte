@@ -108,7 +108,7 @@
 		const timezoneOffsetHours = currentTime.getTimezoneOffset() / -60;
 		scannedAt.setHours(scannedAt.getHours() + timezoneOffsetHours);
 
-		const diffMs = currentTime.getTime() - scannedAt.getTime();
+		const diffMs = currentTime.getTime() - scannedAt.getTime() + 7;
 
 		const totalSeconds = Math.floor(diffMs / 1000);
 		const minutes = Math.floor(totalSeconds / 60);

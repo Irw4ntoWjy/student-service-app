@@ -110,7 +110,7 @@
 							<Label class="font-semibold">Nama Anda</Label>
 							<span class="text-red-600">*</span>
 						</div>
-						<Input placeholder="Silahkan mengisi Nama anda" bind:value={userData.name} />
+						<Input placeholder="Silahkan mengisi nama anda" bind:value={userData.name} />
 					</div>
 					{#if userData.type === 'STUDENT'}
 						<div class="flex flex-col gap-2">

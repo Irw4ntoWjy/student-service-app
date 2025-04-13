@@ -264,6 +264,7 @@ export const findTodayAppointment = async () => {
 		const { rows } = await sql`
 			select
 				ap.id,
+				ap.menu_id as "menuId",
 				ap.appointment_no as "appointmentNo",
 				ap.status_type as "statusType",
 				ap.reason,
@@ -290,14 +291,18 @@ export const findTodayAppointment = async () => {
 	}
 };
 
-export const findOngoingAppointment = async () => {
+export const findOngoingAppointment = async (menuId: number) => {
 	try {
 		const { rows } = await sql`
 					select exists (
-							select 1
-							from appointment ap
-							where date(ap.created_at) = current_date
-							and ap.status_type = 'ONGOING'
+						select 
+							1 
+						from 
+							appointment ap
+						where 
+							ap.menu_id = ${menuId} and ap.status_type = 'ONGOING' 
+							and date(ap.created_at) = current_date
+						order by ap.created_at desc
 					) as "exists"
 			`;
 		return rows[0].exists as boolean;

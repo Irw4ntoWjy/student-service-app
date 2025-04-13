@@ -13,7 +13,6 @@
 	let menuAction: MenuActionSchema[] = $state([]);
 	const getMenuAction = async (id: number) => {
 		const response = await fetch(`${page.url.pathname}/get-menu-action?id=${id}`);
-		console.log('trigger');
 		const data = await response.json();
 		menuAction = data;
 	};

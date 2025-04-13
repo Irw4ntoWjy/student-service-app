@@ -59,7 +59,9 @@ export const actions = {
 		const formData = await request.formData();
 
 		if ((formData.get('status') as StatusType) === 'ONGOING') {
-			const isAppointmentOngoing: boolean = await findOngoingAppointment();
+			const isAppointmentOngoing: boolean = await findOngoingAppointment(
+				Number(formData.get('menuId'))
+			);
 			if (isAppointmentOngoing) {
 				return fail(400, {
 					message: 'Cannot set to ONGOING: There is already an ongoing appointment'

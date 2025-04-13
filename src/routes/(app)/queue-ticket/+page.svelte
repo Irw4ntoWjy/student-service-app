@@ -9,6 +9,8 @@
 	import type { PageProps } from './$types';
 	import type { AppointmentWithDetail } from './queue-ticket-schema';
 	import QueueTicket2 from './queue-ticket.svelte';
+	import Autoplay from 'embla-carousel-autoplay';
+	import * as Carousel from '$lib/components/ui/carousel/index.js';
 
 	let { data }: PageProps = $props();
 
@@ -95,6 +97,8 @@
 			(val) => val.statusType === 'COMPLETED' || val.statusType === 'CANCELLED'
 		)
 	);
+
+	const plugin = Autoplay({ delay: 2000 });
 </script>
 
 <div class="mb-8 flex justify-between">
@@ -128,10 +132,34 @@
 			<div
 				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-8 rounded-lg bg-blue-900 p-8 shadow-lg"
 			>
-				<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang dilayani</span>
-				{#each ongoingAppointment as ticket}
-					<QueueTicket2 data={ticket} staffList={data.staffList} menuList={data.menuList} />
-				{/each}
+				<span class="text-2xl font-medium text-white">Nomor Antrian yang Sedang Dilayani</span>
+				<div class="flex items-center">
+					<Carousel.Root
+						plugins={[plugin]}
+						class="w-full max-w-[26rem]"
+						onmouseenter={plugin.stop}
+						onmouseleave={plugin.reset}
+					>
+						<Carousel.Content>
+							{#each ongoingAppointment as ticket (ticket.id)}
+								<Carousel.Item class="ml-2.5">
+									<div class="p-2">
+										<QueueTicket2
+											data={ticket}
+											staffList={data.staffList}
+											menuList={data.menuList}
+										/>
+									</div>
+								</Carousel.Item>
+							{/each}
+						</Carousel.Content>
+
+						{#if ongoingAppointment.length > 1}
+							<Carousel.Previous />
+							<Carousel.Next />
+						{/if}
+					</Carousel.Root>
+				</div>
 			</div>
 			<div
 				class="flex h-[25rem] w-[30rem] flex-col items-center justify-start gap-2 overflow-y-auto rounded-lg bg-blue-900 p-8 shadow-lg"

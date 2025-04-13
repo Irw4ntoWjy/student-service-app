@@ -45,10 +45,12 @@
 		EXTERNAL: 'Umum'
 	};
 
-	const updateAppointmentStatus = async (id: number, status: StatusType) => {
+	const updateAppointmentStatus = async (id: number, menuId: number, status: StatusType) => {
 		const formData = new FormData();
 		formData.append('id', String(id));
+		formData.append('menuId', String(menuId));
 		formData.append('status', status);
+
 		if (status === 'CANCELLED') formData.append('cancelReason', String(cancelReason));
 		if (status === 'COMPLETED') formData.append('servedBy', String(staffCbxData?.value));
 
@@ -88,13 +90,13 @@
 			//NOTES perlu adjust interval lagi
 			if (data.statusType === 'SCANNED' && timeElapsed >= 300) {
 				clearInterval(interval);
-				updateAppointmentStatus(data.id, 'PENDING');
+				updateAppointmentStatus(data.id, data.menuId, 'PENDING');
 			}
 
 			if (data.statusType === 'PENDING' && timeElapsed >= 400) {
 				clearInterval(interval);
 				cancelReason = 'Dibatalkan oleh sistem';
-				updateAppointmentStatus(data.id, 'CANCELLED');
+				updateAppointmentStatus(data.id, data.menuId, 'CANCELLED');
 			}
 		}, 1000);
 
@@ -125,7 +127,7 @@
 	const handleUpdateAppointment = async () => {
 		//update to ongoing appointment
 		if (data.statusType === 'SCANNED' || data.statusType === 'PENDING') {
-			updateAppointmentStatus(data.id, 'ONGOING');
+			updateAppointmentStatus(data.id, data.menuId, 'ONGOING');
 		}
 		if (data.statusType === 'ONGOING') {
 			openServedFormDialog = true;
@@ -177,7 +179,7 @@
 		});
 
 		if (res.ok) {
-			await updateAppointmentStatus(data.id, 'CANCELLED');
+			await updateAppointmentStatus(data.id, data.menuId, 'CANCELLED');
 
 			toast.success('Berhasil membuat kembali appointment');
 			await invalidateAll();
@@ -329,7 +331,7 @@
 				variant="destructive"
 				disabled={!cancelReason}
 				onclick={async () => {
-					updateAppointmentStatus(data.id, 'CANCELLED');
+					updateAppointmentStatus(data.id, data.menuId, 'CANCELLED');
 				}}>Batalkan</Button
 			>
 		</Dialog.Footer>
@@ -369,7 +371,7 @@
 				class="w-[88px] text-base"
 				type="submit"
 				onclick={() => {
-					updateAppointmentStatus(data.id, 'COMPLETED');
+					updateAppointmentStatus(data.id, data.menuId, 'COMPLETED');
 				}}>Selesai</Button
 			>
 		</Dialog.Footer>

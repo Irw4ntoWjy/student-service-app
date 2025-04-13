@@ -20,6 +20,7 @@ export type AppointmentDetail = z.infer<typeof appoitnmentDetail>;
 
 export const appointmentWithDetail = z.object({
 	id: z.number(),
+	menuId: z.number(),
 	appointmentNo: z.string(),
 	statusType: z.enum(statusType),
 	reason: z.string(),

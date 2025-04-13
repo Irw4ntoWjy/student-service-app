@@ -57,9 +57,15 @@
 			}).then((res) => res.json());
 
 			if (response.status === 200) {
-				const safeReturnUrl = returnUrl.startsWith('/') ? decodeURIComponent(returnUrl) : '/';
+				let safeReturnUrl = returnUrl.startsWith('/') ? decodeURIComponent(returnUrl) : '/';
+
+				const dataArray = JSON.parse(response.data);
+				const role = dataArray[2];
+
+				if (role === 'ADMIN') safeReturnUrl = '/queue-ticket';
 				await goto(safeReturnUrl);
-				toast.success(`Selamat Datang ! ${userCreds.username}`);
+
+				toast.success(`Selamat Datang ${userCreds.username} !`);
 			} else {
 				toast.error('Maaf, username atau password yang anda masukkan salah !');
 			}

@@ -148,34 +148,33 @@ export const updateAppointmentStatus = async (
 
 export const findCurrentAppointmentNo = async () => {
 	try {
-		// create appointment prefix
-		const currentYear = String(new Date().getFullYear()).slice(-2);
-		const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-		const currentDay = String(new Date().getDate()).padStart(2, '0');
+		// Use UTC for consistency
+		const now = new Date();
+		const currentYear = String(now.getUTCFullYear()).slice(-2);
+		const currentMonth = String(now.getUTCMonth() + 1).padStart(2, '0');
+		const currentDay = String(now.getUTCDate()).padStart(2, '0');
 		const todayPrefix = `${currentYear}${currentMonth}${currentDay}`;
 
 		const { rows } = await sql`
-				select 
-					ap.appointment_no
-				from 
-						appointment ap
-				order by created_at desc
-				limit 1
-		`;
+      SELECT 
+        appointment_no
+      FROM 
+        appointment
+      WHERE 
+        appointment_no LIKE ${`__${todayPrefix}%`}
+      ORDER BY appointment_no DESC
+      LIMIT 1
+    `;
 
-		// default when no appointment was made
+		// Default when no appointment was made today
 		if (rows.length === 0) {
 			return `${todayPrefix}000`;
 		}
 
 		const lastAppointmentNo = rows[0].appointment_no;
-		const lastDatePart = lastAppointmentNo.slice(2, 8);
-
-		if (lastDatePart !== todayPrefix) {
-			return `${todayPrefix}000`;
-		}
-
-		return lastAppointmentNo;
+		const sequenceMatch = lastAppointmentNo.match(/(\d{3})$/);
+		const sequence = sequenceMatch ? Number(sequenceMatch[1]) + 1 : 1;
+		return `${todayPrefix}${sequence.toString().padStart(3, '0')}`;
 	} catch (err) {
 		console.error('Error fetching appointment number:', err);
 		throw err;

@@ -102,6 +102,7 @@ export const findPaginatedStaff = async (
 				where 
 					upper(staff.name) like ${'%' + filter.toUpperCase() + '%'}
 					and staff.division_id = ${selectedDivision}
+				order by staff.name asc
 		  `;
 			} else {
 				query = sql` 
@@ -122,6 +123,7 @@ export const findPaginatedStaff = async (
 					menu m ON m.id = staff.division_id
 				where 
 					upper(staff.name) like ${'%' + filter.toUpperCase() + '%'}
+				order by staff.name asc
 		  `;
 			}
 		} else {
@@ -144,6 +146,7 @@ export const findPaginatedStaff = async (
 					menu m ON m.id = staff.division_id
 				where 
 					staff.division_id = ${selectedDivision}
+				order by staff.name asc
 		  `;
 			} else {
 				query = sql`
@@ -156,12 +159,13 @@ export const findPaginatedStaff = async (
 					staff.status AS "status",
 					staff.created_at AS "createdAt",
 					staff.created_by AS "createdBy",
-					staff.last_updated_at AS "lastupdatedAt",
+					staff.last_updated_at AS "lastUpdatedAt",
 					staff.last_updated_by AS "lastUpdatedBy"
 				from 
 					staff_list staff
 				inner join 
 					menu m ON m.id = staff.division_id
+				order by staff.name asc
 		  `;
 			}
 		}

@@ -49,7 +49,9 @@ export const actions = {
 			...(id !== null && id !== undefined && { id: Number(id) }),
 			name: String(formData.get('name')),
 			divisionId: Number(formData.get('divisionId')),
-			...(jobdesc !== 'undefined' && jobdesc !== null && { jobdesc: String(jobdesc) }),
+			...(jobdesc !== 'undefined' &&
+				jobdesc !== null &&
+				jobdesc !== 'null' && { jobdesc: String(jobdesc) }),
 			status: formData.get('status') === 'true'
 		};
 

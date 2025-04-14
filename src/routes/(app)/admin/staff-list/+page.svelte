@@ -64,7 +64,7 @@
 					jobdesc: undefined!,
 					status: true
 				};
-				toast.success('Berhasil Menambahkan data Staff!', {
+				toast.success('Berhasil menambahkan/mengubah data Staff!', {
 					class: 'text-base '
 				});
 			}
@@ -117,7 +117,7 @@
 				class="w-auto"
 				bind:value={tableState.filterValue.filter}
 				oninput={() => debounce(() => tableState.onPaginate())}
-				placeholder="Cari Staff..."
+				placeholder="Cari Staff"
 			/>
 
 			<Combobox

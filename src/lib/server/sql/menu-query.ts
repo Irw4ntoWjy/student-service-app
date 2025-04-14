@@ -55,7 +55,8 @@ export const updateMenu = async (menu: MenuList) => {
 				code = ${menu.code},
 				description = ${menu.description},
 				image_path = ${menu.imagePath},
-				created_by = ${menu.createdBy}
+				created_by = ${menu.createdBy},
+				last_updated_at = now()
 			where
 				id = ${menu.id}
 			`;
@@ -127,10 +128,10 @@ export const findpaginatedMenu = async (filter?: string | undefined) => {
 					m.description as description,
 					m.image_path as imagePath,
 					m.status as status,
-					m.created_at as createdat,
-					m.created_by as createdby,
-					m.last_updated_at as lastupdatedat,
-					m.last_updated_by as lastupdatedby
+					m.created_at as "createdAt",
+					m.created_by as "createdBy",
+					m.last_updated_at as "lastUpdatedAt",
+					m.last_updated_by as "lastUpdatedBy"
 				from 
 					menu m
 				where 
@@ -147,8 +148,8 @@ export const findpaginatedMenu = async (filter?: string | undefined) => {
 					m.status as status,
 					m.created_at as "createdAt",
 					m.created_by as "createdBy",
-					m.last_updated_at as "lastupdatedAt",
-					m.last_updated_by as "lastupdatedBy"
+					m.last_updated_at as "lastUpdatedAt",
+					m.last_updated_by as "lastUpdatedBy"
 				from 
 					menu m
 				where 

@@ -32,18 +32,22 @@
 		);
 
 		// appointment no logic
-		const year = String(new Date().getFullYear()).slice(-2);
-		const month = String(new Date().getMonth() + 1).padStart(2, '0');
-		const day = String(new Date().getDate()).padStart(2, '0');
+		const now = new Date();
+		const year = String(now.getUTCFullYear()).slice(-2);
+		const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+		const day = String(now.getUTCDate()).padStart(2, '0');
+		const todayPrefix = `${year}${month}${day}`;
 
 		const match = currentTodayNo?.match(/(\d{3})$/);
-
 		let sequence = 1;
 		if (match) {
 			sequence = Number(match[1]) + 1;
 		}
-		currentTodayNo = sequence.toString().padStart(3, '0');
-		nextAppointmentNo = `${currentMenu.code?.toUpperCase()}${year}${month}${day}${currentTodayNo}`;
+
+		const nextAppointmentNo = `${currentMenu.code?.toUpperCase()}${todayPrefix}${sequence
+			.toString()
+			.padStart(3, '0')}`;
+		return nextAppointmentNo;
 	};
 
 	const createAppointment = async () => {

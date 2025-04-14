@@ -15,6 +15,7 @@ import path from 'path';
 import type { PageServerLoad } from '../$types';
 import type { MenuActionSchema } from '../../menu-services/menu-schema';
 import type { MenuList } from './menu-list-schema';
+import { error } from '@sveltejs/kit';
 
 export const actions = {
 	submitMenu: async ({ request, cookies }) => {
@@ -104,7 +105,7 @@ const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) =
 	// Decode the base64 image data
 	const base64Data = image.toString().split(';base64,').pop();
 
-	const uploadDir = path.resolve('static/uploads');
+	const uploadDir = path.resolve('/tmp');
 
 	// Ensure the upload directory exists
 	if (!fs.existsSync(uploadDir)) {
@@ -122,8 +123,6 @@ const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) =
 
 	return filePath;
 };
-
-import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ url, cookies }) => {
 	const userSession = cookies.get('user_session');

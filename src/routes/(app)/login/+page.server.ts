@@ -32,7 +32,6 @@ export const actions = {
 		const inputPassword = String(formData.get('password'));
 
 		const account = await findAccountByUserName(inputUserName);
-
 		if (account && account.password === inputPassword) {
 			const sessionAge = 60 * 60 * 24; //1 day
 
@@ -48,7 +47,6 @@ export const actions = {
 				sameSite: 'lax',
 				maxAge: sessionAge
 			});
-
 			return { success: true, role: account.role };
 		}
 		return fail(401, { message: 'Invalid username or password' });

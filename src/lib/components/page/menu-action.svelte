@@ -5,6 +5,8 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { CirclePlus, X } from 'lucide-svelte';
 	// import { toast } from 'svelte-sonner';
+	import { invalidateAll } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
 	import type {
 		CurrentMenu,
 		MenuActionSchema,
@@ -16,8 +18,6 @@
 	import * as RadioGroup from '../ui/radio-group/index.js';
 	import Separator from '../ui/separator/separator.svelte';
 	import MenuActionFormDialog from './menu-action-form-dialog.svelte';
-	import { invalidateAll } from '$app/navigation';
-	import { toast } from 'svelte-sonner';
 
 	let {
 		data,
@@ -88,7 +88,7 @@
 		{#if data.length > 0 || isAdminPage}
 			{#if !isAdminPage}
 				<Dialog.Title class="text-base font-semibold">
-					Mohon untuk mengisi data identitas anda dibawah ini !
+					Mohon untuk mengisi data identitas Anda dibawah ini.
 				</Dialog.Title>
 
 				<RadioGroup.Root bind:value={userData.type}>

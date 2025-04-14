@@ -31,7 +31,7 @@
 		<Dialog.Header>
 			<Dialog.Title class="text-lg font-bold">Scan QR Dibawah ini</Dialog.Title>
 			<Dialog.Description class="text-sm text-gray-500">
-				Berikut merupakan Nomor Antrian anda, Scan untuk mengambil nomor antrian anda !
+				Berikut merupakan nomor antrian Anda, scan dibawah untuk mengambil nomor antrian Anda.
 			</Dialog.Description>
 		</Dialog.Header>
 		<div class="flex w-full items-center justify-center">

@@ -31,6 +31,7 @@
 			async (res) => (currentTodayNo = await res.json())
 		);
 
+		console.log(currentTodayNo);
 		// appointment no logic
 		const now = new Date();
 		const year = String(now.getUTCFullYear()).slice(-2);
@@ -44,10 +45,9 @@
 			sequence = Number(match[1]) + 1;
 		}
 
-		const nextAppointmentNo = `${currentMenu.code?.toUpperCase()}${todayPrefix}${sequence
+		nextAppointmentNo = `${currentMenu.code?.toUpperCase()}${todayPrefix}${sequence
 			.toString()
 			.padStart(3, '0')}`;
-		return nextAppointmentNo;
 	};
 
 	const createAppointment = async () => {

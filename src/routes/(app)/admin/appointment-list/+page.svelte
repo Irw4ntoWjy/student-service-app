@@ -120,7 +120,7 @@
 		<div class="flex items-center gap-4">
 			<Input
 				class="w-fit"
-				placeholder="Cari menu"
+				placeholder="Cari Appointment"
 				oninput={() => debounce(() => appointmentTableState.onPaginate())}
 				bind:value={appointmentTableState.filterValues.filter}
 			/>

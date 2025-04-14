@@ -102,26 +102,72 @@ export const actions = {
 } satisfies Actions;
 
 const uploadImage = (image: FormDataEntryValue, imageName: FormDataEntryValue) => {
-	// Decode the base64 image data
-	const base64Data = image.toString().split(';base64,').pop();
+	try {
+		// Validate inputs
+		if (typeof image !== 'string') {
+			throw new Error('Invalid image data: Expected a base64 string');
+		}
+		if (typeof imageName !== 'string') {
+			throw new Error('Invalid image name: Expected a string');
+		}
 
-	const uploadDir = path.resolve('/tmp');
+		// Sanitize imageName to prevent path traversal
+		const safeImageName = path.basename(imageName);
 
-	// Ensure the upload directory exists
-	if (!fs.existsSync(uploadDir)) {
-		fs.mkdirSync(uploadDir, { recursive: true });
+		// Decode the base64 image data
+		const base64Data = image.split(';base64,').pop();
+		if (!base64Data) {
+			throw new Error('Invalid base64 image data');
+		}
+
+		// Define the two upload directories
+		const tmpUploadDir = '/tmp/uploads';
+		const staticUploadDir = path.resolve('static/uploads');
+
+		// Helper function to save image to a directory
+		const saveImage = (uploadDir: string, filePath: string) => {
+			// Ensure the upload directory exists
+			if (!fs.existsSync(uploadDir)) {
+				try {
+					fs.mkdirSync(uploadDir, { recursive: true });
+				} catch (error) {
+					console.warn(`Failed to create directory ${uploadDir}:`, error);
+					return false; // Indicate failure
+				}
+			}
+
+			// Skip writing if the file already exists
+			if (fs.existsSync(filePath)) {
+				return true; // Indicate success
+			}
+
+			// Save the image file
+			try {
+				fs.writeFileSync(filePath, base64Data, { encoding: 'base64' });
+				return true; // Indicate success
+			} catch (error) {
+				console.warn(`Failed to write file to ${filePath}:`, error);
+				return false; // Indicate failure
+			}
+		};
+
+		const tmpFilePath = path.join(tmpUploadDir, safeImageName);
+		const tmpSuccess = saveImage(tmpUploadDir, tmpFilePath);
+
+		const staticFilePath = path.join(staticUploadDir, safeImageName);
+		const staticSuccess = saveImage(staticUploadDir, staticFilePath);
+
+		if (tmpSuccess) {
+			return tmpFilePath;
+		} else if (staticSuccess) {
+			return staticFilePath;
+		}
+
+		throw new Error('Failed to upload image to any directory');
+	} catch (error) {
+		console.error('Error in uploadImage:', error);
+		throw error;
 	}
-
-	// Skip writing the file and return the existing file path
-	const filePath = path.join(uploadDir, imageName.toString());
-	if (fs.existsSync(filePath)) {
-		return filePath;
-	}
-
-	// Save the image file
-	fs.writeFileSync(filePath, base64Data ? base64Data : '', { encoding: 'base64' });
-
-	return filePath;
 };
 
 export const load: PageServerLoad = async ({ url, cookies }) => {

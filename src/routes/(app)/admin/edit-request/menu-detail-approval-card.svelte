@@ -2,7 +2,7 @@
 	import MenuCard from '$lib/components/page/menu-card.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import type { ChangeRequestSchema } from '$lib/server/sql/change-request-query';
-	import { ArrowRight, Check, X } from 'lucide-svelte';
+	import { ArrowLeftRight, Check, X } from 'lucide-svelte';
 	import type { MenuActionSchema, MenuAndMenuDetailSchema } from '../../menu-services/menu-schema';
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
@@ -10,6 +10,7 @@
 	import type { ChangeRequestStatus } from './change-request-schema';
 	import { toast } from 'svelte-sonner';
 	import { invalidateAll } from '$app/navigation';
+	import { cn } from '$lib/utils';
 
 	let {
 		item,
@@ -108,15 +109,25 @@
 
 		<div class="flex items-center justify-center gap-4">
 			{#if currentMenuData && currentMenuData.id}
-				<div class="flex flex-col gap-2 rounded-md bg-orange-100 p-4">
-					<div class="flex gap-2">
+				<div class="flex w-full max-w-xs flex-col gap-2 rounded-md border bg-orange-100 p-4">
+					<span class="mb-2 text-sm font-medium text-muted-foreground">Current Menu</span>
+					<div class="flex flex-wrap gap-2">
 						{#each menuAction as menu}
-							<Button variant="outline" class="relative max-w-full flex-grow px-4 py-2">
+							<Button
+								variant="outline"
+								class={cn(
+									'px-4 py-2 text-center',
+									menu.id === item.changeJson.id ? 'border-red-500 text-red-500' : ''
+								)}
+							>
 								{menu.name}
 							</Button>
 						{/each}
 						{#if !item.changeJson.id}
-							<Button variant="outline" class="relative max-w-full flex-grow px-4 py-2">
+							<Button
+								variant="outline"
+								class="border-green-500 px-4 py-2 text-center text-green-500"
+							>
 								{item.changeJson.name}
 							</Button>
 						{/if}
@@ -125,14 +136,17 @@
 			{/if}
 
 			{#if item.changeJson.id}
-				<ArrowRight />
+				<div class="bg-slate-3 00 rounded-full p-3">
+					<ArrowLeftRight class="size-4  text-black" />
+				</div>
 			{/if}
 
 			{#if currentMenuData && currentMenuData.id && item.changeJson.id}
-				<div class="flex flex-col gap-2 rounded-md bg-orange-100 p-4">
-					<div class="flex max-w-md gap-2">
+				<div class="flex w-full max-w-xs flex-col gap-2 rounded-md border bg-orange-100 p-4">
+					<span class="mb-2 text-sm font-medium text-muted-foreground">After Change</span>
+					<div class="flex flex-wrap gap-2">
 						{#each menuAction.filter((menu) => menu.id !== item.changeJson.id) as menu}
-							<Button variant="outline" class="relative max-w-full flex-grow px-4 py-2">
+							<Button variant="outline" class="px-4 py-2 text-center">
 								{menu.name}
 							</Button>
 						{/each}

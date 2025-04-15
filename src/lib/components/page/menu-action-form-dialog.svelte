@@ -55,7 +55,7 @@
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title class="text-lg font-bold"
-				>Isi Form Dibawah untuk menambahkan action menu</Dialog.Title
+				>Isi form dibawah untuk menambahkan action menu</Dialog.Title
 			>
 		</Dialog.Header>
 		<div class="flex flex-col gap-4">

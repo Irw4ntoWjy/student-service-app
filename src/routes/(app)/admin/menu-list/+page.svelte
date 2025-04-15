@@ -118,7 +118,7 @@
 			tableState.openEditDialog = false;
 			resetModel();
 
-			toast.success('Berhasil Menambahkan/Mengubah Menu Baru');
+			toast.success('Berhasil menambahkan/mengubah menu baru');
 		} else {
 			toast.error('Gagal untuk Menambahkan Menu Baru');
 		}
@@ -181,7 +181,27 @@
 	<DataTable table={tableState.table} />
 </div>
 
-<Dialog.Root bind:open={tableState.openEditDialog}>
+<Dialog.Root
+	bind:open={
+		() => tableState.openEditDialog,
+		(open) => {
+			if (!open) {
+				tableState.editMenuData.id = undefined;
+
+				menuModel = {
+					id: undefined!,
+					name: undefined!,
+					code: undefined!,
+					description: undefined!,
+					imagePath: undefined!,
+					imageBase64: undefined!,
+					status: true
+				};
+				tableState.openEditDialog = false;
+			}
+		}
+	}
+>
 	<Dialog.Content class={isFormModelFilled() ? 'max-w-4xl' : 'max-w-lg'}>
 		<Dialog.Header>
 			<Dialog.Title

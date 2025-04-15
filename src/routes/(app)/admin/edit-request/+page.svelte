@@ -32,7 +32,7 @@
 			{/if}
 		</Tabs.Trigger>
 
-		<Tabs.Trigger value="menu_detail" class="flex w-[150px] items-center">
+		<Tabs.Trigger value="menu_detail" class="flex w-[175px] items-center">
 			<span>List Menu Action</span>
 			{#if menuDetailRequest.length > 0}
 				<span

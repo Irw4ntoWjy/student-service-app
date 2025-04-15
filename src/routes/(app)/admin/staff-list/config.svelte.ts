@@ -21,7 +21,6 @@ export type StaffTableFilter = {
 export function staffTable(pageUrl: string, staffData: StaffSchema[]) {
 	const currentUrl = $state(pageUrl);
 	let tableData = $state(staffData);
-	$inspect(staffData);
 	let filterValue: StaffTableFilter = $state({
 		filter: undefined,
 		selectedDivision: undefined,

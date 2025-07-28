@@ -1,79 +1,45 @@
----
-ablynya masih pakai public env
----
+# Student Service App - Queue Management System
 
----
+## Project Overview
 
-let isQrCodeScanned: boolean = $state(false);
+This project is a **Queue Management System and Digitalization Solution** developed as a final university project for the Student Services Center. The application aims to streamline and digitize the queue management process, enhancing efficiency and user experience for students and staff. It provides a modern, user-friendly interface for managing queues, appointments, and other student services.
 
-    $effect.root(() => {
-    	const ably = new Realtime({ key: 'gqo0ug.eOzcSw:e6g093vBHe3phpt2f4nBviuRBeSLkTSfQ3RXN2fBpMI' });
-    	const channel = ably.channels.get('updates');
+## Installation
 
-    	channel.subscribe('update', (message) => {
-    		console.log('Received update via Ably:', message.data);
-    		isQrCodeScanned = true;
-    	});
+### Prerequisites
+- Node.js (v20 or higher)
+- npm is installed in your machine
+### Steps
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/Irw4ntoWjy/student-service-app.git
+   cd student-service-app
+   ```
 
-    	ably.connection.on('connected', () => {
-    		console.log('Connected to Ably');
-    	});
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-    	// Unsubscribe when the component is destroyed
-    	return () => {
-    		channel.unsubscribe();
-    		ably.close();
-    	};
-    });
+3. **Run the Application**:
+   ```bash
+   npm run dev
+   ```
 
-    $effect(() => {
-    	if (isQrCodeScanned) {
-    		goto('/');
-    	}
-    });
+4. **Access the App**:
+   Open your browser and navigate to `http://localhost:5173`.
 
----
+## Usage
 
-validasi request berulang di bagian load scanned ticket
-page loader UPH yang masih ga terpakai
+- **For Students**:
+  - Select a services that was available in the menu.
+  - Request appointment based on what problem you have.
 
----
+- **For Admins**:
+  - Log in to the admin dashboard with provided credentials by accessing `http://localhost:5173/admin` & `http://localhost:5173/queue-ticket`.
+  - Manage queues, process requests, and view analytics.
 
-# sv
+## Acknowledgments
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- Built as a final project for [Universitas Pelita Harapan].
+- Special thanks to [Miss Ferawaty as my mentor that helped through the process].

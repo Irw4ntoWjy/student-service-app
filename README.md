@@ -7,21 +7,27 @@ This project is a **Queue Management System and Digitalization Solution** develo
 ## Installation
 
 ### Prerequisites
+
 - Node.js (v20 or higher)
 - npm is installed in your machine
+
 ### Steps
+
 1. **Clone the Repository**:
+
    ```bash
    git clone https://github.com/Irw4ntoWjy/student-service-app.git
    cd student-service-app
    ```
 
 2. **Install Dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Run the Application**:
+
    ```bash
    npm run dev
    ```
@@ -32,6 +38,7 @@ This project is a **Queue Management System and Digitalization Solution** develo
 ## Usage
 
 - **For Students**:
+
   - Select a services that was available in the menu.
   - Request appointment based on what problem you have.
 
@@ -43,3 +50,7 @@ This project is a **Queue Management System and Digitalization Solution** develo
 
 - Built as a final project for [Universitas Pelita Harapan].
 - Special thanks to [Miss Ferawaty as my mentor that helped through the process].
+
+## Database Structures
+
+![Database Structures Diagram](documentation/Database-Structure.png)
